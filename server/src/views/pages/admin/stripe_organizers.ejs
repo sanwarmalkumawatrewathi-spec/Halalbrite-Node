@@ -1,0 +1,70 @@
+<%- contentFor('style') %>
+<link rel="stylesheet" href="/css/stripe-admin.css">
+<style>
+    .stripe-badge-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .stripe-badge-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .stripe-badge { padding: 4px 12px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+</style>
+
+<%- contentFor('body') %>
+<div class="stripe-admin-container">
+    <div class="stripe-admin-header">
+        <h1>Connected Organisers</h1>
+        <div class="header-actions">
+            <a href="/admin/stripe/dashboard" class="stripe-btn stripe-btn-action">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="stripe-admin-card">
+        <div class="table-responsive">
+            <table class="stripe-data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Stripe Connected</th>
+                        <th>Stripe Account ID</th>
+                        <th>Available Balance</th>
+                        <th>Total Earned</th>
+                        <th>Total Payouts</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (organizers && organizers.length > 0) { %>
+                        <% organizers.forEach((org, idx) => { %>
+                            <tr>
+                                <td style="color: #64748b;"><%= idx + 1 %></td>
+                                <td><strong><%= org.username %></strong></td>
+                                <td style="color: #64748b;"><%= org.email %></td>
+                                <td>
+                                    <% if (org.accountId || org.stripeConnectedId || org.stripe_account_id) { %>
+                                        <span class="stripe-badge stripe-badge-success"><i class="fa-solid fa-check"></i> Connected</span>
+                                    <% } else { %>
+                                        <span class="stripe-badge stripe-badge-danger"><i class="fa-solid fa-xmark"></i> No</span>
+                                    <% } %>
+                                </td>
+                                <td style="font-family: monospace; font-size: 0.8rem;">
+                                    <%= org.accountId || org.stripeConnectedId || org.stripe_account_id || 'Not connected' %>
+                                </td>
+                                <td>£<%= (org.availableBalance || 0).toFixed(2) %></td>
+                                <td style="font-weight: 600;">£<%= (org.totalEarned || 0).toFixed(2) %></td>
+                                <td>£<%= (org.totalPayouts || 0).toFixed(2) %></td>
+                                <td>
+                                    <a href="/admin/stripe/login-link/<%= org._id %>" target="_blank" class="stripe-btn-action" style="color: #4f46e5;">Dashboard</a>
+                                    <a href="/admin/stripe/transactions?organizer=<%= org._id %>" class="stripe-btn-action">History</a>
+                                    <a href="/admin/users/edit/<%= org._id %>" class="stripe-btn-action">Profile</a>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px; color: #64748b;">No connected organizers found.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

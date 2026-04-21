@@ -1,0 +1,44 @@
+<div class="card">
+    <div class="card-header">
+        <h3 style="font-size: 1.1rem; color: var(--dark);">
+            <%= page ? 'Edit Static Page' : 'Create New Page' %>
+        </h3>
+        <a href="/admin/cms" class="btn" style="background: #f3f4f6;">Back to List</a>
+    </div>
+    <div style="padding: 2rem;">
+        <form action="/admin/cms/save" method="POST">
+            <% if (page) { %>
+                <input type="hidden" name="id" value="<%= page._id %>">
+            <% } %>
+
+            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+                <div class="form-group">
+                    <label>Page Title</label>
+                    <input type="text" name="title" value="<%= page ? page.title : '' %>" class="form-control" placeholder="e.g., About Us, Refund Policy" required>
+                </div>
+                <div class="form-group">
+                    <label>URL Slug</label>
+                    <input type="text" name="slug" value="<%= page ? page.slug : '' %>" class="form-control" placeholder="e.g., about-us" required>
+                    <small style="color: var(--gray);">Internal identifier for links.</small>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1.5rem;">
+                <label>Page Content (Markdown/HTML supported)</label>
+                <textarea name="content" class="form-control" rows="15" placeholder="Write your page content here..." style="font-family: monospace; font-size: 0.9rem;" required><%= page ? page.content : '' %></textarea>
+            </div>
+
+            <% if (page) { %>
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; margin-bottom: 2rem; font-size: 0.8rem; color: var(--gray);">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Last updated: <%= new Date(page.updatedAt).toLocaleString() %>
+                </div>
+            <% } %>
+
+            <div style="text-align: right; margin-top: 2rem; border-top: 1px solid var(--light-gray); padding-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary" style="padding-left: 3rem; padding-right: 3rem;">
+                    <%= page ? 'Update Static Page' : 'Publish Page' %>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

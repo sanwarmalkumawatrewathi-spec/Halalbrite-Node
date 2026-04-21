@@ -1,0 +1,6 @@
+<svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Bold Rounded H -->
+  <path d="M35 30V70M65 30V70M35 50H65" stroke="#E31E24" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Clean Text Below -->
+  <text x="50" y="100" text-anchor="middle" fill="#E31E24" font-size="18" font-family="'Inter', Arial, sans-serif" font-weight="700">HalalBrite</text>
+</svg>

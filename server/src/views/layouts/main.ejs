@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halalbrite Admin Dashboard</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style -->
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="/css/modern-admin.css">
+    <%- style %>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <a href="/admin/dashboard" class="logo">
+            <img src="/images/logo.svg" alt="HalalBrite" style="height: 40px; width: auto; filter: brightness(0) invert(1);">
+            <span>Admin Panel</span>
+        </a>
+        
+        <nav class="sidebar-nav">
+            <a href="/admin/dashboard" class="nav-item <%= activePage === 'dashboard' ? 'active' : '' %>">
+                <i class="fa-solid fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/admin/users" class="nav-item <%= activePage === 'users' ? 'active' : '' %>">
+                <i class="fa-solid fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="/admin/events" class="nav-item <%= activePage === 'events' ? 'active' : '' %>">
+                <i class="fa-solid fa-calendar-days"></i>
+                <span>Events</span>
+            </a>
+            <a href="/admin/categories" class="nav-item <%= activePage === 'categories' ? 'active' : '' %>">
+                <i class="fa-solid fa-tags"></i>
+                <span>Categories</span>
+            </a>
+            <a href="/admin/orders" class="nav-item <%= activePage === 'orders' ? 'active' : '' %>">
+                <i class="fa-solid fa-receipt"></i>
+                <span>Orders</span>
+            </a>
+            
+            <div style="margin: 1rem 0; height: 1px; background: rgba(255,255,255,0.1);"></div>
+            
+            <div class="nav-item-wrapper">
+                <div class="nav-item <%= activePage === 'stripe' ? 'active' : '' %>" onclick="toggleSubmenu('stripe-submenu')">
+                    <i class="fa-solid fa-money-bill-transfer"></i>
+                    <span>Stripe Connect</span>
+                    <i class="fa-solid fa-chevron-down submenu-arrow" style="<%= activePage === 'stripe' ? 'transform: rotate(180deg);' : '' %>"></i>
+                </div>
+                <div class="submenu" id="stripe-submenu" style="<%= activePage === 'stripe' ? 'display: block;' : 'display: none;' %>">
+                    <a href="/admin/stripe/dashboard" class="submenu-item <%= (typeof activeSubPage !== 'undefined' && activeSubPage === 'overview') ? 'active' : '' %>">Overview</a>
+                    <a href="/admin/stripe/settings" class="submenu-item <%= (typeof activeSubPage !== 'undefined' && activeSubPage === 'settings') ? 'active' : '' %>">Settings</a>
+                    <a href="/admin/stripe/organizers" class="submenu-item <%= (typeof activeSubPage !== 'undefined' && activeSubPage === 'organizers') ? 'active' : '' %>">Organisers</a>
+                    <a href="/admin/stripe/transactions" class="submenu-item <%= (typeof activeSubPage !== 'undefined' && activeSubPage === 'transactions') ? 'active' : '' %>">Transactions</a>
+                </div>
+            </div>
+            <a href="/admin/cms" class="nav-item <%= activePage === 'cms' ? 'active' : '' %>">
+                <i class="fa-solid fa-file-lines"></i>
+                <span>Static Pages</span>
+            </a>
+            <a href="/admin/faqs" class="nav-item <%= activePage === 'faqs' ? 'active' : '' %>">
+                <i class="fa-solid fa-circle-question"></i>
+                <span>Help & FAQs</span>
+            </a>
+            <a href="/admin/inquiries" class="nav-item <%= activePage === 'inquiries' ? 'active' : '' %>">
+                <i class="fa-solid fa-envelope"></i>
+                <span>Inquiries</span>
+            </a>
+            <a href="/admin/settings" class="nav-item <%= activePage === 'settings' ? 'active' : '' %>">
+                <i class="fa-solid fa-gears"></i>
+                <span>App Settings</span>
+            </a>
+        </nav>
+
+        <a href="/admin/logout" class="nav-item" style="color: #f87171; margin-top: auto;">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            <span>Logout</span>
+        </a>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="header">
+            <div class="header-search">
+                <h2 style="font-size: 1.1rem; font-weight: 600; color: var(--text-main);"><%= activePage.charAt(0).toUpperCase() + activePage.slice(1) %> Management</h2>
+            </div>
+            <div class="header-user">
+                <!-- Currency Switcher -->
+                <div style="margin-right: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                    <i class="fa-solid fa-earth-americas" style="color: var(--text-muted); font-size: 0.875rem;"></i>
+                    <select id="currency-switcher" style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; padding: 4px 8px; font-size: 0.875rem; cursor: pointer; outline: none;">
+                        <% (typeof allCurrencies !== 'undefined' ? allCurrencies : []).forEach(curr => { %>
+                            <option value="<%= curr.code %>" <%= (typeof currentCurrency !== 'undefined' && currentCurrency.code === curr.code) ? 'selected' : '' %>>
+                                <%= curr.code %> (<%= curr.symbol %>)
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <span>Admin: <strong><%= admin.username %></strong></span>
+                <div class="user-avatar">
+                    <%= admin.username.charAt(0).toUpperCase() %>
+                </div>
+            </div>
+        </header>
+
+        <main class="content-body">
+            <% if (typeof success !== 'undefined' && success) { %>
+                <div class="badge-success" style="padding: 12px; border-radius: 8px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px; font-weight: 500;">
+                    <i class="fa-solid fa-circle-check"></i> <%= success %>
+                </div>
+            <% } %>
+
+            <%- body %>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        function toggleSubmenu(id) {
+            const menu = document.getElementById(id);
+            const isVisible = menu.style.display === 'block';
+            menu.style.display = isVisible ? 'none' : 'block';
+            
+            // Optional: Rotate arrow
+            const arrow = menu.previousElementSibling.querySelector('.submenu-arrow');
+            if (arrow) {
+                arrow.style.transform = isVisible ? 'rotate(0deg)' : 'rotate(180deg)';
+            }
+        }
+
+        // Currency Switcher Logic
+        document.getElementById('currency-switcher')?.addEventListener('change', function() {
+            const selected = this.value;
+            // Set cookie for 1 year
+            document.cookie = `selected_currency=${selected}; path=/; max-age=${365 * 24 * 60 * 60}`;
+            // Refresh to apply changes
+            window.location.reload();
+        });
+    </script>
+    <script src="/js/stripe-admin.js"></script>
+    <%- script %>
+</body>
+</html>

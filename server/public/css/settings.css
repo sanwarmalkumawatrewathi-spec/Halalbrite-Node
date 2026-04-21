@@ -1,0 +1,87 @@
+/* Halalbrite Settings Styles */
+.settings-container {
+    padding: 2rem;
+}
+
+.settings-card-header h3 {
+    font-size: 1.1rem; 
+    color: var(--dark);
+    margin: 0;
+}
+
+.settings-success-badge {
+    display: block; 
+    width: 100%; 
+    margin-bottom: 2rem; 
+    padding: 1rem; 
+    text-align: center;
+    background: #ecfdf5;
+    color: #10b981;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+/* Auth0 Section */
+.auth0-section {
+    margin-bottom: 2.5rem; 
+    border-bottom: 1px solid var(--light-gray); 
+    padding: 1.5rem; 
+    background: #fdf2f222; 
+    border-radius: 8px;
+}
+
+.section-header-flex {
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 1.5rem;
+}
+
+.auth0-title {
+    margin: 0; 
+    color: #eb5424;
+}
+
+.switch-label-flex {
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    cursor: pointer; 
+    font-weight: 600;
+}
+
+.grid-3-col {
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1fr; 
+    gap: 1.5rem;
+}
+
+/* Contact & Social Section */
+.contact-social-section {
+    margin-bottom: 2rem; 
+    background: #fdfdfd; 
+    padding: 1.5rem; 
+    border: 1px dashed var(--light-gray); 
+    border-radius: 8px;
+}
+
+.grid-2-col {
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 1.5rem;
+}
+
+.grid-4-col {
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 1rem; 
+    margin-top: 1rem;
+}
+
+.form-actions-right {
+    text-align: right;
+}
+
+.btn-large {
+    padding: 1rem 3rem;
+}

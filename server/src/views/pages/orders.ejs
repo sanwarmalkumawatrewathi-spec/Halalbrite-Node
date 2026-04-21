@@ -1,0 +1,58 @@
+<div class="card">
+    <div class="card-header">
+        <h3 style="font-size: 1.1rem; color: var(--dark);">All Orders & Ticket Sales</h3>
+        <span style="color: var(--gray); font-size: 0.875rem;">Total Transactions: <%= orders.length %></span>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Event</th>
+                    <th>Ticket Details</th>
+                    <th>Amount</th>
+                    <th>Revenue Split</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (orders.length === 0) { %>
+                    <tr><td colspan="7" style="text-align: center;">No orders found.</td></tr>
+                <% } else { %>
+                    <% orders.forEach(order => { %>
+                        <tr>
+                            <td>
+                                <div class="customer-info">
+                                    <span class="customer-name"><%= order.user_id ? order.user_id.username : 'Guest' %></span><br>
+                                    <span class="customer-email"><%= order.user_id ? order.user_id.email : '' %></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="event-title"><%= order.event_id ? order.event_id.title : (order.event_name || 'Deleted Event') %></span>
+                            </td>
+                            <td>
+                                <span class="ticket-details"><%= order.ticket_name %> (x<%= order.quantity %>)</span>
+                            </td>
+                            <td>
+                                <strong><%= formatPrice(order.amount_total || 0) %></strong>
+                            </td>
+                            <td>
+                                <div class="revenue-split">
+                                    <span class="revenue-platform">Platform: <%= formatPrice(order.platform_fee || 0) %></span><br>
+                                    <span class="revenue-org">Org: <%= formatPrice(order.organizer_amount || 0) %></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge <%= order.payment_status === 'paid' ? 'badge-success' : 'badge-warning' %>"><%= order.payment_status %></span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-ghost" title="Order Details"><i class="fa-solid fa-circle-info"></i></button>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>

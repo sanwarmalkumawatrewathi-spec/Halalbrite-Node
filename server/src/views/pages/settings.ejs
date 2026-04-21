@@ -1,0 +1,249 @@
+<%- contentFor('body') %>
+<div class="card">
+    <div class="card-header">
+        <h3>Global System Settings</h3>
+    </div>
+    <div class="card-body">
+        <% if (typeof success !== 'undefined' && success) { %>
+            <div class="alert alert-success" style="padding: 1rem; background: #dcfce7; color: #166534; border-radius: 8px; margin-bottom: 1.5rem;">
+                <i class="fa-solid fa-circle-check"></i> <%= success %>
+            </div>
+        <% } %>
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-danger" style="padding: 1rem; background: #fee2e2; color: #991b1b; border-radius: 8px; margin-bottom: 1.5rem;">
+                <i class="fa-solid fa-circle-exclamation"></i> <%= error %>
+            </div>
+        <% } %>
+        <form action="/admin/settings/update" method="POST">
+            <!-- Google Social Login Section -->
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h4 class="section-title"><i class="fa-brands fa-google"></i> Google Login</h4>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.875rem;">
+                        <input type="checkbox" name="socialLogin[google][isActive]" <%= settings.socialLogin && settings.socialLogin.google && settings.socialLogin.google.isActive ? 'checked' : '' %>>
+                        Enable
+                    </label>
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label class="form-label">Client ID</label>
+                        <input type="text" name="socialLogin[google][clientId]" value="<%= settings.socialLogin && settings.socialLogin.google ? settings.socialLogin.google.clientId : '' %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Client Secret</label>
+                        <input type="password" name="socialLogin[google][clientSecret]" value="<%= (settings.socialLogin && settings.socialLogin.google && settings.socialLogin.google.clientSecret) ? '••••••••••••••••' : '' %>" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meta (Facebook) Login Section -->
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h4 class="section-title"><i class="fa-brands fa-facebook"></i> Meta Login</h4>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.875rem;">
+                        <input type="checkbox" name="socialLogin[meta][isActive]" <%= settings.socialLogin && settings.socialLogin.meta && settings.socialLogin.meta.isActive ? 'checked' : '' %>>
+                        Enable
+                    </label>
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label class="form-label">App ID</label>
+                        <input type="text" name="socialLogin[meta][clientId]" value="<%= settings.socialLogin && settings.socialLogin.meta ? settings.socialLogin.meta.clientId : '' %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">App Secret</label>
+                        <input type="password" name="socialLogin[meta][clientSecret]" value="<%= (settings.socialLogin && settings.socialLogin.meta && settings.socialLogin.meta.clientSecret) ? '••••••••••••••••' : '' %>" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apple Login Section -->
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h4 class="section-title"><i class="fa-brands fa-apple"></i> Apple Login</h4>
+                    <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 0.875rem;">
+                        <input type="checkbox" name="socialLogin[apple][isActive]" <%= settings.socialLogin && settings.socialLogin.apple && settings.socialLogin.apple.isActive ? 'checked' : '' %>>
+                        Enable
+                    </label>
+                </div>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label class="form-label">Service ID (Client ID)</label>
+                        <input type="text" name="socialLogin[apple][clientId]" value="<%= settings.socialLogin && settings.socialLogin.apple ? settings.socialLogin.apple.clientId : '' %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Team ID</label>
+                        <input type="text" name="socialLogin[apple][teamId]" value="<%= settings.socialLogin && settings.socialLogin.apple ? settings.socialLogin.apple.teamId : '' %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Key ID</label>
+                        <input type="text" name="socialLogin[apple][keyId]" value="<%= settings.socialLogin && settings.socialLogin.apple ? settings.socialLogin.apple.keyId : '' %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Private Key (.p8 content)</label>
+                        <textarea name="socialLogin[apple][privateKey]" class="form-control" rows="1" style="height: 38px;"><%= (settings.socialLogin && settings.socialLogin.apple && settings.socialLogin.apple.privateKey) ? '••••••••••••••••' : '' %></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact & Social Links Section -->
+            <div class="section-card">
+                <h4 class="section-title"><i class="fa-solid fa-address-book"></i> Global Contact & Social Links</h4>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label class="form-label">Office Address</label>
+                        <input type="text" name="contactInfo[officeAddress]" value="<%= settings.contactInfo.officeAddress %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contact Email</label>
+                        <input type="email" name="contactInfo[contactEmail]" value="<%= settings.contactInfo.contactEmail %>" class="form-control">
+                    </div>
+                </div>
+                <div class="grid-4-col" style="margin-top: 1rem;">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-brands fa-facebook"></i> Facebook</label>
+                        <input type="text" name="socialLinks[facebook]" value="<%= settings.socialLinks.facebook %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-brands fa-twitter"></i> Twitter</label>
+                        <input type="text" name="socialLinks[twitter]" value="<%= settings.socialLinks.twitter %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-brands fa-instagram"></i> Instagram</label>
+                        <input type="text" name="socialLinks[instagram]" value="<%= settings.socialLinks.instagram %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-brands fa-linkedin"></i> LinkedIn</label>
+                        <input type="text" name="socialLinks[linkedin]" value="<%= settings.socialLinks.linkedin %>" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Multi-Currency Management Section -->
+            <div class="section-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h4 class="section-title"><i class="fa-solid fa-coins"></i> Multi-Currency Management</h4>
+                    <button type="button" onclick="document.getElementById('sync-rates-form').submit()" class="btn btn-secondary btn-small" style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main);">
+                        <i class="fa-solid fa-arrows-rotate"></i> Sync Rates with Stripe
+                    </button>
+                </div>
+                
+                <div id="currency-rows">
+                    <div class="table-responsive">
+                        <table class="table" style="width: 100%; border-collapse: collapse;" id="currency-table">
+                            <thead>
+                                <tr style="text-align: left; border-bottom: 1px solid var(--border-color);">
+                                    <th style="padding: 12px 8px;">Country</th>
+                                    <th style="padding: 12px 8px;">Code</th>
+                                    <th style="padding: 12px 8px;">Symbol</th>
+                                    <th style="padding: 12px 8px;">Exchange Rate</th>
+                                    <th style="padding: 12px 8px;">Status</th>
+                                    <th style="padding: 12px 8px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% (settings.currencies || []).forEach((curr, index) => { %>
+                                    <tr style="border-bottom: 1px solid var(--border-color);" class="currency-row">
+                                        <td style="padding: 12px 8px;">
+                                            <input type="text" name="currencies[<%= index %>][country]" value="<%= curr.country %>" class="form-control" style="width: 120px;">
+                                        </td>
+                                        <td style="padding: 12px 8px;">
+                                            <input type="text" name="currencies[<%= index %>][code]" value="<%= curr.code %>" class="form-control" style="width: 80px; text-transform: uppercase;">
+                                        </td>
+                                        <td style="padding: 12px 8px;">
+                                            <input type="text" name="currencies[<%= index %>][symbol]" value="<%= curr.symbol %>" class="form-control" style="width: 60px;">
+                                        </td>
+                                        <td style="padding: 12px 8px;">
+                                            <div style="display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 0.75rem; color: var(--text-muted);">1 <%= settings.platform.currency %> = </span>
+                                                <input type="number" name="currencies[<%= index %>][rate]" value="<%= curr.rate %>" step="0.000001" class="form-control" style="width: 120px;">
+                                            </div>
+                                        </td>
+                                        <td style="padding: 12px 8px;">
+                                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                                <input type="checkbox" name="currencies[<%= index %>][isActive]" <%= curr.isActive ? 'checked' : '' %>>
+                                                <span style="font-size: 0.875rem;">Active</span>
+                                            </label>
+                                            <input type="hidden" name="currencies[<%= index %>][countryCode]" value="<%= curr.countryCode %>">
+                                        </td>
+                                        <td style="padding: 12px 8px;">
+                                            <button type="button" onclick="this.closest('tr').remove()" class="btn btn-sm" style="color: #ef4444;"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <button type="button" onclick="addCurrencyRow()" class="btn btn-sm" style="background: var(--bg-main); border: 1px solid var(--border-color); color: var(--primary);">
+                        <i class="fa-solid fa-plus"></i> Add New Currency
+                    </button>
+                </div>
+                <p class="text-muted" style="font-size: 0.75rem; margin-top: 1rem;">
+                    <i class="fa-solid fa-circle-info"></i> Rates are used to convert prices for display based on user preference or landing URL.
+                </p>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary btn-large" style="padding: 12px 30px;"><i class="fa-solid fa-cloud-arrow-up"></i> Save All Changes</button>
+            </div>
+        </form>
+        <form id="sync-rates-form" action="/admin/settings/sync-rates" method="POST" style="display: none;"></form>
+    </div>
+</div>
+
+<script>
+    console.log('Currency script loaded');
+    function addCurrencyRow() {
+        console.log('Adding new currency row...');
+        const table = document.getElementById('currency-table');
+        if (!table) {
+            console.error('Table not found!');
+            return;
+        }
+        const tbody = table.querySelector('tbody');
+        const index = tbody.querySelectorAll('.currency-row').length;
+        
+        const newRow = document.createElement('tr');
+        newRow.className = 'currency-row';
+        newRow.style.borderBottom = '1px solid var(--border-color)';
+        
+        newRow.innerHTML = `
+            <td style="padding: 12px 8px;">
+                <input type="text" name="currencies[${index}][country]" placeholder="Country Name" class="form-control" style="width: 120px;" required>
+            </td>
+            <td style="padding: 12px 8px;">
+                <input type="text" name="currencies[${index}][code]" placeholder="CODE" class="form-control" style="width: 80px; text-transform: uppercase;" required>
+            </td>
+            <td style="padding: 12px 8px;">
+                <input type="text" name="currencies[${index}][symbol]" placeholder="Symbol" class="form-control" style="width: 60px;" required>
+            </td>
+            <td style="padding: 12px 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">1 GBP = </span>
+                    <input type="number" name="currencies[${index}][rate]" value="1" step="0.000001" class="form-control" style="width: 120px;" required>
+                </div>
+            </td>
+            <td style="padding: 12px 8px;">
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input type="checkbox" name="currencies[${index}][isActive]" checked>
+                    <span style="font-size: 0.875rem;">Active</span>
+                </label>
+                <input type="hidden" name="currencies[${index}][countryCode]" value="">
+            </td>
+            <td style="padding: 12px 8px;">
+                <button type="button" onclick="this.closest('tr').remove()" class="btn btn-sm" style="color: #ef4444;"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        `;
+        
+        tbody.appendChild(newRow);
+
+        // Auto-fill country code from currency code
+        const codeInput = newRow.querySelector('input[name*="[code]"]');
+        const countryCodeHidden = newRow.querySelector('input[name*="[countryCode]"]');
+        codeInput.addEventListener('input', (e) => {
+            countryCodeHidden.value = e.target.value.toLowerCase().substring(0, 2);
+        });
+    }
+</script>

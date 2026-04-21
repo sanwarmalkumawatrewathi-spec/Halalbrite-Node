@@ -1,0 +1,43 @@
+<div class="card">
+    <div class="card-header">
+        <h3>Help & FAQs</h3>
+        <a href="/admin/faqs/add" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add FAQ</a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Question</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (faqs.length === 0) { %>
+                    <tr><td colspan="4" class="text-center text-muted" style="padding: 3rem;">No FAQs found.</td></tr>
+                <% } else { %>
+                    <% faqs.forEach(faq => { %>
+                        <tr>
+                            <td><span class="customer-name"><%= faq.question %></span></td>
+                            <td><span class="badge" style="background: #f1f5f9; color: #475569;"><%= faq.category %></span></td>
+                            <td>
+                                <span class="badge <%= faq.status === 'active' || faq.isActive ? 'badge-success' : 'badge-warning' %>">
+                                    <%= (faq.status || (faq.isActive ? 'active' : 'inactive')).toUpperCase() %>
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="/admin/faqs/edit/<%= faq._id %>" class="btn btn-sm btn-ghost" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <form action="/admin/faqs/delete/<%= faq._id %>" method="POST" onsubmit="return confirm('Delete FAQ?')">
+                                        <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--danger);"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
