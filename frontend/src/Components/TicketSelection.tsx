@@ -3,41 +3,23 @@
 import React, { useState } from "react";
 
 type Ticket = {
-  id: number;
-  title: string;
+  _id: string;
+  name: string;
   price: number;
-  desc: string;
-  remaining: number;
+  description: string;
+  quantity: number;
 };
 
-const ticketsData: Ticket[] = [
-  {
-    id: 1,
-    title: "General Admission",
-    price: 25,
-    desc: "Access to all sessions • Lunch included • Conference materials",
-    remaining: 47,
-  },
-  {
-    id: 2,
-    title: "VIP Pass",
-    price: 50,
-    desc: "Priority seating • VIP networking session • Lunch included • Conference materials • Gift bag",
-    remaining: 12,
-  },
-  {
-    id: 3,
-    title: "Student Ticket",
-    price: 15,
-    desc: "Access to all sessions • Lunch included • Valid student ID required",
-    remaining: 35,
-  },
-];
+type TicketSelectionProps = {
+  tickets?: Ticket[];
+};
 
-  export default function TicketSelection(){
-  const [qty, setQty] = useState<{ [key: number]: number }>({});
+export default function TicketSelection({ tickets }: TicketSelectionProps) {
+  const [qty, setQty] = useState<{ [key: string]: number }>({});
+  
+  const displayTickets = tickets || [];
 
-  const handleChange = (id: number, type: "inc" | "dec") => {
+  const handleChange = (id: string, type: "inc" | "dec") => {
     setQty((prev) => {
       const current = prev[id] || 0;
       if (type === "inc") return { ...prev, [id]: current + 1 };
@@ -51,26 +33,26 @@ const ticketsData: Ticket[] = [
       <h2 className="text-red-900 font-semibold mb-4">Select Tickets</h2>
 
       <div className="space-y-4">
-        {ticketsData.map((ticket, index) => {
-          const count = qty[ticket.id] || 0;
+        {displayTickets.map((ticket, index) => {
+          const count = qty[ticket._id] || 0;
           const total = ticket.price * count + (count > 0 ? 2.32 : 0);
 
           return (
             <div
-              key={ticket.id}
+              key={ticket._id}
               className="bg-white p-4 rounded-xl border border-gray-300  flex flex-col gap-4"
             >
               {/* TOP */}
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="font-sm">{ticket.title}</h3>
-                  <p className="text-sm text-gray-600">{ticket.desc}</p>
+                  <h3 className="font-sm">{ticket.name}</h3>
+                  <p className="text-sm text-gray-600">{ticket.description}</p>
                 </div>
 
                 <div className="text-right">
-                  <p className="font-medium">€{ticket.price.toFixed(2)}</p>
+                  <p className="font-medium">£{ticket.price.toFixed(2)}</p>
                   <p className="text-sm text-gray-500">
-                    {ticket.remaining} remaining
+                    {ticket.quantity} remaining
                   </p>
                 </div>
               </div>
@@ -80,7 +62,7 @@ const ticketsData: Ticket[] = [
                 {/* COUNTER */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleChange(ticket.id, "dec")}
+                    onClick={() => handleChange(ticket._id, "dec")}
                     className="w-10 h-10 rounded-md border bg-gray-100"
                   >
                     -
@@ -91,7 +73,7 @@ const ticketsData: Ticket[] = [
                   </div>
 
                   <button
-                    onClick={() => handleChange(ticket.id, "inc")}
+                    onClick={() => handleChange(ticket._id, "inc")}
                     className="w-10 h-10 rounded-md border bg-gray-100"
                   >
                     +
@@ -112,7 +94,7 @@ const ticketsData: Ticket[] = [
                 {/* TOTAL */}
                 {count > 0 && (
                   <div className="bg-red-50 text-red-700 px-4 py-2 rounded-lg text-sm whitespace-nowrap">
-                    Total + fees: €{total.toFixed(2)}
+                    Total + fees: £{total.toFixed(2)}
                   </div>
                 )}
               </div>

@@ -6,14 +6,17 @@ import { FaRegCalendarAlt, FaRegClock } from "react-icons/fa";
 import EventType from "@/Components/EventType";
 import TicketSection from "@/Components/TicketSection";
 
+import { useAuth } from "@/context/authContext";
+
 export default function EventForm() {
+    const { user } = useAuth();
     const [categories, setCategories] = useState<any[]>([]);
     const [form, setForm] = useState({
         title: "",
         category: "",
         description: "",
-        organizer: "",
-        organizerName: "",
+        organizer: user?._id || "",
+        organizerName: user?.username || "",
         startDate: "",
         endDate: "",
         startTime: "",
@@ -44,6 +47,16 @@ export default function EventForm() {
             chargeCustomer: true,
         },
     ]);
+
+    useEffect(() => {
+        if (user) {
+            setForm(prev => ({
+                ...prev,
+                organizer: user._id,
+                organizerName: prev.organizerName || user.username
+            }));
+        }
+    }, [user]);
 
     useEffect(() => {
         const fetchCategories = async () => {

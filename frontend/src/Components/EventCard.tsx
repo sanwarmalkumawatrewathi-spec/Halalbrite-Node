@@ -4,7 +4,7 @@ import { Heart, Calendar, MapPin } from "lucide-react";
 import Link from "next/link";
 
 type EventCardProps = {
-    id:"1";
+    id: string;
   title: string;
   organizer: string;
   date: string;

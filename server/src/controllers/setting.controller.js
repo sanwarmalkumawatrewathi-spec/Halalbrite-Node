@@ -115,3 +115,37 @@ exports.getActiveCurrencies = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+// @desc    Get public social login settings for frontend
+// @route   GET /api/admin/settings/social
+// @access  Public
+exports.getPublicSocialSettings = async (req, res) => {
+    try {
+        const settings = await AppSetting.findOne();
+        if (!settings || !settings.socialLogin) {
+            return res.status(404).json({ message: 'Social settings not found' });
+        }
+        
+        const social = settings.socialLogin;
+        const publicSettings = {
+            google: {
+                clientId: social.google.isActive ? social.google.clientId : null,
+                isActive: social.google.isActive
+            },
+            meta: {
+                appId: social.meta.isActive ? social.meta.clientId : null, // Meta uses clientId as AppId usually
+                isActive: social.meta.isActive
+            },
+            apple: {
+                clientId: social.apple.isActive ? social.apple.clientId : null,
+                isActive: social.apple.isActive
+            }
+        };
+        
+        res.json({
+            success: true,
+            data: publicSettings
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

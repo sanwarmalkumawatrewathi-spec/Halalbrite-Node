@@ -1,14 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getSettings, updateSettings } = require('../../controllers/setting.controller');
+const { getSettings, updateSettings, getActiveCurrencies, getPublicSocialSettings } = require('../../controllers/setting.controller');
 const { protect, authorize } = require('../../middlewares/auth.middleware');
 
-// Public route to get active currencies for frontend
-router.get('/public', getSettings); // Wait, getSettings has sensitive info.
-
-// Better to add a specific public endpoint
-const { getActiveCurrencies } = require('../../controllers/setting.controller');
+// Public routes MUST come before routes with parameters or restricted routes
 router.get('/currencies', getActiveCurrencies);
+router.get('/social-settings', getPublicSocialSettings);
+router.get('/public', getSettings); // This might still expose too much, but let's keep it if it was there
 
 // Admin only routes for global settings
 router.route('/')

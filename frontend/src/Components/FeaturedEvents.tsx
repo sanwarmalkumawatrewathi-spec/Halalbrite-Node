@@ -1,6 +1,5 @@
-
-
-
+"use client";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import EventCard from "./EventCard";
 
@@ -8,30 +7,39 @@ type Props = {
   activeCategory: string;
 };
 
-const events = [
-  {
-    id:"1",
-    title: "Islamic Education Workshop",
-    organizer: "Knowledge Institute",
-    date: "May 2-3, 2026 · 10:00 AM",
-    location: "Leeds, UK",
-    price: "From €10",
-    image: "/featured.jpg",
-    category: "Workshop",
-  },
-  {
-    id:"2",
-    title: "Food Festival",
-    organizer: "Halal Food Network",
-    date: "Apr 22-24, 2026",
-    location: "Birmingham, UK",
-    price: "From €15",
-    image: "/featured.jpg",
-    category: "Food Festival",
-  },
-];
-
 export default function FeaturedEvents({ activeCategory }: Props) {
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+        const response = await fetch(`${baseUrl}/api/events`);
+        const result = await response.json();
+        const eventData = Array.isArray(result) ? result : result.data || [];
+        setEvents(eventData);
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  };
   
   // ✅ FILTER LOGIC
   const filteredEvents =
@@ -39,8 +47,10 @@ export default function FeaturedEvents({ activeCategory }: Props) {
       ? events
       : events.filter(
           (event) =>
-            event.category?.toLowerCase() === activeCategory?.toLowerCase()
+            event.category?.name?.toLowerCase() === activeCategory?.toLowerCase()
         );
+
+  if (loading) return <div className="p-6 text-center">Loading events...</div>;
 
   return (
     <section className="p-6 rounded-xl max-w-7xl mx-auto">
@@ -63,7 +73,17 @@ export default function FeaturedEvents({ activeCategory }: Props) {
       <div className="flex gap-5 overflow-x-auto">
         {filteredEvents.length > 0 ? (
           filteredEvents.map((event, i) => (
-            <EventCard key={i} {...event} />
+            <EventCard 
+              key={i} 
+              id={event._id}
+              title={event.title}
+              organizer={event.organizerName || event.organizer?.username || "Organizer"}
+              date={`${formatDate(event.startDate)} ${event.startTime || ""}`}
+              location={`${event.location?.city || ""}, ${event.location?.country || "UK"}`}
+              price={event.priceLabel || (event.price === 0 ? "Free" : `From £${event.price}`)}
+              image={event.banner?.startsWith('http') ? event.banner : `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "")}${event.banner}`}
+              category={event.category?.name || "Event"}
+            />
           ))
         ) : (
           <p className="text-gray-500">No events found</p>
