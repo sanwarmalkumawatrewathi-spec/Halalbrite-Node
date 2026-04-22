@@ -11,7 +11,27 @@ import { useAuth } from "@/context/authContext";
 export default function EventForm() {
     const { user } = useAuth();
     const [categories, setCategories] = useState<any[]>([]);
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<{
+        title: string;
+        category: string;
+        description: string;
+        organizer: string;
+        organizerName: string;
+        startDate: string;
+        endDate: string;
+        startTime: string;
+        endTime: string;
+        eventType: string;
+        thumbnailType: string;
+        thumbnail: File | null;
+        banner: File | null;
+        venue: string;
+        address: string;
+        city: string;
+        postcode: string;
+        country: string;
+        meetingLink: string;
+    }>({
         title: "",
         category: "",
         description: "",
