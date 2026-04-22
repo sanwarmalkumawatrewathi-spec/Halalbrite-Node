@@ -77,9 +77,9 @@ export default function MapComponent({ center, events }: MapComponentProps) {
           const coords = event.location?.geometry?.coordinates;
           if (!coords || coords.length !== 2) return null;
 
-          // Add a tiny jitter to avoid perfect stacking
-          const jitterLat = (Math.random() - 0.5) * 0.005;
-          const jitterLng = (Math.random() - 0.5) * 0.005;
+          // Add a jitter to avoid perfect stacking for events at the same location
+          const jitterLat = (Math.random() - 0.5) * 0.01;
+          const jitterLng = (Math.random() - 0.5) * 0.01;
           const position: [number, number] = [coords[1] + jitterLat, coords[0] + jitterLng];
 
           return (
