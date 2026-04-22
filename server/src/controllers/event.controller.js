@@ -5,8 +5,12 @@ const Event = require('../models/event.model');
 // @access  Public
 exports.getEvents = async (req, res) => {
     try {
-        const { category, eventType, search, city } = req.query;
+        const { category, eventType, search, city, upcoming } = req.query;
         let query = { status: 'published' };
+
+        if (upcoming === 'true') {
+            query.startDate = { $gte: new Date() };
+        }
 
         if (category && category !== 'All') {
             query.category = category;

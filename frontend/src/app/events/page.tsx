@@ -12,12 +12,29 @@ const MapComponent = dynamic(() => import('@/Components/MapComponent'), {
 import React from 'react'
 
 export default function Event() {
+  const [events, setEvents] = React.useState([]);
+
+  React.useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+        const response = await fetch(`${baseUrl}/api/events?upcoming=true`);
+        const data = await response.json();
+        const eventData = Array.isArray(data) ? data : data.data || [];
+        setEvents(eventData);
+      } catch (error) {
+        console.error("Failed to fetch events for map:", error);
+      }
+    };
+    fetchEvents();
+  }, []);
+
   return (
     <div>
       <Header/>
       <section className='pt-14 pb-7'>
-      <MapComponent/>
-</section>
+        <MapComponent events={events} />
+      </section>
 
 <FilterBar/>
 

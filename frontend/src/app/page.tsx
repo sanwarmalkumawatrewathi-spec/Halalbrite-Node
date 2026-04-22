@@ -19,7 +19,7 @@ export default function Page() {
     const fetchEvents = async () => {
       try {
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-        const response = await fetch(`${baseUrl}/api/events`);
+        const response = await fetch(`${baseUrl}/api/events?upcoming=true`);
         const data = await response.json();
         // The API returns an array directly based on our previous findings
         const eventData = Array.isArray(data) ? data : data.data || [];
