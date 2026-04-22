@@ -13,36 +13,51 @@ import React from 'react'
 
 export default function Event() {
   const [events, setEvents] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [filters, setFilters] = React.useState({
+    search: "",
+    category: "",
+    city: "",
+    upcoming: "true"
+  });
 
   React.useEffect(() => {
     const fetchEvents = async () => {
+      setLoading(true);
       try {
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-        const response = await fetch(`${baseUrl}/api/events?upcoming=true`);
+        const queryParams = new URLSearchParams(filters as any).toString();
+        const response = await fetch(`${baseUrl}/api/events?${queryParams}`);
         const data = await response.json();
         const eventData = Array.isArray(data) ? data : data.data || [];
         setEvents(eventData);
       } catch (error) {
-        console.error("Failed to fetch events for map:", error);
+        console.error("Failed to fetch events:", error);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchEvents();
-  }, []);
+
+    // Debounce search/filters
+    const timer = setTimeout(() => {
+      fetchEvents();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [filters]);
 
   return (
-    <div>
+    <div className="bg-[#fef3f6] min-h-screen">
       <Header/>
       <section className='pt-14 pb-7'>
         <MapComponent events={events} />
       </section>
 
-<FilterBar/>
+      <FilterBar filters={filters} setFilters={setFilters} />
 
-<EventCardGrid/>
-
-
+      <EventCardGrid events={events} loading={loading} />
 
       <Footer/>
     </div>
-  )
+  );
 }

@@ -3,8 +3,12 @@
 import { useState } from "react";
 import { Search, SlidersHorizontal, MapPin, Calendar, Filter } from "lucide-react";
 
-export default function FilterBar() {
+export default function FilterBar({ filters, setFilters }: { filters: any, setFilters: any }) {
   const [open, setOpen] = useState(false);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilters((prev: any) => ({ ...prev, search: e.target.value }));
+  };
 
   return (
     <div className="bg-white p-4 rounded-xl shadow-md max-w-7xl mx-auto">
@@ -17,6 +21,8 @@ export default function FilterBar() {
             type="text"
             placeholder="Search events by name or organiser..."
             className="outline-none w-full text-sm "
+            value={filters.search}
+            onChange={handleSearchChange}
           />
         </div>
 
@@ -41,6 +47,8 @@ export default function FilterBar() {
               <input
                 placeholder="Select categories"
                 className="outline-none w-full text-sm"
+                value={filters.category}
+                onChange={(e) => setFilters((prev: any) => ({ ...prev, category: e.target.value }))}
               />
             </div>
           </div>
@@ -53,6 +61,8 @@ export default function FilterBar() {
               <input
                 placeholder="Select cities"
                 className="outline-none w-full text-sm"
+                value={filters.city}
+                onChange={(e) => setFilters((prev: any) => ({ ...prev, city: e.target.value }))}
               />
             </div>
           </div>

@@ -59,7 +59,7 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
    
-      <body className="min-h-full flex flex-col bg-[#fef3f6]">
+      <body className="min-h-full flex flex-col bg-[#fef3f6]" suppressHydrationWarning>
         <GoogleOAuthProvider clientId={finalClientId}>
           <AuthProvider>
             {children}

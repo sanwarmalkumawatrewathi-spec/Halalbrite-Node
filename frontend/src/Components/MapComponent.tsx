@@ -17,6 +17,7 @@ type MapEvent = {
   };
   priceLabel?: string;
   banner?: string;
+  thumbnail?: string;
 };
 
 type MapComponentProps = {
@@ -82,6 +83,10 @@ export default function MapComponent({ center, events }: MapComponentProps) {
           const jitterLng = (Math.random() - 0.5) * 0.01;
           const position: [number, number] = [coords[1] + jitterLat, coords[0] + jitterLng];
 
+          const thumbUrl = event.thumbnail 
+            ? (event.thumbnail.startsWith('http') ? event.thumbnail : `${baseUrl}${event.thumbnail}`)
+            : null;
+
           return (
             <CircleMarkerAny
               key={event._id}
@@ -95,8 +100,19 @@ export default function MapComponent({ center, events }: MapComponentProps) {
               }}
             >
               <TooltipAny direction="top" offset={[0, -10]} opacity={1}>
-                <div className="font-bold text-red-900">{event.title}</div>
-                <div className="text-xs text-gray-600">{event.location?.venueName || event.location?.city}</div>
+                <div className="flex items-center gap-3 p-1 min-w-[150px]">
+                  {thumbUrl && (
+                    <img 
+                      src={thumbUrl} 
+                      alt="" 
+                      className="w-10 h-10 rounded object-cover border border-gray-100"
+                    />
+                  )}
+                  <div>
+                    <div className="font-bold text-red-900 leading-tight mb-0.5">{event.title}</div>
+                    <div className="text-[10px] text-gray-600">{event.location?.venueName || event.location?.city}</div>
+                  </div>
+                </div>
               </TooltipAny>
               
               <PopupAny>
