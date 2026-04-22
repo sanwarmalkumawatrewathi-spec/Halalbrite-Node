@@ -59,8 +59,8 @@ class StripeService {
         
         const accountLink = await stripeInstance.accountLinks.create({
             account: accountId,
-            refresh_url: `${baseUrl}/admin/dashboard?status=stripe_refresh`,
-            return_url: `${baseUrl}/admin/dashboard?status=stripe_success`,
+            refresh_url: `${baseUrl}/OrganiserDashboard?status=stripe_refresh`,
+            return_url: `${baseUrl}/OrganiserDashboard?status=stripe_success`,
             type: 'account_onboarding',
         });
 
@@ -76,8 +76,8 @@ class StripeService {
 
         return await stripeInstance.accountLinks.create({
             account: accountId,
-            refresh_url: `${baseUrl}/organizer/dashboard?status=refresh`,
-            return_url: `${baseUrl}/organizer/dashboard?status=success`,
+            refresh_url: `${baseUrl}/OrganiserDashboard?status=refresh`,
+            return_url: `${baseUrl}/OrganiserDashboard?status=success`,
             type: type,
         });
     }

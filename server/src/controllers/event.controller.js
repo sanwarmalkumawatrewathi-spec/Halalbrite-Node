@@ -1,4 +1,6 @@
 const Event = require('../models/event.model');
+const User = require('../models/user.model');
+
 
 // @desc    Get all events with filters
 // @route   GET /api/events
@@ -63,6 +65,12 @@ exports.getEventById = async (req, res) => {
 // @access  Private/Organizer
 exports.createEvent = async (req, res) => {
     try {
+        // Validation: Organizer must have a connected Stripe account to post events
+        const isAdministrator = req.user.roles.some(r => r.slug === 'administrator');
+        if (!isAdministrator && !req.user.stripeConnectedId) {
+            return res.status(403).json({ message: 'Stripe account connection required to post events. Please connect your Stripe account in the dashboard.' });
+        }
+
         const settings = await require('../models/appSetting.model').findOne();
         const currencySymbol = settings?.platform?.currency === 'EUR' ? '€' : settings?.platform?.currency === 'USD' ? '$' : '£';
         const { ticketTypes } = req.body;
@@ -161,3 +169,44 @@ exports.deleteEvent = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// @desc    Toggle save event for user
+// @route   POST /api/events/:id/save
+// @access  Private
+exports.toggleSaveEvent = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        const eventId = req.params.id;
+
+        if (user.savedEvents.includes(eventId)) {
+            user.savedEvents = user.savedEvents.filter(id => id.toString() !== eventId);
+            await user.save();
+            res.json({ message: 'Event unsaved', saved: false });
+        } else {
+            user.savedEvents.push(eventId);
+            await user.save();
+            res.json({ message: 'Event saved', saved: true });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get user's saved events
+// @route   GET /api/events/saved-events
+// @access  Private
+exports.getSavedEvents = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).populate({
+            path: 'savedEvents',
+            populate: [
+                { path: 'organizer', select: 'username avatar' },
+                { path: 'category', select: 'name slug icon' }
+            ]
+        });
+        res.json(user.savedEvents);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+

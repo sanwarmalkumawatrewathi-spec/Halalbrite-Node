@@ -8,8 +8,18 @@ interface User {
   username: string;
   email: string;
   roles: string[];
+  stripeConnectedId?: string | null;
   token: string;
   avatar?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  bio?: string;
+  preferences?: {
+    eventUpdates: boolean;
+    promotions: boolean;
+    newsletter: boolean;
+  };
 }
 
 interface AuthContextType {
@@ -21,6 +31,9 @@ interface AuthContextType {
   logout: () => void;
   socialLogin: (provider: string, data: any) => Promise<any>;
   isOrganizer: boolean;
+  isStripeConnected: boolean;
+  updateUser: (updatedData: any) => void;
+  becomeOrganizer: () => Promise<any>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -141,9 +154,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const isOrganizer = user?.roles.includes('organizer') || user?.roles.includes('organiser') || false;
+  const isStripeConnected = !!user?.stripeConnectedId;
+
+  const updateUser = (updatedData: any) => {
+    if (user) {
+      const newUser = { ...user, ...updatedData };
+      setUser(newUser);
+      localStorage.setItem('halalbrite_user', JSON.stringify(newUser));
+    }
+  };
+
+  const becomeOrganizer = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/auth/become-organizer`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json' 
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        const updatedUser = { ...user, roles: data.roles } as User;
+        setUser(updatedUser);
+        localStorage.setItem('halalbrite_user', JSON.stringify(updatedUser));
+        return { success: true };
+      }
+      return { success: false, message: data.message };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  };
+
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, socialLogin, isOrganizer, socialSettings }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, socialLogin, isOrganizer, isStripeConnected, socialSettings, updateUser, becomeOrganizer }}>
       {children}
     </AuthContext.Provider>
   );

@@ -42,6 +42,7 @@ exports.register = async (req, res) => {
                     username: user.username,
                     email: user.email,
                     roles: selectedRole ? [selectedRole.slug] : ['attendee'],
+                    stripeConnectedId: user.stripeConnectedId || null,
                     token: generateToken(user._id)
                 }
             });
@@ -66,6 +67,7 @@ exports.login = async (req, res) => {
                 username: user.username,
                 email: user.email,
                 roles: user.roles.map(r => r.slug),
+                stripeConnectedId: user.stripeConnectedId || null,
                 token: generateToken(user._id)
             });
         } else {
@@ -140,6 +142,7 @@ exports.getProfile = async (req, res) => {
             username: user.username,
             email: user.email,
             roles: user.roles,
+            stripeConnectedId: user.stripeConnectedId || null,
         });
     } else {
         res.status(404).json({ message: 'User not found' });
@@ -243,3 +246,97 @@ exports.appleLogin = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// @desc    Update user preferences
+// @route   PUT /api/auth/preferences
+// @access  Private
+exports.updatePreferences = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (user) {
+            user.preferences = { ...user.preferences, ...req.body };
+            await user.save();
+            res.json(user.preferences);
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Update user profile
+// @route   PUT /api/auth/profile
+
+// @access  Private
+exports.updateProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+
+        if (user) {
+            user.username = req.body.username || user.username;
+            user.firstName = req.body.firstName || user.firstName;
+            user.lastName = req.body.lastName || user.lastName;
+            user.phone = req.body.phone || user.phone;
+            user.bio = req.body.bio || user.bio;
+            user.avatar = req.body.avatar || user.avatar;
+
+            if (req.body.password) {
+                user.password = req.body.password;
+            }
+
+            const updatedUser = await user.save();
+            const populatedUser = await User.findById(updatedUser._id).populate('roles');
+
+            res.json({
+                _id: populatedUser._id,
+                username: populatedUser.username,
+                email: populatedUser.email,
+                firstName: populatedUser.firstName,
+                lastName: populatedUser.lastName,
+                phone: populatedUser.phone,
+                bio: populatedUser.bio,
+                avatar: populatedUser.avatar,
+                roles: populatedUser.roles.map(r => r.slug),
+                stripeConnectedId: populatedUser.stripeConnectedId || null,
+                token: generateToken(populatedUser._id),
+            });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Become an organizer
+// @route   POST /api/auth/become-organizer
+// @access  Private
+exports.becomeOrganizer = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).populate('roles');
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        const organizerRole = await Role.findOne({ slug: 'organizer' });
+        if (!organizerRole) return res.status(500).json({ message: 'Organizer role not found' });
+
+        // Add role if not already present
+        if (!user.roles.some(r => r.slug === 'organizer')) {
+            user.roles.push(organizerRole._id);
+            await user.save();
+        }
+
+        const updatedUser = await User.findById(user._id).populate('roles');
+        res.json({
+            message: 'Role updated to organizer',
+            _id: updatedUser._id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            roles: updatedUser.roles.map(r => r.slug),
+            token: generateToken(updatedUser._id)
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+

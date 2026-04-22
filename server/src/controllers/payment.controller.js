@@ -65,12 +65,12 @@ exports.stripeCallback = async (req, res) => {
         await User.findByIdAndUpdate(state, { stripeConnectedId });
 
         // Redirect to dashboard (assuming Next.js path)
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
-        res.redirect(`${frontendUrl}/organizer/dashboard?status=stripe_connected`);
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/OrganiserDashboard?status=stripe_connected`);
     } catch (error) {
         console.error('❌ Stripe OAuth Error:', error);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
-        res.redirect(`${frontendUrl}/organizer/dashboard?status=error&message=${encodeURIComponent(error.message)}`);
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/OrganiserDashboard?status=error&message=${encodeURIComponent(error.message)}`);
     }
 };
 

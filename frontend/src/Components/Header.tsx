@@ -4,17 +4,19 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FaChevronDown, FaUser } from "react-icons/fa";
+import { FaChevronDown, FaUser, FaThLarge } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
 
 import { useAuth } from "@/context/authContext";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, isOrganizer, isStripeConnected } = useAuth();
+  const router = useRouter();
 
   return (
-    <header className="w-full bg-white shadow-sm sticky top-0 z-50">
+    <header className="w-full bg-white shadow-sm sticky top-0 z-50" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
 
         {/* Logo */}
@@ -63,12 +65,20 @@ export default function Header() {
           </Link>
 
           {/* Post Event */}
-          <Link href="/postEvent">
-            <button className="flex items-center gap-2 border border-red-700 text-red-700 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-50">
-              <span className="text-lg">+</span>
-              Post an Event
-            </button>
-          </Link>
+          <button 
+            onClick={() => {
+              if (isOrganizer && !isStripeConnected) {
+                alert("Please connect your Stripe account in the Organiser Dashboard before posting an event.");
+                router.push('/OrganiserDashboard');
+              } else {
+                router.push('/postEvent');
+              }
+            }}
+            className="flex items-center gap-2 border border-red-700 text-red-700 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-50"
+          >
+            <span className="text-lg">+</span>
+            Post an Event
+          </button>
 
           {/* Profile / Auth */}
           {user ? (
@@ -114,6 +124,14 @@ export default function Header() {
                         My Account
                       </button>
                     </Link>
+                    {isOrganizer && (
+                      <Link href="/OrganiserDashboard" onClick={() => setOpen(false)}>
+                        <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                          <FaThLarge className="text-gray-500" />
+                          Organiser Dashboard
+                        </button>
+                      </Link>
+                    )}
                     <button
                       onClick={() => {
                         setOpen(false);

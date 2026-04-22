@@ -36,6 +36,10 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ MongoDB Connected'))
     .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', message: 'API is reachable' });
+});
+
 // Routes placeholder
 app.get('/', (req, res) => {
     res.send('Halalbrite API is running...');
@@ -55,6 +59,8 @@ const faqRoutes = require('./apis/faqs/faq.routes');
 const uploadRoutes = require('./apis/upload/upload.routes');
 const adminViewRoutes = require('./apis/admin/adminView.routes');
 const adminStripeRoutes = require('./apis/admin/stripe.routes');
+const bookingRoutes = require('./apis/bookings/booking.routes');
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
@@ -69,6 +75,8 @@ app.use('/api/faqs', faqRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/admin', adminViewRoutes);
 app.use('/api/v1/admin/stripe', adminStripeRoutes);
+app.use('/api/bookings', bookingRoutes);
+
 
 // Global Error Handler
 app.use((err, req, res, next) => {
