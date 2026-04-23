@@ -17,22 +17,52 @@
                 </section>
 
                 <section style="margin-bottom: 2rem;">
-                    <h4 style="color: var(--primary); margin-bottom: 1rem;">Ticket Types</h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4 style="color: var(--primary); margin: 0;">Ticket Types</h4>
+                        <span class="badge" style="background: #fef3c7; color: #92400e;">
+                            Fees Paid By: <strong><%= event.feePayment ? 'Organizer' : 'Buyer' %></strong>
+                        </span>
+                    </div>
                     <div class="table-responsive">
-                        <table>
-                            <thead>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <thead style="background: #f9fafb;">
                                 <tr>
-                                    <th>Ticket Name</th>
-                                    <th>Price</th>
-                                    <th>Quantity</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Ticket Name</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Price</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Qty</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Fees Breakdown</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Sale Period</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <% event.ticketTypes.forEach(ticket => { %>
                                     <tr>
-                                        <td><strong><%= ticket.name %></strong></td>
-                                        <td><%= ticket.price === 0 ? 'Free' : formatPrice(ticket.price) %></td>
-                                        <td><%= ticket.quantity %> available</td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #f3f4f6;">
+                                            <strong><%= ticket.name %></strong>
+                                            <% if (ticket.description) { %>
+                                                <div style="font-size: 0.8rem; color: #6b7280;"><%= ticket.description %></div>
+                                            <% } %>
+                                        </td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #f3f4f6;"><%= ticket.price === 0 ? 'Free' : formatPrice(ticket.price) %></td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #f3f4f6;"><%= ticket.quantity %></td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #f3f4f6;">
+                                            <div style="font-size: 0.8rem;">
+                                                Plat: <%= formatPrice(ticket.platformFee) %> + VAT: <%= formatPrice(ticket.vatOnPlatformFee) %><br>
+                                                Stripe: <%= formatPrice(ticket.stripeProcessingFee) %><br>
+                                                <strong>Total Fees: <%= formatPrice(ticket.totalFees) %></strong>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #f3f4f6; font-size: 0.8rem;">
+                                            <% if (ticket.saleStart) { %>
+                                                Start: <%= new Date(ticket.saleStart).toLocaleDateString() %><br>
+                                            <% } %>
+                                            <% if (ticket.saleEnd) { %>
+                                                End: <%= new Date(ticket.saleEnd).toLocaleDateString() %>
+                                            <% } %>
+                                            <% if (!ticket.saleStart && !ticket.saleEnd) { %>
+                                                -
+                                            <% } %>
+                                        </td>
                                     </tr>
                                 <% }) %>
                             </tbody>

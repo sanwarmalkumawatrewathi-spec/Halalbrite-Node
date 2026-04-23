@@ -25,8 +25,8 @@ exports.getBookingById = async (req, res) => {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        // Ensure user owns this booking
-        if (booking.user_id.toString() !== req.user._id.toString()) {
+        // Ensure user owns this booking (if not guest)
+        if (booking.user_id && (!req.user || booking.user_id.toString() !== req.user._id.toString())) {
             return res.status(401).json({ message: 'Not authorized' });
         }
 

@@ -20,6 +20,9 @@ interface User {
     promotions: boolean;
     newsletter: boolean;
   };
+  addresses?: any[];
+  savedEvents?: string[];
+  followedOrganizers?: string[];
 }
 
 interface AuthContextType {
@@ -31,9 +34,13 @@ interface AuthContextType {
   logout: () => void;
   socialLogin: (provider: string, data: any) => Promise<any>;
   isOrganizer: boolean;
+  isAdministrator: boolean;
   isStripeConnected: boolean;
   updateUser: (updatedData: any) => void;
   becomeOrganizer: () => Promise<any>;
+  refreshUser: () => Promise<void>;
+  toggleSavedEvent: (eventId: string) => Promise<{success: boolean, message: string, saved?: boolean}>;
+  toggleFollowOrganizer: (organizerId: string) => Promise<{success: boolean, message: string, isFollowing?: boolean}>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,10 +57,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const savedUser = localStorage.getItem('halalbrite_user');
     if (savedUser) {
       setUser(JSON.parse(savedUser));
+      refreshUser(); // Refresh from server in background
     }
     fetchSocialSettings();
     setLoading(false);
   }, []);
+
+  const refreshUser = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${API_URL}/api/auth/profile`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const result = await response.json();
+        // Backend returns user object directly or in data property? 
+        // Checking controllers... usually it's result.data or just result
+        const userData = result.data || result;
+        setUser(userData);
+        localStorage.setItem('halalbrite_user', JSON.stringify(userData));
+      }
+    } catch (error) {
+      console.error('Failed to refresh user:', error);
+    }
+  };
 
   const fetchSocialSettings = async () => {
     try {
@@ -153,7 +182,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     router.push('/');
   };
 
-  const isOrganizer = user?.roles.includes('organizer') || user?.roles.includes('organiser') || false;
+  const isAdministrator = user?.roles.includes('administrator') || false;
+  const isOrganizer = isAdministrator || user?.roles.includes('organizer') || user?.roles.includes('organiser') || false;
   const isStripeConnected = !!user?.stripeConnectedId;
 
   const updateUser = (updatedData: any) => {
@@ -187,9 +217,73 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const toggleSavedEvent = async (eventId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token || !user) return { success: false, message: 'Not logged in' };
+
+      const response = await fetch(`${API_URL}/api/events/${eventId}/save`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json' 
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        // Update local user state immediately
+        let newSavedEvents = [...(user.savedEvents || [])];
+        if (data.saved) {
+           if (!newSavedEvents.includes(eventId)) newSavedEvents.push(eventId);
+        } else {
+           newSavedEvents = newSavedEvents.filter(id => id !== eventId);
+        }
+        
+        const updatedUser = { ...user, savedEvents: newSavedEvents };
+        setUser(updatedUser);
+        localStorage.setItem('halalbrite_user', JSON.stringify(updatedUser));
+        return { success: true, message: data.message, saved: data.saved };
+      }
+      return { success: false, message: data.message };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  };
+
+  const toggleFollowOrganizer = async (organizerId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token || !user) return { success: false, message: 'Not logged in' };
+
+      const response = await fetch(`${API_URL}/api/dashboard/user/follow-organizer/${organizerId}`, {
+        method: 'POST',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json' 
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        let newFollowed = [...(user.followedOrganizers || [])];
+        if (data.isFollowing) {
+           if (!newFollowed.includes(organizerId)) newFollowed.push(organizerId);
+        } else {
+           newFollowed = newFollowed.filter(id => id !== organizerId);
+        }
+        
+        const updatedUser = { ...user, followedOrganizers: newFollowed };
+        setUser(updatedUser);
+        localStorage.setItem('halalbrite_user', JSON.stringify(updatedUser));
+        return { success: true, message: data.message, isFollowing: data.isFollowing };
+      }
+      return { success: false, message: data.message };
+    } catch (error: any) {
+      return { success: false, message: error.message };
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, socialLogin, isOrganizer, isStripeConnected, socialSettings, updateUser, becomeOrganizer }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, socialLogin, isOrganizer, isAdministrator, isStripeConnected, socialSettings, updateUser, becomeOrganizer, refreshUser, toggleSavedEvent, toggleFollowOrganizer }}>
       {children}
     </AuthContext.Provider>
   );

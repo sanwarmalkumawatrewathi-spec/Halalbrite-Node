@@ -7,35 +7,77 @@ const User = require('../models/user.model');
 // @access  Public
 exports.getEvents = async (req, res) => {
     try {
-        const { category, eventType, search, city, upcoming } = req.query;
+        const { 
+            category, 
+            eventType, 
+            search, 
+            city, 
+            upcoming,
+            startDate,
+            endDate,
+            minPrice,
+            maxPrice
+        } = req.query;
+
         let query = { status: 'published' };
 
+        // 1. Date Filtering
         if (upcoming === 'true') {
             query.startDate = { $gte: new Date() };
+        } else if (startDate || endDate) {
+            query.startDate = {};
+            if (startDate) query.startDate.$gte = new Date(startDate);
+            if (endDate) query.startDate.$lte = new Date(endDate);
         }
 
+        // 2. Category Filtering (Support single or multiple)
         if (category && category !== 'All') {
-            query.category = category;
+            if (Array.isArray(category)) {
+                query.category = { $in: category };
+            } else if (category.includes(',')) {
+                query.category = { $in: category.split(',') };
+            } else {
+                query.category = category;
+            }
         }
 
+        // 3. Event Type
         if (eventType) {
             query.eventType = eventType;
         }
 
+        // 4. Price Range
+        if (minPrice !== undefined || maxPrice !== undefined) {
+            query.price = {};
+            if (minPrice !== undefined) query.price.$gte = parseFloat(minPrice);
+            if (maxPrice !== undefined) query.price.$lte = parseFloat(maxPrice);
+        }
+
+        // 5. Search & City
         if (search) {
+            const searchRegex = { $regex: search, $options: 'i' };
             query.$or = [
-                { title: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } },
-                { "location.venueName": { $regex: search, $options: 'i' } },
-                { "location.city": { $regex: search, $options: 'i' } }
+                { title: searchRegex },
+                { description: searchRegex },
+                { organizerName: searchRegex },
+                { "location.venueName": searchRegex },
+                { "location.city": searchRegex }
             ];
         } else if (city) {
-            query["location.city"] = { $regex: city, $options: 'i' };
+            if (Array.isArray(city)) {
+                query["location.city"] = { $in: city.map(c => new RegExp(c, 'i')) };
+            } else if (city.includes(',')) {
+                query["location.city"] = { $in: city.split(',').map(c => new RegExp(c.trim(), 'i')) };
+            } else {
+                query["location.city"] = { $regex: city, $options: 'i' };
+            }
         }
 
         const events = await Event.find(query)
             .populate('organizer', 'username avatar')
-            .populate('category', 'name slug icon');
+            .populate('category', 'name slug icon')
+            .sort({ startDate: 1 }); // Show soonest events first
+
         res.json(events);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -205,6 +247,52 @@ exports.getSavedEvents = async (req, res) => {
             ]
         });
         res.json(user.savedEvents);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get event locations grouped by country and city
+// @route   GET /api/events/locations
+// @access  Public
+exports.getEventLocations = async (req, res) => {
+    console.log('🔍 GET /api/events/locations - Fetching unique event locations...');
+    try {
+        const locations = await Event.aggregate([
+            { $match: { status: 'published' } },
+            {
+                $group: {
+                    _id: {
+                        country: { $ifNull: ["$location.country", "Other"] },
+                        city: { $ifNull: ["$location.city", "Global"] }
+                    },
+                    count: { $sum: 1 }
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id.country",
+                    cities: {
+                        $push: {
+                            name: "$_id.city",
+                            count: "$count"
+                        }
+                    },
+                    totalCount: { $sum: "$count" }
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    country: "$_id",
+                    cities: 1,
+                    cityCount: { $size: "$cities" }
+                }
+            },
+            { $sort: { country: 1 } }
+        ]);
+
+        res.json(locations);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

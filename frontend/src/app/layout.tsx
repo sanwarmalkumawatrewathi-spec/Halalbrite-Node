@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 
 
 import { AuthProvider } from "@/context/authContext";
+import { CurrencyProvider } from "@/context/CurrencyContext";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 
@@ -63,7 +64,9 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-[#fef3f6]" suppressHydrationWarning>
         <GoogleOAuthProvider clientId={finalClientId}>
           <AuthProvider>
-            {children}
+            <CurrencyProvider>
+              {children}
+            </CurrencyProvider>
           </AuthProvider>
         </GoogleOAuthProvider>
       </body>

@@ -57,7 +57,7 @@ export default function EventsTab() {
           </div>
 
           <button 
-            onClick={() => router.push('/postEvent')}
+            onClick={() => router.push('/post-an-event')}
             className="flex items-center gap-2 bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-red-100 hover:bg-red-700 transition"
           >
             <IoAdd className="text-lg" /> New Event
@@ -133,7 +133,7 @@ export default function EventsTab() {
                         </div>
                         <p className="text-gray-500 font-medium">No events found.</p>
                         <button 
-                            onClick={() => router.push('/postEvent')}
+                            onClick={() => router.push('/post-an-event')}
                             className="mt-4 text-red-600 font-bold text-sm hover:underline"
                         >
                             Create your first event now

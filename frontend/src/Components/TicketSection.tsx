@@ -1,10 +1,26 @@
-
-
 "use client";
-
+import { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
 
 export default function TicketSection({ tickets, setTickets }: { tickets: any[], setTickets: any }) {
+    const [settings, setSettings] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+                const response = await fetch(`${API_URL}/api/admin/settings/public`);
+                const result = await response.json();
+                if (result.data) {
+                    setSettings(result.data.platform);
+                }
+            } catch (error) {
+                console.error("Failed to fetch platform settings:", error);
+            }
+        };
+        fetchSettings();
+    }, []);
+
     const handleChange = (i: number, field: string, value: any) => {
         const updated = [...tickets];
         updated[i][field] = value;
@@ -35,9 +51,16 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
 
     // 💰 Fee calculation
     const calcFees = (price: number) => {
-        const platform = price * 0.03 + 0.3;
-        const vat = platform * 0.23;
-        const stripe = price * 0.015 + 0.2;
+        // Use backend settings or fallbacks
+        const feePercentage = settings?.feePercentage ?? 0;
+        const fixedFee = settings?.fixedFee ?? 0;
+        const vatRate = settings?.vatRate ?? 0;
+        const stripePercentage = settings?.stripeFeePercentage ?? 3;
+        const fixedStripe = settings?.fixedStripeFee ?? 0.3;
+
+        const platform = price * (feePercentage / 100) + fixedFee;
+        const vat = platform * (vatRate / 100);
+        const stripe = price * (stripePercentage / 100) + fixedStripe;
         const total = platform + vat + stripe;
 
         return {
@@ -203,23 +226,35 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
 
                         {/* Fee Breakdown */}
                         <div className="bg-gray-100 border rounded-xl p-4 text-sm space-y-1">
-                            <p className="font-medium">Fee Breakdown</p>
-                            <div className="flex justify-between">
-                                <span>Platform Fee</span>
-                                <span>€{fees.platform}</span>
+                            <div className="flex justify-between items-center mb-1">
+                                <p className="font-medium">Fee Breakdown</p>
+                                {Number(t.price) === 0 && (
+                                    <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded uppercase">Free</span>
+                                )}
                             </div>
-                            <div className="flex justify-between">
-                                <span>VAT (23%)</span>
-                                <span>€{fees.vat}</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span>Stripe Fee</span>
-                                <span>€{fees.stripe}</span>
-                            </div>
-                            <div className="flex justify-between font-semibold">
-                                <span>Total Fees</span>
-                                <span>€{fees.total}</span>
-                            </div>
+                            
+                            {Number(t.price) > 0 ? (
+                                <>
+                                    <div className="flex justify-between">
+                                        <span>Platform Fee</span>
+                                        <span>€{fees.platform}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>VAT ({settings?.vatRate ?? 0}%)</span>
+                                        <span>€{fees.vat}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Stripe Fee</span>
+                                        <span>€{fees.stripe}</span>
+                                    </div>
+                                    <div className="flex justify-between font-semibold border-t border-gray-200 mt-2 pt-1">
+                                        <span>Total Fees</span>
+                                        <span>€{fees.total}</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="text-xs text-gray-500 italic">No fees apply to free tickets.</p>
+                            )}
                         </div>
 
                         {/* Fee Toggle */}

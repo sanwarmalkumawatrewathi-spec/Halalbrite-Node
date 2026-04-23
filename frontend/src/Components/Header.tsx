@@ -8,11 +8,14 @@ import { FaChevronDown, FaUser, FaThLarge } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
 
 import { useAuth } from "@/context/authContext";
+import { useCurrency } from "@/context/CurrencyContext";
 import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [open, setOpen] = useState(false);
-  const { user, logout, isOrganizer, isStripeConnected } = useAuth();
+  const [openCurrency, setOpenCurrency] = useState(false);
+  const { user, logout, isOrganizer, isAdministrator, isStripeConnected } = useAuth();
+  const { currentCurrency, allCurrencies, setCurrency } = useCurrency();
   const router = useRouter();
 
   return (
@@ -56,6 +59,51 @@ export default function Header() {
         {/* Right Side */}
         <div className="flex items-center gap-6">
 
+          <div className="relative">
+            <button 
+              onClick={() => setOpenCurrency(!openCurrency)}
+              className="flex items-center gap-1.5 text-gray-700 text-sm font-medium hover:text-red-700 bg-gray-50 px-3 py-1.5 rounded-full transition-all"
+            >
+              <span className="w-5 h-5 flex items-center justify-center bg-white rounded-full shadow-sm text-[10px] font-bold text-red-600 border border-gray-100">
+                {currentCurrency.symbol}
+              </span>
+              {currentCurrency.code}
+              <FaChevronDown className={`text-[10px] opacity-50 transition-transform ${openCurrency ? 'rotate-180' : ''}`} />
+            </button>
+            
+            {openCurrency && (
+              <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-xl py-1 z-[60] animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="px-3 py-2 border-b border-gray-50 bg-gray-50/50">
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Select Currency</p>
+                </div>
+                {allCurrencies.map((cur) => (
+                  <button
+                    key={cur.code}
+                    onClick={() => {
+                      setCurrency(cur.code);
+                      setOpenCurrency(false);
+                    }}
+                    className={`flex items-center justify-between w-full px-4 py-3 text-sm transition-all duration-200 ${
+                      currentCurrency.code === cur.code 
+                        ? 'text-red-700 bg-red-50 font-bold' 
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-red-600 font-medium'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm text-[10px] border border-gray-100">
+                        {cur.symbol}
+                      </span>
+                      <span>{cur.code}</span>
+                    </div>
+                    {currentCurrency.code === cur.code && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-600 shadow-[0_0_8px_rgba(220,38,38,0.5)]"></div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Events */}
           <Link
             href="/events"
@@ -67,11 +115,11 @@ export default function Header() {
           {/* Post Event */}
           <button 
             onClick={() => {
-              if (isOrganizer && !isStripeConnected) {
+              if (isOrganizer && !isStripeConnected && !isAdministrator) {
                 alert("Please connect your Stripe account in the Organiser Dashboard before posting an event.");
                 router.push('/OrganiserDashboard');
               } else {
-                router.push('/postEvent');
+                router.push('/post-an-event');
               }
             }}
             className="flex items-center gap-2 border border-red-700 text-red-700 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-50"

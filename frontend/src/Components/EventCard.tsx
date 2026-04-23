@@ -2,6 +2,9 @@
 
 import { Heart, Calendar, MapPin } from "lucide-react";
 import Link from "next/link";
+import { useCurrency } from "@/context/CurrencyContext";
+import { useAuth } from "@/context/authContext";
+import { useRouter } from "next/navigation";
 
 type EventCardProps = {
     id: string;
@@ -9,7 +12,7 @@ type EventCardProps = {
   organizer: string;
   date: string;
   location: string;
-  price: string;
+  price: number | string;
   image: string;
   category: string;
 };
@@ -24,6 +27,22 @@ export default function EventCard({
   image,
   category,
 }: EventCardProps) {
+  const { formatPrice } = useCurrency();
+  const { user, toggleSavedEvent } = useAuth();
+  const router = useRouter();
+  
+  const displayPrice = typeof price === 'number' ? formatPrice(price) : price;
+  const isSaved = user?.savedEvents?.includes(id);
+
+  const handleSaveToggle = async (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigating to event details
+    if (!user) {
+      router.push('/authpage');
+      return;
+    }
+    await toggleSavedEvent(id);
+  };
+
   return (
 
       <Link href={`/eventpage/${id}`}>
@@ -37,8 +56,15 @@ export default function EventCard({
         />
 
         {/* Favorite Icon */}
-        <button className="absolute top-3 left-3 bg-white rounded-full p-2 shadow">
-          <Heart size={16} className="text-gray-600" />
+        <button 
+          onClick={handleSaveToggle}
+          className="absolute top-3 left-3 bg-white rounded-full p-2 shadow hover:scale-110 transition-transform z-10"
+        >
+          <Heart 
+            size={16} 
+            className={isSaved ? "text-red-600" : "text-gray-600"} 
+            fill={isSaved ? "currentColor" : "none"} 
+          />
         </button>
 
         {/* Category Tag */}
@@ -70,7 +96,7 @@ export default function EventCard({
         {/* Footer */}
         <div className="flex items-center justify-between pt-2">
           <span className="text-red-700 text-sm font-medium">
-            {price}
+            {price === 0 ? 'Free' : displayPrice}
           </span>
 
           <button className="bg-red-600 text-white text-xs px-4 py-2 rounded-lg hover:bg-red-700 transition">

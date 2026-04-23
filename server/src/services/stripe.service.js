@@ -240,7 +240,7 @@ class StripeService {
     /**
      * Get latest exchange rates from Stripe.
      */
-    async getExchangeRates(baseCurrency = 'gbp') {
+    async getExchangeRates(baseCurrency = 'eur') {
         const stripeInstance = await this.getStripeInstance();
         try {
             // Stripe returns rates relative to the requested currency
@@ -257,6 +257,11 @@ class StripeService {
             }
             
             if (!baseRates) {
+                // If stripe rates for EUR aren't found, try to get rates for other currencies and invert
+                const allRates = await stripeInstance.exchangeRates.list({ limit: 100 });
+                const rateToEur = allRates.data.find(r => r.id === 'eur');
+                if (rateToEur) return rateToEur.rates;
+                
                 throw new Error(`Could not find exchange rates for base currency: ${baseCurrency}`);
             }
             
@@ -281,7 +286,7 @@ class StripeService {
         const settings = await AppSetting.findOne();
         if (!settings) throw new Error('Settings not found');
 
-        const baseCurrency = settings.platform.currency || 'GBP';
+        const baseCurrency = settings.platform.currency || 'EUR';
         const rates = await this.getExchangeRates(baseCurrency);
 
         // Normalize rates keys to lowercase for consistent lookup
@@ -314,6 +319,47 @@ class StripeService {
         } catch (error) {
             console.error('❌ Auto-sync Currency Error:', error.message);
         }
+    }
+
+    /**
+     * Create a Stripe Checkout Session for a ticket purchase.
+     */
+    async createCheckoutSession(params) {
+        const stripeInstance = await this.getStripeInstance();
+        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+        const sessionData = {
+            payment_method_types: ['card'],
+            line_items: [{
+                price_data: {
+                    currency: params.currency.toLowerCase(),
+                    product_data: {
+                        name: params.ticketName,
+                        description: `Ticket for ${params.eventName}`,
+                        images: params.eventBanner ? [params.eventBanner] : [],
+                    },
+                    unit_amount: Math.round(params.amount * 100),
+                },
+                quantity: params.quantity,
+            }],
+            mode: 'payment',
+            success_url: `${baseUrl}/checkout/success?status=success&bookingId=${params.bookingId}`,
+            cancel_url: `${baseUrl}/eventpage/${params.eventId}?status=cancelled`,
+            customer_email: params.customerEmail,
+            metadata: {
+                bookingId: params.bookingId,
+                eventId: params.eventId,
+                ticketType: params.ticketName,
+            },
+            payment_intent_data: {
+                metadata: {
+                    bookingId: params.bookingId,
+                    eventId: params.eventId,
+                }
+            }
+        };
+
+        return await stripeInstance.checkout.sessions.create(sessionData);
     }
 }
 

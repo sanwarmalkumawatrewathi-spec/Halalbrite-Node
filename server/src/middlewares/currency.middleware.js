@@ -6,13 +6,13 @@ const AppSetting = require('../models/appSetting.model');
  */
 const currencyMiddleware = async (req, res, next) => {
     try {
-        // Skip for static files or common assets
-        if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|otf)$/) || req.path.startsWith('/api/')) {
+        // Skip only for static files
+        if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|otf)$/)) {
             return next();
         }
 
         const settings = await AppSetting.findOne();
-        
+
         // Provide default formatPrice early to avoid ReferenceError if sync fails
         res.locals.formatPrice = (amount) => {
             if (amount === undefined || amount === null) return '';
@@ -28,7 +28,7 @@ const currencyMiddleware = async (req, res, next) => {
 
         const currencies = settings.currencies || [];
         const baseCurrencyCode = settings.platform?.currency || 'GBP';
-        
+
         const countryCodes = ['uk', 'us', 'au', 'ie'];
         const countryToCurrency = {
             'uk': 'GBP',
@@ -40,13 +40,13 @@ const currencyMiddleware = async (req, res, next) => {
         // 1. Detect from URL prefix
         const pathParts = req.path.split('/').filter(p => p);
         const firstPart = pathParts[0]?.toLowerCase();
-        
+
         let detectedCurrency = null;
 
         if (countryCodes.includes(firstPart)) {
             const targetCode = countryToCurrency[firstPart];
             detectedCurrency = currencies.find(c => c.code === targetCode && c.isActive);
-            
+
             // Important: We don't rewrite req.url here if we want the country code to stay in the URL
             // However, the user said "Without URL Change" for the switcher, but "country-specific URLs" for the landing.
             // If they want /uk/events to work, we must either have routes for it or rewrite.
@@ -78,11 +78,23 @@ const currencyMiddleware = async (req, res, next) => {
         res.locals.formatPrice = (amount) => {
             if (amount === undefined || amount === null) return '';
             if (amount === 0) return 'Free';
-            
+
             const rate = detectedCurrency.rate || 1;
             const converted = amount * rate;
-            
+
             return `${detectedCurrency.symbol}${converted.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+        };
+
+        // Raw Formatter for specific currency code
+        res.locals.formatPriceRaw = (amount, code) => {
+            if (amount === undefined || amount === null) return '';
+            if (amount === 0) return 'Free';
+            
+            const currency = currencies.find(c => c.code === code) || { symbol: code || '', code };
+            return `${currency.symbol}${amount.toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             })}`;

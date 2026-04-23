@@ -1,17 +1,20 @@
 "use client";
-
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import dynamic from 'next/dynamic';
+import { useParams, useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useAuth } from "@/context/authContext";
 import Footer from "@/Components/Footer";
 import Header from "@/Components/Header";
 import TicketSelection from "@/Components/TicketSelection";
-import MapComponent from "@/Components/MapComponent";
+const MapComponent = dynamic(() => import("@/Components/MapComponent"), { ssr: false });
 import Link from "next/link";
 import { MapPin, Share2, Heart, Calendar, Clock, Users } from "lucide-react";
 
 export default function EventDetails() {
   const params = useParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const router = useRouter();
+  const { user, toggleFollowOrganizer, toggleSavedEvent } = useAuth();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -134,9 +137,25 @@ export default function EventDetails() {
               <p className="text-sm text-gray-500">Official Community Partner</p>
             </div>
           </div>
-          <button className="mt-4 md:mt-0 bg-white border-2 border-red-600 text-red-600 px-8 py-2.5 rounded-xl font-bold hover:bg-red-600 hover:text-white transition-all duration-300">
-            Follow
-          </button>
+          {event.organizer && (
+            <button 
+              onClick={async () => {
+                if (!user) {
+                  router.push('/authpage');
+                  return;
+                }
+                const orgId = typeof event.organizer === 'object' ? event.organizer._id : event.organizer;
+                await toggleFollowOrganizer(orgId);
+              }}
+              className={`mt-4 md:mt-0 px-8 py-2.5 rounded-xl font-bold transition-all duration-300 ${
+                user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer)
+                  ? "bg-red-600 text-white shadow-md border-2 border-red-600"
+                  : "bg-white border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
+              }`}
+            >
+              {user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer) ? "Following" : "Follow"}
+            </button>
+          )}
         </div>
       </section>
 
@@ -161,7 +180,7 @@ export default function EventDetails() {
 
             {/* TICKETS SECTION */}
             <div id="tickets">
-              <TicketSelection tickets={event.ticketTypes} />
+              <TicketSelection tickets={event.ticketTypes} eventId={event._id} />
             </div>
           </div>
 
@@ -202,9 +221,26 @@ export default function EventDetails() {
                 Share Event
               </button>
 
-              <button className="flex items-center justify-center gap-3 font-bold text-gray-700 border border-gray-200 rounded-2xl px-4 py-4 w-full hover:bg-gray-50 transition-all">
-                <Heart size={20} className="text-red-600" />
-                Save to Favorites
+              <button 
+                onClick={async () => {
+                  if (!user) {
+                    router.push('/authpage');
+                    return;
+                  }
+                  await toggleSavedEvent(id);
+                }}
+                className={`flex items-center justify-center gap-3 font-bold border rounded-2xl px-4 py-4 w-full transition-all ${
+                  user?.savedEvents?.includes(id) 
+                    ? "bg-red-50 text-red-600 border-red-200" 
+                    : "text-gray-700 border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                <Heart 
+                  size={20} 
+                  className="text-red-600" 
+                  fill={user?.savedEvents?.includes(id) ? "currentColor" : "none"} 
+                />
+                {user?.savedEvents?.includes(id) ? "Saved to Favorites" : "Save to Favorites"}
               </button>
             </div>
           </div>

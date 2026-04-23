@@ -9,7 +9,7 @@ const bookingSchema = new mongoose.Schema({
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required: true
+        required: false // Allow guest checkout
     },
     organizer_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -39,6 +39,13 @@ const bookingSchema = new mongoose.Schema({
     customer_email: String,
     customer_phone: String,
     attendee_names: [String],
+    
+    // Address Fields
+    address_line1: String,
+    address_line2: String,
+    city: String,
+    postcode: String,
+    country: { type: String, default: 'United Kingdom' },
 
     amount_total: {
         type: Number,
@@ -70,14 +77,9 @@ const bookingSchema = new mongoose.Schema({
     },
     stripe_session_id: String,
     stripe_payment_intent_id: String,
-    created_at: {
-        type: Date,
-        default: Date.now
-    },
-    updated_at: {
-        type: Date,
-        default: Date.now
-    }
+    stripe_charge_id: String,
+    pdf_ticket_url: String,
+    is_guest: { type: Boolean, default: false }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Booking', bookingSchema);

@@ -5,6 +5,8 @@ const User = require('../models/user.model');
 const Event = require('../models/event.model');
 const Transaction = require('../models/transaction.model');
 const Payout = require('../models/payout.model');
+const pdfService = require('../services/pdf.service');
+const emailService = require('../services/email.service');
 const crypto = require('crypto');
 
 // Helper: Generate Booking Reference (e.g., HB-525F22C0)
@@ -150,9 +152,16 @@ exports.handleWebhook = async (req, res) => {
 
     // Handle the event
     switch (event.type) {
+        case 'checkout.session.completed':
+            const session = event.data.object;
+            await handleCheckoutSessionCompleted(session);
+            break;
         case 'payment_intent.succeeded':
             const paymentIntent = event.data.object;
-            await handlePaymentIntentSucceeded(paymentIntent);
+            // Only process if not already processed by session
+            if (!paymentIntent.metadata.processedBySession) {
+                await handlePaymentIntentSucceeded(paymentIntent);
+            }
             break;
         case 'account.updated':
             const account = event.data.object;
@@ -178,6 +187,13 @@ async function handlePaymentIntentSucceeded(paymentIntent) {
     booking.stripe_payment_intent_id = paymentIntent.id;
     booking.stripe_charge_id = paymentIntent.latest_charge || paymentIntent.id;
     await booking.save();
+
+    // Trigger Ticket Delivery (PDF + Email)
+    try {
+        await handleTicketDelivery(booking);
+    } catch (deliveryErr) {
+        console.error(`❌ Delivery Failed for Booking ${booking.booking_reference}:`, deliveryErr);
+    }
 
     // 2. Handle Separate Transfer to Organizer (Replica of legacy logic)
     let stripeTransferId = null;
@@ -244,7 +260,12 @@ async function handlePaymentIntentSucceeded(paymentIntent) {
  */
 exports.createCheckoutSession = async (req, res) => {
     try {
-        const { eventId, ticketType, quantity, attendeeName, attendeeEmail, customerPhone, attendees } = req.body;
+        const {
+            eventId, ticketType, quantity,
+            attendeeName, attendeeEmail, customerPhone,
+            addressLine1, addressLine2, city, postcode, country,
+            isGuest
+        } = req.body;
 
         // 1. Fetch Event & Validate
         const event = await Event.findById(eventId).populate('organizer');
@@ -256,58 +277,58 @@ exports.createCheckoutSession = async (req, res) => {
         if (!selectedTicket) return res.status(404).json({ message: 'Ticket type not found' });
         if (selectedTicket.quantity < quantity) return res.status(400).json({ message: 'Not enough tickets available' });
 
-        // 3. Fetch System Settings (for Currency/API keys)
+        // 3. Fetch System Settings
         const settings = await AppSetting.findOne();
         if (!settings) return res.status(500).json({ message: 'System settings not configured' });
 
-        // 4. Financial Calculations based on Event.feePayment flag
-        const subtotalBase = selectedTicket.price * quantity;
-        const platformFeeBase = (selectedTicket.platformFee || 0) * quantity;
-        const vatFeeBase = (selectedTicket.vatOnPlatformFee || 0) * quantity;
-        const stripeFeeBase = selectedTicket.stripeProcessingFee || 0;
-        const totalFeesBase = (selectedTicket.totalFees || 0) * quantity;
+        // 4. Financial Calculations
+        const subtotal = selectedTicket.price * quantity;
 
-        // 5. Determine Currency & Rate (Fetch real-time from Stripe if needed)
-        const stripeService = require('../services/stripe.service');
-        await stripeService.ensureFreshRates(); // Refresh if older than 10 mins (I will update this in stripe service)
-        
-        // Refetch settings to get fresh rates
+        // Calculate fees fresh to ensure they match frontend and latest settings
+        const feePercentage = settings.platform.feePercentage || 0;
+        const fixedFee = settings.platform.fixedFee || 0;
+        const vatRate = settings.platform.vatRate || 0;
+        const stripePercentage = settings.platform.stripeFeePercentage || 3;
+        const fixedStripe = settings.platform.fixedStripeFee || 0.3;
+
+        const platformUnit = selectedTicket.price * (feePercentage / 100) + fixedFee;
+        const vatUnit = platformUnit * (vatRate / 100);
+        const stripeUnit = selectedTicket.price * (stripePercentage / 100) + fixedStripe;
+        const totalFeesBase = (platformUnit + vatUnit + stripeUnit) * quantity;
+
+        // 5. Currency & Rates
+        await stripeService.ensureFreshRates();
         const freshSettings = await AppSetting.findOne();
-        
-        const requestedCurrency = (req.body.currency || req.cookies.selected_currency || freshSettings.platform.currency || 'GBP').toUpperCase();
-        const baseCurrency = (freshSettings.platform.currency || 'GBP').toUpperCase();
-        
-        let exchangeRate = 1;
-        let symbol = '£';
 
+        const requestedCurrency = (req.body.currency || req.cookies.selected_currency || freshSettings.platform.currency || 'EUR').toUpperCase();
+        const baseCurrency = (freshSettings.platform.currency || 'EUR').toUpperCase();
+
+        let exchangeRate = 1;
         if (requestedCurrency !== baseCurrency) {
-            const currencyData = settings.currencies.find(c => c.code === requestedCurrency && c.isActive);
-            if (currencyData) {
-                exchangeRate = currencyData.rate;
-                symbol = currencyData.symbol;
-            } else {
-                // Fallback if requested currency is not found or inactive
-                console.warn(`⚠️ Requested currency ${requestedCurrency} not found/active, falling back to ${baseCurrency}`);
-            }
-        } else {
-            const baseCurrencyData = settings.currencies.find(c => c.code === baseCurrency);
-            if (baseCurrencyData) symbol = baseCurrencyData.symbol;
+            const currencyData = freshSettings.currencies.find(c => c.code === requestedCurrency && c.isActive);
+            if (currencyData) exchangeRate = currencyData.rate;
         }
 
-        // 6. Convert to Target Currency
-        const finalTotalBase = event.feePayment === true ? subtotalBase : subtotalBase + totalFeesBase;
-        const organizerEarningsBase = event.feePayment === true ? subtotalBase - totalFeesBase : subtotalBase;
+        // 6. Convert
+        const finalTotalBase = event.feePayment === true ? subtotal : subtotal + totalFeesBase;
+        const organizerEarningsBase = event.feePayment === true ? subtotal - totalFeesBase : subtotal;
+
+        const platformFeeBase = platformUnit * quantity;
+        const vatFeeBase = vatUnit * quantity;
 
         const finalTotal = parseFloat((finalTotalBase * exchangeRate).toFixed(2));
         const organizerEarnings = parseFloat((organizerEarningsBase * exchangeRate).toFixed(2));
         const platformFee = parseFloat((platformFeeBase * exchangeRate).toFixed(2));
         const vatFee = parseFloat((vatFeeBase * exchangeRate).toFixed(2));
+
+        const stripeFeeBase = (finalTotalBase * (freshSettings.platform.stripeFeePercentage / 100)) + freshSettings.platform.fixedStripeFee;
         const stripeFee = parseFloat((stripeFeeBase * exchangeRate).toFixed(2));
 
-        // 7. Create Preliminary Booking (Pending)
+        // 7. Booking
         const booking = await Booking.create({
             booking_reference: generateBookingReference(),
-            user_id: req.user._id,
+            user_id: isGuest ? null : req.user._id,
+            is_guest: !!isGuest,
             organizer_id: event.organizer,
             event_id: eventId,
             event_name: event.title,
@@ -317,62 +338,174 @@ exports.createCheckoutSession = async (req, res) => {
             event_location: event.location?.address || '',
             ticket_name: selectedTicket.name,
             quantity,
-            customer_name: attendeeName || req.user.username,
-            customer_email: attendeeEmail || req.user.email,
+            customer_name: attendeeName || (req.user ? req.user.username : 'Guest'),
+            customer_email: attendeeEmail || (req.user ? req.user.email : ''),
             customer_phone: customerPhone,
-            attendee_names: attendees || [attendeeName || req.user.username],
-            
+            attendee_names: [attendeeName || (req.user ? req.user.username : 'Guest')],
+            address_line1: addressLine1,
+            address_line2: addressLine2,
+            city: city,
+            postcode: postcode,
+            country: country || 'United Kingdom',
             amount_total: finalTotal,
             base_amount_total: finalTotalBase,
             organizer_amount: organizerEarnings,
-            platform_fee: platformFee + vatFee, // Store combined platform fee
+            platform_fee: platformFee, 
+            stripe_fee: stripeFee,
             exchange_rate: exchangeRate,
             currency: requestedCurrency,
             base_currency: baseCurrency,
             payment_status: 'pending'
         });
 
-        // 8. Stripe Payment Intent
-        const stripeInstance = await stripeService.getStripeInstance();
+        // 8. Free Tickets
+        if (finalTotal === 0) {
+            booking.payment_status = 'paid';
+            await booking.save();
 
-        const paymentData = {
-            amount: Math.round(finalTotal * 100), // convert to cents
-            currency: requestedCurrency.toLowerCase(),
-            metadata: {
-                bookingId: booking._id.toString(),
-                bookingReference: booking.booking_reference,
-                eventId: eventId.toString(),
-                attendeeEmail: attendeeEmail || req.user.email,
-                exchangeRate: exchangeRate.toString(),
-                baseAmount: finalTotalBase.toFixed(2),
-                baseCurrency: baseCurrency
-            }
-        };
+            // Trigger Delivery for Free Tickets
+            try {
+                await handleTicketDelivery(booking);
+            } catch (err) { console.error('Free Delivery Error:', err); }
 
-        const paymentIntent = await stripeInstance.paymentIntents.create(paymentData);
+            return res.status(201).json({
+                success: true,
+                message: 'Free ticket booked successfully',
+                data: {
+                    url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/success?bookingId=${booking._id}`,
+                    bookingId: booking._id,
+                    isFree: true
+                }
+            });
+        }
 
-        // 7. Update booking with Intent ID
-        booking.stripePaymentIntentId = paymentIntent.id;
+        // 9. Stripe Session
+        const unitPriceIncludingFees = parseFloat((finalTotal / quantity).toFixed(2));
+
+        const session = await stripeService.createCheckoutSession({
+            bookingId: booking._id.toString(),
+            eventId: eventId.toString(),
+            ticketName: selectedTicket.name,
+            eventName: event.title,
+            amount: unitPriceIncludingFees, 
+            quantity: quantity,
+            currency: requestedCurrency,
+            customerEmail: attendeeEmail || (req.user ? req.user.email : ''),
+            eventBanner: event.banner ? (event.banner.startsWith('http') ? event.banner : `${process.env.BACKEND_URL || 'http://localhost:5000'}${event.banner}`) : null
+        });
+
+        booking.stripe_session_id = session.id;
         await booking.save();
 
         res.status(201).json({
             success: true,
             data: {
-                clientSecret: paymentIntent.client_secret,
-                bookingId: booking._id,
-                breakdown: {
-                    subtotal: subtotal.toFixed(2),
-                    platformFee: platformFee.toFixed(2),
-                    vatFee: vatFee.toFixed(2),
-                    stripeFee: stripeFee.toFixed(2),
-                    total: finalTotal.toFixed(2),
-                    currency: settings.platform.currency || 'GBP'
-                }
+                url: session.url,
+                bookingId: booking._id
             }
         });
-
     } catch (error) {
         console.error('❌ Checkout API Error:', error);
         res.status(500).json({ message: error.message });
     }
 };
+
+// Helper: Process Ticket Delivery (PDF + Email)
+async function handleTicketDelivery(booking) {
+    console.log(`📦 Generating PDF and Sending Email for Booking: ${booking.booking_reference}`);
+    
+    try {
+        const pdfBuffer = await pdfService.generateTicketPdf(booking);
+        
+        // 1. Send Tickets to Customer
+        await emailService.sendTicketEmail(booking, pdfBuffer);
+        
+        // 2. Fetch Organizer and Platform info for notifications
+        const [event, settings] = await Promise.all([
+            Event.findById(booking.event_id).populate('organizer'),
+            AppSetting.findOne()
+        ]);
+
+        const organizerEmail = event?.organizer?.email;
+        const platformEmail = settings?.contactInfo?.contactEmail || settings?.smtp?.fromEmail;
+
+        // 3. Notify Organizer
+        if (organizerEmail) {
+            await emailService.sendNotificationEmail(
+                organizerEmail,
+                `New Ticket Booking: ${booking.event_name}`,
+                'New Ticket Sold!',
+                `Congratulations! A new ticket has been sold for your event "${booking.event_name}".`,
+                booking
+            );
+        }
+
+        // 4. Notify Platform Admin
+        if (platformEmail) {
+            await emailService.sendNotificationEmail(
+                platformEmail,
+                `New Platform Booking: ${booking.booking_reference}`,
+                'New Booking on HalalBrite',
+                `A new booking has been completed on the platform for "${booking.event_name}".`,
+                booking
+            );
+        }
+
+        console.log(`✅ Ticket Delivery & Notifications Complete for ${booking.booking_reference}`);
+    } catch (error) {
+        console.error('❌ Ticket Delivery Error:', error);
+    }
+}
+
+// Helper: Handle Checkout Session Completion
+async function handleCheckoutSessionCompleted(session) {
+    const bookingId = session.metadata.bookingId;
+    if (!bookingId) return;
+
+    const stripeInstance = await stripeService.getStripeInstance();
+    const paymentIntentId = session.payment_intent;
+    
+    if (paymentIntentId) {
+        const paymentIntent = await stripeInstance.paymentIntents.retrieve(paymentIntentId);
+        // Mark as processed by session to avoid double processing in handleWebhook
+        paymentIntent.metadata = { ...paymentIntent.metadata, bookingId: bookingId, processedBySession: 'true' };
+        await handlePaymentIntentSucceeded(paymentIntent);
+    }
+}
+
+
+// @desc    Download Ticket PDF
+// @route   GET /api/payments/booking/:id/download
+exports.downloadTicket = async (req, res) => {
+    try {
+        const booking = await Booking.findById(req.params.id);
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+        const pdfBuffer = await pdfService.generateTicketPdf(booking);
+        
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=Ticket-${booking.booking_reference}.pdf`,
+            'Content-Length': pdfBuffer.length
+        });
+        res.send(pdfBuffer);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Resend Ticket Email
+// @route   POST /api/payments/booking/:id/resend-email
+exports.resendTicketEmail = async (req, res) => {
+    try {
+        const booking = await Booking.findById(req.params.id);
+        if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+        const pdfBuffer = await pdfService.generateTicketPdf(booking);
+        await emailService.sendTicketEmail(booking, pdfBuffer);
+
+        res.json({ success: true, message: 'Email resent successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}

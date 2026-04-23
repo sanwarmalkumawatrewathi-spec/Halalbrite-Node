@@ -43,7 +43,10 @@ exports.register = async (req, res) => {
                     email: user.email,
                     roles: selectedRole ? [selectedRole.slug] : ['attendee'],
                     stripeConnectedId: user.stripeConnectedId || null,
-                    token: generateToken(user._id)
+                    token: generateToken(user._id),
+                    savedEvents: user.savedEvents || [],
+                    followedOrganizers: user.followedOrganizers || [],
+                    addresses: user.addresses || []
                 }
             });
         }
@@ -68,7 +71,10 @@ exports.login = async (req, res) => {
                 email: user.email,
                 roles: user.roles.map(r => r.slug),
                 stripeConnectedId: user.stripeConnectedId || null,
-                token: generateToken(user._id)
+                token: generateToken(user._id),
+                savedEvents: user.savedEvents || [],
+                followedOrganizers: user.followedOrganizers || [],
+                addresses: user.addresses || []
             });
         } else {
             res.status(401).json({ message: 'Invalid email or password' });
@@ -124,7 +130,10 @@ exports.socialLogin = async (req, res) => {
             email: user.email,
             roles: user.roles.map(r => r.slug),
             token: generateToken(user._id),
-            isSocialLogin: user.isSocialLogin
+            isSocialLogin: user.isSocialLogin,
+            savedEvents: user.savedEvents || [],
+            followedOrganizers: user.followedOrganizers || [],
+            addresses: user.addresses || []
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -141,8 +150,16 @@ exports.getProfile = async (req, res) => {
             _id: user._id,
             username: user.username,
             email: user.email,
-            roles: user.roles,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone,
+            bio: user.bio,
+            avatar: user.avatar,
+            roles: user.roles.map(r => r.slug),
             stripeConnectedId: user.stripeConnectedId || null,
+            savedEvents: user.savedEvents || [],
+            followedOrganizers: user.followedOrganizers || [],
+            addresses: user.addresses || []
         });
     } else {
         res.status(404).json({ message: 'User not found' });
@@ -195,7 +212,10 @@ const handleSocialLogin = async (res, socialData, provider) => {
             email: user.email,
             roles: user.roles.map(r => r.slug),
             token: generateToken(user._id),
-            isSocialLogin: user.isSocialLogin
+            isSocialLogin: user.isSocialLogin,
+            savedEvents: user.savedEvents || [],
+            followedOrganizers: user.followedOrganizers || [],
+            addresses: user.addresses || []
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -318,21 +338,35 @@ exports.becomeOrganizer = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         const organizerRole = await Role.findOne({ slug: 'organizer' });
-        if (!organizerRole) return res.status(500).json({ message: 'Organizer role not found' });
+        const attendeeRole = await Role.findOne({ slug: 'attendee' });
+        
+        if (!organizerRole || !attendeeRole) {
+            return res.status(500).json({ message: 'Required roles not found' });
+        }
 
-        // Add role if not already present
+        // Add roles if not already present
+        let rolesChanged = false;
         if (!user.roles.some(r => r.slug === 'organizer')) {
             user.roles.push(organizerRole._id);
+            rolesChanged = true;
+        }
+        if (!user.roles.some(r => r.slug === 'attendee')) {
+            user.roles.push(attendeeRole._id);
+            rolesChanged = true;
+        }
+
+        if (rolesChanged) {
             await user.save();
         }
 
         const updatedUser = await User.findById(user._id).populate('roles');
         res.json({
-            message: 'Role updated to organizer',
+            message: 'User upgraded to Organizer and Attendee',
             _id: updatedUser._id,
             username: updatedUser.username,
             email: updatedUser.email,
             roles: updatedUser.roles.map(r => r.slug),
+            stripeConnectedId: updatedUser.stripeConnectedId || null,
             token: generateToken(updatedUser._id)
         });
     } catch (error) {
@@ -340,3 +374,23 @@ exports.becomeOrganizer = async (req, res) => {
     }
 };
 
+
+// @desc    Update user preferences
+// @route   PUT /api/auth/preferences
+// @access  Private
+exports.updatePreferences = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        user.preferences = { ...user.preferences, ...req.body };
+        await user.save();
+
+        res.json({
+            message: 'Preferences updated successfully',
+            preferences: user.preferences
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

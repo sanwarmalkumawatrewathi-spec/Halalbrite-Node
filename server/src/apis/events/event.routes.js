@@ -7,10 +7,12 @@ const {
     updateEvent, 
     deleteEvent,
     toggleSaveEvent,
-    getSavedEvents
+    getSavedEvents,
+    getEventLocations
 } = require('../../controllers/event.controller');
 const { protect, authorize } = require('../../middlewares/auth.middleware');
 
+router.get('/locations', getEventLocations);
 router.get('/', getEvents);
 router.get('/saved-events', protect, getSavedEvents);
 router.get('/:id', getEventById);

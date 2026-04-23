@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    getLoginPage, 
-    handleLogin, 
-    logout, 
-    getDashboard, 
+const {
+    getLoginPage,
+    handleLogin,
+    logout,
+    getDashboard,
     getSettings,
     updateSettings,
     getUsers,
@@ -14,6 +14,7 @@ const {
     getInquiries,
     getFAQs,
     getOrders,
+    getOrderDetail,
     getFAQForm,
     saveFAQ,
     getCMSForm,
@@ -81,6 +82,7 @@ router.get('/cms', protectAdminView, getCMS);
 router.get('/inquiries', protectAdminView, getInquiries);
 router.get('/faqs', protectAdminView, getFAQs);
 router.get('/orders', protectAdminView, getOrders);
+router.get('/orders/view/:id', protectAdminView, getOrderDetail);
 
 // User Management
 router.get('/users', protectAdminView, getUsers);

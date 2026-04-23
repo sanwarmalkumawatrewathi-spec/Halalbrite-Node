@@ -11,7 +11,7 @@ const {
     getOrganizerBalance,
     getOrganizerTransactions
 } = require('../../controllers/payment.controller');
-const { protect, authorize } = require('../../middlewares/auth.middleware');
+const { protect, authorize, optionalProtect } = require('../../middlewares/auth.middleware');
 
 // Organizer Stripe Connect & Dashboard APIs
 router.get('/connect', protect, authorize('organizer', 'administrator'), connectStripe);
@@ -22,8 +22,17 @@ router.get('/organizer/stats', protect, authorize('organizer', 'administrator'),
 router.get('/organizer/balance', protect, authorize('organizer', 'administrator'), getOrganizerBalance);
 router.get('/organizer/transactions', protect, authorize('organizer', 'administrator'), getOrganizerTransactions);
 
-// Ticket Purchase
-router.post('/checkout', protect, createCheckoutSession);
+// Ticket Purchase (Auth optional for guest checkout)
+router.post('/checkout', (req, res, next) => {
+    const { isGuest } = req.body;
+    if (isGuest) return next();
+    return protect(req, res, next);
+}, createCheckoutSession);
+
+// Ticket Management (Publicly accessible with booking ID for now, can be hardened later)
+const { downloadTicket, resendTicketEmail } = require('../../controllers/payment.controller');
+router.get('/booking/:id/download', downloadTicket);
+router.post('/booking/:id/resend-email', resendTicketEmail);
 
 // Webhook (Handles raw body for signature verification)
 router.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);

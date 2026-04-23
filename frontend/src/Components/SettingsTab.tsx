@@ -6,7 +6,7 @@ import { useAuth } from "@/context/authContext";
 
 export default function SettingsTab() {
   const router = useRouter();
-  const { user, isOrganizer, becomeOrganizer } = useAuth();
+  const { user, isOrganizer, becomeOrganizer, updateUser } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
   
@@ -23,7 +23,7 @@ export default function SettingsTab() {
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
       const token = localStorage.getItem('token');
-      await fetch(`${API_URL}/api/auth/preferences`, {
+      const response = await fetch(`${API_URL}/api/auth/preferences`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -31,6 +31,10 @@ export default function SettingsTab() {
         },
         body: JSON.stringify({ [key]: value })
       });
+      
+      if (response.ok) {
+          updateUser({ preferences: newPrefs });
+      }
     } catch (error) {
       console.error("Failed to update preferences:", error);
     }

@@ -28,6 +28,10 @@ exports.getSettings = async (req, res) => {
             maskedSettings.stripe.webhookSecret = maskKey(maskedSettings.stripe.webhookSecret);
         }
 
+        if (maskedSettings.smtp) {
+            maskedSettings.smtp.pass = maskKey(maskedSettings.smtp.pass);
+        }
+
         res.json({
             message: 'Settings fetched successfully',
             data: maskedSettings
@@ -59,6 +63,12 @@ exports.updateSettings = async (req, res) => {
             }
         }
 
+        if (updateData.smtp) {
+            if (updateData.smtp.pass && (updateData.smtp.pass.includes('•') || updateData.smtp.pass.includes('*'))) {
+                delete updateData.smtp.pass;
+            }
+        }
+
         if (!settings) {
             settings = await AppSetting.create(updateData);
         } else {
@@ -73,12 +83,15 @@ exports.updateSettings = async (req, res) => {
             await settings.save();
         }
         
-        // Return masked version
         const maskedSettings = settings.toObject();
         if (maskedSettings.stripe) {
             maskedSettings.stripe.testSecretKey = maskKey(maskedSettings.stripe.testSecretKey);
             maskedSettings.stripe.liveSecretKey = maskKey(maskedSettings.stripe.liveSecretKey);
             maskedSettings.stripe.webhookSecret = maskKey(maskedSettings.stripe.webhookSecret);
+        }
+
+        if (maskedSettings.smtp) {
+            maskedSettings.smtp.pass = maskKey(maskedSettings.smtp.pass);
         }
 
         res.json({
@@ -108,8 +121,8 @@ exports.getActiveCurrencies = async (req, res) => {
         
         res.json({
             success: true,
-            baseCurrency: settings.platform.currency || 'GBP',
-            currencies: activeCurrencies
+            baseCurrency: settings.platform.currency || 'EUR',
+            data: activeCurrencies
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -15,9 +15,9 @@ const stripeService = require('../services/stripe.service');
 // @desc    Show Admin Login Page
 // @route   GET /admin/login
 exports.getLoginPage = (req, res) => {
-    res.render('auth/login', { 
-        layout: false, 
-        error: req.query.error || null 
+    res.render('auth/login', {
+        layout: false,
+        error: req.query.error || null
     });
 };
 
@@ -121,7 +121,7 @@ exports.getSettings = async (req, res) => {
                 { code: 'EUR', symbol: '€', rate: 1.15, isActive: true, country: 'Ireland', countryCode: 'ie' }
             ];
             await settings.save();
-            
+
             // Immediate sync to get fresh rates
             const stripeService = require('../services/stripe.service');
             await stripeService.syncCurrencyRates();
@@ -132,6 +132,17 @@ exports.getSettings = async (req, res) => {
                 google: { isActive: false },
                 meta: { isActive: false },
                 apple: { isActive: false }
+            };
+        }
+
+        if (!settings.smtp) {
+            settings.smtp = {
+                host: '',
+                port: 587,
+                user: '',
+                pass: '',
+                fromEmail: '',
+                fromName: 'HalalBrite'
             };
         }
 
@@ -154,35 +165,38 @@ exports.updateSettings = async (req, res) => {
         const updateData = { ...req.body };
         const settings = await AppSetting.findOne();
 
-        // Security: Preserve masked keys if they wasn't changed
+        if (!settings) {
+            await AppSetting.create(updateData);
+            return res.redirect('/admin/settings?success=Settings created successfully');
+        }
+
+        // Security: Preserve masked keys
         if (updateData.stripe) {
             if (updateData.stripe.testSecretKey && updateData.stripe.testSecretKey.includes('•')) delete updateData.stripe.testSecretKey;
             if (updateData.stripe.liveSecretKey && updateData.stripe.liveSecretKey.includes('•')) delete updateData.stripe.liveSecretKey;
         }
 
+        if (updateData.smtp) {
+            if (updateData.smtp.pass && updateData.smtp.pass.includes('•')) delete updateData.smtp.pass;
+            if (updateData.smtp.port) updateData.smtp.port = parseInt(updateData.smtp.port);
+        }
+
         if (updateData.socialLogin) {
             ['google', 'meta', 'apple'].forEach(provider => {
                 if (updateData.socialLogin[provider]) {
-                    // Handle Checkbox (on/off)
                     updateData.socialLogin[provider].isActive = updateData.socialLogin[provider].isActive === 'on';
-                    
-                    // Preserve masked keys
                     if (updateData.socialLogin[provider].clientSecret && updateData.socialLogin[provider].clientSecret.includes('•')) {
                         delete updateData.socialLogin[provider].clientSecret;
                     }
                     if (updateData.socialLogin[provider].privateKey && updateData.socialLogin[provider].privateKey.includes('•')) {
                         delete updateData.socialLogin[provider].privateKey;
                     }
-                } else {
-                    // If the provider section is missing from body but we want to ensure it's off if it was present in form?
-                    // Usually if nothing was sent for a provider, we don't want to touch it.
                 }
             });
         }
 
-        // Handle Currencies Array
+        // Handle Currencies
         if (updateData.currencies) {
-            // Convert object-style array from form to actual array
             const currenciesArray = Object.values(updateData.currencies).map(c => ({
                 ...c,
                 isActive: c.isActive === 'on',
@@ -192,31 +206,26 @@ exports.updateSettings = async (req, res) => {
             delete updateData.currencies;
         }
 
-        if (!settings) {
-            await AppSetting.create(updateData);
-        } else {
-            // Robust Merge: Update only provided fields
-            Object.keys(updateData).forEach(key => {
-                if (typeof updateData[key] === 'object' && updateData[key] !== null && !Array.isArray(updateData[key])) {
-                    // Deep merge for nested objects (Stripe, SocialLogin, etc)
-                    if (!settings[key]) settings[key] = {};
-                    
-                    Object.keys(updateData[key]).forEach(subKey => {
-                        // Check for 2nd level nesting (e.g. socialLogin.google)
-                        if (typeof updateData[key][subKey] === 'object' && updateData[key][subKey] !== null) {
-                            if (!settings[key][subKey]) settings[key][subKey] = {};
-                            Object.assign(settings[key][subKey], updateData[key][subKey]);
-                        } else {
-                            settings[key][subKey] = updateData[key][subKey];
-                        }
-                    });
-                    settings.markModified(key);
-                } else {
-                    settings[key] = updateData[key];
-                }
-            });
-            await settings.save();
-        }
+        // Generic Deep Merge
+        Object.keys(updateData).forEach(key => {
+            if (typeof updateData[key] === 'object' && updateData[key] !== null && !Array.isArray(updateData[key])) {
+                if (!settings[key]) settings[key] = {};
+
+                Object.keys(updateData[key]).forEach(subKey => {
+                    if (typeof updateData[key][subKey] === 'object' && updateData[key][subKey] !== null) {
+                        if (!settings[key][subKey]) settings[key][subKey] = {};
+                        Object.assign(settings[key][subKey], updateData[key][subKey]);
+                    } else {
+                        settings[key][subKey] = updateData[key][subKey];
+                    }
+                });
+                settings.markModified(key);
+            } else {
+                settings[key] = updateData[key];
+            }
+        });
+
+        await settings.save();
 
         res.redirect('/admin/settings?success=Settings updated successfully');
     } catch (error) {
@@ -277,24 +286,24 @@ exports.saveUser = async (req, res) => {
     try {
         console.log('📝 Saving user:', req.body);
         const { id, username, email, password, role, status } = req.body;
-        
-        const data = { 
-            username, 
-            email, 
-            role, 
-            status: status || 'active' 
+
+        const data = {
+            username,
+            email,
+            role,
+            status: status || 'active'
         };
 
         if (id) {
             console.log('🔄 Updating existing user:', id);
             const user = await User.findById(id);
             if (!user) return res.status(404).send('User not found');
-            
+
             // Only update password if provided
             if (password && password.trim() !== '') {
                 user.password = password;
             }
-            
+
             user.username = username;
             user.email = email;
             user.roles = [role];
@@ -306,10 +315,10 @@ exports.saveUser = async (req, res) => {
             if (!password) {
                 return res.status(400).send('Password is required for new users');
             }
-            const newUser = await User.create({ 
-                ...data, 
+            const newUser = await User.create({
+                ...data,
                 roles: [role],
-                password 
+                password
             });
             console.log('✅ User created successfully:', newUser._id);
         }
@@ -413,6 +422,26 @@ exports.getOrders = async (req, res) => {
     }
 };
 
+// @desc    View Order Detail
+// @route   GET /admin/orders/view/:id
+exports.getOrderDetail = async (req, res) => {
+    try {
+        const order = await Booking.findById(req.params.id)
+            .populate('user_id', 'username email')
+            .populate('event_id', 'title');
+        
+        if (!order) return res.status(404).send('Order not found');
+
+        res.render('pages/order_detail', {
+            activePage: 'orders',
+            admin: req.user,
+            order
+        });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
 // @desc    FAQ Creation/Edit Form
 // @route   GET /admin/faqs/add OR /admin/faqs/edit/:id
 exports.getFAQForm = async (req, res) => {
@@ -436,12 +465,12 @@ exports.getFAQForm = async (req, res) => {
 exports.saveFAQ = async (req, res) => {
     try {
         const { id, question, answer, category, order, isActive } = req.body;
-        const data = { 
-            question, 
-            answer, 
-            category, 
-            order: parseInt(order) || 0, 
-            isActive: isActive === 'on' 
+        const data = {
+            question,
+            answer,
+            category,
+            order: parseInt(order) || 0,
+            isActive: isActive === 'on'
         };
 
         if (id) {
@@ -499,7 +528,7 @@ exports.getEventForm = async (req, res) => {
         if (req.params.id) {
             event = await Event.findById(req.params.id);
         }
-        
+
         const [categories, settings, adminRole, organizerRole] = await Promise.all([
             Category.find().sort({ name: 1 }),
             AppSetting.findOne(),
@@ -507,8 +536,8 @@ exports.getEventForm = async (req, res) => {
             Role.findOne({ slug: 'organizer' })
         ]);
 
-        const organizers = await User.find({ 
-            roles: { $in: [adminRole?._id, organizerRole?._id].filter(id => id) } 
+        const organizers = await User.find({
+            roles: { $in: [adminRole?._id, organizerRole?._id].filter(id => id) }
         }).select('username _id').sort({ username: 1 });
 
         res.render('pages/event_form', {
@@ -535,13 +564,13 @@ exports.getEventForm = async (req, res) => {
 // @route   POST /admin/events/save
 exports.saveEvent = async (req, res) => {
     try {
-        const { 
-            id, title, description, category, eventType, 
-            startDate, endDate, startTime, endTime, 
+        const {
+            id, title, description, category, eventType,
+            startDate, endDate, startTime, endTime,
             status, thumbnailOption, banner, thumbnail,
             organizerName, capacity
         } = req.body;
-        
+
         // Combine Event Date and Time
         const combinedStart = new Date(`${startDate}T${startTime || '00:00'}`);
         const combinedEnd = new Date(`${endDate}T${endTime || '00:00'}`);
@@ -565,7 +594,7 @@ exports.saveEvent = async (req, res) => {
         const ticketSaleStartTimes = Array.isArray(req.body.ticketSaleStartTime) ? req.body.ticketSaleStartTime : [req.body.ticketSaleStartTime];
         const ticketSaleEnds = Array.isArray(req.body.ticketSaleEndDate) ? req.body.ticketSaleEndDate : [req.body.ticketSaleEndDate];
         const ticketSaleEndTimes = Array.isArray(req.body.ticketSaleEndTime) ? req.body.ticketSaleEndTime : [req.body.ticketSaleEndTime];
-        
+
         // Fee components
         const platformFees = Array.isArray(req.body.ticketPlatformFee) ? req.body.ticketPlatformFee : [req.body.ticketPlatformFee];
         const vatFees = Array.isArray(req.body.ticketVatFee) ? req.body.ticketVatFee : [req.body.ticketVatFee];
@@ -631,7 +660,7 @@ exports.getEventDetail = async (req, res) => {
         const event = await Event.findById(req.params.id)
             .populate('category')
             .populate('organizer', 'username email');
-        
+
         if (!event) return res.status(404).send('Event not found');
 
         const bookingsCount = await Booking.countDocuments({ event_id: event._id });
@@ -691,7 +720,7 @@ exports.handleDelete = async (req, res) => {
         let model;
         let redirectUrl = `/admin/${resource}`;
 
-        switch(resource) {
+        switch (resource) {
             case 'users': model = User; break;
             case 'events': model = Event; break;
             case 'categories': model = Category; break;
@@ -713,11 +742,11 @@ exports.handleDelete = async (req, res) => {
 exports.getStripeOrganizers = async (req, res) => {
     try {
         // Find users who have connected Stripe (supporting both legacy and new field names)
-        const rawOrganizers = await User.find({ 
+        const rawOrganizers = await User.find({
             $or: [
                 { stripe_account_id: { $exists: true, $ne: null, $ne: '' } },
                 { stripeConnectedId: { $exists: true, $ne: null, $ne: '' } }
-            ] 
+            ]
         }).select('username email stripe_account_id stripeConnectedId createdAt').sort({ createdAt: -1 });
 
         console.log(`🔍 Found ${rawOrganizers.length} raw organizers in DB`);
@@ -801,7 +830,7 @@ exports.getStripeTransactions = async (req, res) => {
 
         const stats = await Transaction.aggregate([
             { $match: { status: 'completed' } },
-            { 
+            {
                 $group: {
                     _id: null,
                     totalPlatformFee: { $sum: '$platform_fee' },
@@ -878,7 +907,7 @@ exports.getStripeSettings = async (req, res) => {
 exports.saveStripeSettings = async (req, res) => {
     try {
         const settings = await AppSetting.findOne() || new AppSetting();
-        
+
         // Update Stripe Keys
         settings.stripe = {
             ...settings.stripe,
@@ -900,7 +929,7 @@ exports.saveStripeSettings = async (req, res) => {
             vatRate: parseFloat(req.body.vatRate) || 0,
             stripeFeePercentage: parseFloat(req.body.stripeFeePercentage) || 0,
             fixedStripeFee: parseFloat(req.body.fixedStripeFee) || 0,
-            currency: req.body.currency || 'GBP',
+            currency: req.body.currency || 'EUR',
             payoutThreshold: parseFloat(req.body.payoutThreshold) || 0,
             payoutSchedule: req.body.payoutSchedule || 'Manual'
         };

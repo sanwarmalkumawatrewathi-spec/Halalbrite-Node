@@ -1,7 +1,7 @@
 "use client";
 // @ts-nocheck
 
-import "leaflet/dist/leaflet.css"; 
+import "leaflet/dist/leaflet.css";
 import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from "react-leaflet";
 import Link from "next/link";
 
@@ -53,13 +53,13 @@ export default function MapComponent({ center, events }: MapComponentProps) {
 
   return (
     <div className="rounded-2xl overflow-hidden shadow-xl max-w-7xl mx-auto border-4 border-white mb-10">
-      <MapContainerAny 
-        center={mapCenter} 
-        zoom={zoom} 
+      <MapContainerAny
+        center={mapCenter}
+        zoom={zoom}
         className="h-[500px] w-full"
         scrollWheelZoom={false}
       >
-        <TileLayerAny 
+        <TileLayerAny
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
@@ -83,7 +83,7 @@ export default function MapComponent({ center, events }: MapComponentProps) {
           const jitterLng = (Math.random() - 0.5) * 0.01;
           const position: [number, number] = [coords[1] + jitterLat, coords[0] + jitterLng];
 
-          const thumbUrl = event.thumbnail 
+          const thumbUrl = event.thumbnail
             ? (event.thumbnail.startsWith('http') ? event.thumbnail : `${baseUrl}${event.thumbnail}`)
             : null;
 
@@ -102,9 +102,9 @@ export default function MapComponent({ center, events }: MapComponentProps) {
               <TooltipAny direction="top" offset={[0, -10]} opacity={1}>
                 <div className="flex items-center gap-3 p-1 min-w-[150px]">
                   {thumbUrl && (
-                    <img 
-                      src={thumbUrl} 
-                      alt="" 
+                    <img
+                      src={thumbUrl}
+                      alt=""
                       className="w-10 h-10 rounded object-cover border border-gray-100"
                     />
                   )}
@@ -114,19 +114,19 @@ export default function MapComponent({ center, events }: MapComponentProps) {
                   </div>
                 </div>
               </TooltipAny>
-              
+
               <PopupAny>
                 <div className="w-48 p-1">
                   {event.banner && (
-                    <img 
-                      src={event.banner.startsWith('http') ? event.banner : `${baseUrl}${event.banner}`} 
+                    <img
+                      src={event.banner.startsWith('http') ? event.banner : `${baseUrl}${event.banner}`}
                       alt={event.title}
                       className="w-full h-24 object-cover rounded-lg mb-2"
                     />
                   )}
                   <h3 className="font-bold text-red-900 text-sm leading-tight mb-1">{event.title}</h3>
                   <p className="text-xs text-gray-600 mb-2">{event.location?.city}</p>
-                  <Link 
+                  <Link
                     href={`/eventpage/${event._id}`}
                     className="block text-center bg-red-600 text-white text-xs font-bold py-2 rounded hover:bg-red-700 transition"
                   >

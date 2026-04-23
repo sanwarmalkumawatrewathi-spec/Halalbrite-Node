@@ -15,6 +15,15 @@ const appSettingSchema = new mongoose.Schema({
         liveClientId: String,
         webhookSecret: String
     },
+    // SMTP Email Settings
+    smtp: {
+        host: String,
+        port: { type: Number, default: 587 },
+        user: String,
+        pass: String,
+        fromEmail: String,
+        fromName: { type: String, default: 'Halalbrite' }
+    },
     // Auth0 Social Login Settings
     // Social Login Settings
     socialLogin: {
@@ -60,7 +69,7 @@ const appSettingSchema = new mongoose.Schema({
         },
         currency: {
             type: String,
-            default: 'GBP'
+            default: 'EUR'
         },
         payoutThreshold: {
             type: Number,

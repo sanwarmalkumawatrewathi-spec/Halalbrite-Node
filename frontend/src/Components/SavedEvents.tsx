@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { FaCalendarAlt, FaMapMarkerAlt } from "react-icons/fa";
+import { FaCalendarAlt, FaMapMarkerAlt, FaHeart } from "react-icons/fa";
+import { useAuth } from "@/context/authContext";
 
 type SavedEvent = {
   _id: string;
@@ -16,30 +17,40 @@ type SavedEvent = {
   priceLabel: string;
 };
 
+type Organizer = {
+  _id: string;
+  username: string;
+  avatar: string;
+  bio: string;
+};
+
 export default function SavedEvents() {
   const [savedEvents, setSavedEvents] = useState<SavedEvent[]>([]);
+  const [followedOrganizers, setFollowedOrganizers] = useState<Organizer[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toggleSavedEvent, toggleFollowOrganizer } = useAuth();
 
   useEffect(() => {
-    fetchSavedEvents();
+    fetchData();
   }, []);
 
-  const fetchSavedEvents = async () => {
+  const fetchData = async () => {
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/events/saved-events`, {
+      const response = await fetch(`${API_URL}/api/dashboard/user/saved`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const contentType = response.headers.get("content-type");
       if (response.ok && contentType && contentType.includes("application/json")) {
         const data = await response.json();
-        setSavedEvents(data);
+        setSavedEvents(data.data?.savedEvents || []);
+        setFollowedOrganizers(data.data?.followedOrganizers || []);
       } else {
-        console.error("Failed to fetch saved events:", response.status, await response.text());
+        console.error("Failed to fetch saved data:", response.status, await response.text());
       }
     } catch (error) {
-      console.error("Failed to fetch saved events:", error);
+      console.error("Failed to fetch saved data:", error);
     } finally {
       setLoading(false);
     }
@@ -47,13 +58,8 @@ export default function SavedEvents() {
 
   const unsaveEvent = async (id: string) => {
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/events/${id}/save`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
+      const res = await toggleSavedEvent(id);
+      if (res.success) {
         setSavedEvents(prev => prev.filter(ev => ev._id !== id));
       }
     } catch (error) {
@@ -61,7 +67,18 @@ export default function SavedEvents() {
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading saved events...</div>;
+  const unfollowOrganizer = async (id: string) => {
+    try {
+      const res = await toggleFollowOrganizer(id);
+      if (res.success) {
+        setFollowedOrganizers(prev => prev.filter(org => org._id !== id));
+      }
+    } catch (error) {
+      console.error("Failed to unfollow organizer:", error);
+    }
+  };
+
+  if (loading) return <div className="p-10 text-center">Loading saved items...</div>;
 
   return (
     <div className="p-0 min-h-screen">
@@ -134,6 +151,50 @@ export default function SavedEvents() {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Followed Organizers Section */}
+      <div className="mt-8">
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-gray-900">Followed Organisers</h2>
+          <p className="text-sm text-gray-500">Organisers you're following</p>
+        </div>
+
+        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          {followedOrganizers.length === 0 ? (
+            <div className="p-8 text-center text-gray-500 text-sm">
+              You are not following any organisers yet.
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {followedOrganizers.map((org) => (
+                <div key={org._id} className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-xl uppercase shrink-0">
+                      {org.avatar ? (
+                        <img src={org.avatar} alt={org.username} className="w-full h-full rounded-full object-cover" />
+                      ) : (
+                        org.username.substring(0, 2)
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-900">{org.username}</h3>
+                      <p className="text-sm text-gray-500 line-clamp-1">{org.bio || "Event Organiser"}</p>
+                    </div>
+                  </div>
+                  
+                  <button 
+                    onClick={() => unfollowOrganizer(org._id)}
+                    className="flex items-center gap-2 border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 px-4 py-2 rounded-lg font-medium text-sm transition-colors w-full sm:w-auto justify-center"
+                  >
+                    <FaHeart className="text-red-600" />
+                    Following
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -4,8 +4,21 @@ import { useState } from "react";
 
 export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
   const router = useRouter();
-  const { user, isOrganizer, becomeOrganizer, updateUser } = useAuth();
+  const { user, isOrganizer, becomeOrganizer, updateUser, refreshUser } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
+  
+  // Address Modal State
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    label: "Home",
+    street: "",
+    city: "",
+    state: "",
+    postcode: "",
+    country: "UK",
+    isDefault: false
+  });
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
@@ -68,6 +81,55 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
       alert("An error occurred while saving profile.");
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleAddAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingAddress(true);
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/dashboard/user/addresses`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(addressForm)
+      });
+      if (response.ok) {
+        await refreshUser();
+        setShowAddressModal(false);
+        setAddressForm({ label: "Home", street: "", city: "", state: "", postcode: "", country: "UK", isDefault: false });
+      } else {
+        const err = await response.json();
+        alert(err.message || "Failed to add address");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error adding address");
+    } finally {
+      setIsSavingAddress(false);
+    }
+  };
+
+  const handleDeleteAddress = async (id: string) => {
+    if (!confirm("Are you sure you want to remove this address?")) return;
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/dashboard/user/addresses/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        await refreshUser();
+      } else {
+        alert("Failed to delete address");
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -220,7 +282,10 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
             </p>
           </div>
 
-          <button className="bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-lg shadow-red-100 hover:bg-red-700 transition">
+          <button 
+            onClick={() => setShowAddressModal(true)}
+            className="bg-red-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-lg shadow-red-100 hover:bg-red-700 transition"
+          >
             + Add New Address
           </button>
         </div>
@@ -228,7 +293,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
         {/* Address Cards */}
         <div className="space-y-4">
           {(user?.addresses?.length ?? 0) > 0 ? (
-            user.addresses.map((addr: any, i: number) => (
+            user?.addresses?.map((addr: any, i: number) => (
               <div key={i} className="border border-gray-100 bg-gray-50/30 rounded-xl p-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:border-red-200 transition">
                 <div className="flex gap-4">
                   <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center text-white shadow-md shadow-red-100">
@@ -249,17 +314,17 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
 
                     <div className="text-sm text-gray-500 space-y-0.5">
                         <p>{addr.street}</p>
-                        <p>{addr.city}, {addr.zipCode}</p>
+                        <p>{addr.city}{addr.state ? `, ${addr.state}` : ''} {addr.postcode}</p>
                         <p>{addr.country}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex gap-2 w-full sm:w-auto">
-                  <button className="flex-1 sm:flex-none text-xs font-bold px-4 py-2 border border-gray-200 rounded-lg hover:bg-white transition bg-white shadow-sm">
-                    Edit
-                  </button>
-                  <button className="flex-1 sm:flex-none text-xs font-bold px-4 py-2 border border-red-100 text-red-600 rounded-lg hover:bg-red-50 transition bg-white shadow-sm">
+                  <button 
+                    onClick={() => handleDeleteAddress(addr._id)}
+                    className="flex-1 sm:flex-none text-xs font-bold px-4 py-2 border border-red-100 text-red-600 rounded-lg hover:bg-red-50 transition bg-white shadow-sm"
+                  >
                     Remove
                   </button>
                 </div>
@@ -292,6 +357,59 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
         </div>
 
       </div>
+
+      {/* Address Modal */}
+      {showAddressModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-8 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button
+              onClick={() => setShowAddressModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+            >
+              ✕
+            </button>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Add New Address</h2>
+            
+            <form onSubmit={handleAddAddress} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Street Address</label>
+                <input required value={addressForm.street} onChange={e => setAddressForm({...addressForm, street: e.target.value})} className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="123 Main St" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">City</label>
+                  <input required value={addressForm.city} onChange={e => setAddressForm({...addressForm, city: e.target.value})} className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="London" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">State / County</label>
+                  <input value={addressForm.state} onChange={e => setAddressForm({...addressForm, state: e.target.value})} className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Greater London" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Postcode</label>
+                  <input required value={addressForm.postcode} onChange={e => setAddressForm({...addressForm, postcode: e.target.value})} className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="E1 6AN" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Country</label>
+                  <input required value={addressForm.country} onChange={e => setAddressForm({...addressForm, country: e.target.value})} className="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="UK" />
+                </div>
+              </div>
+              <div className="flex items-center gap-2 mt-4">
+                <input type="checkbox" id="isDefault" checked={addressForm.isDefault} onChange={e => setAddressForm({...addressForm, isDefault: e.target.checked})} className="w-4 h-4 text-red-600 focus:ring-red-500 border-gray-300 rounded" />
+                <label htmlFor="isDefault" className="text-sm text-gray-700 font-medium">Set as default address</label>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-8">
+                <button type="button" onClick={() => setShowAddressModal(false)} className="px-5 py-2 text-sm font-bold border border-gray-300 rounded-lg hover:bg-gray-50 transition">Cancel</button>
+                <button type="submit" disabled={isSavingAddress} className="px-5 py-2 text-sm font-bold bg-red-600 text-white rounded-lg hover:bg-red-700 transition shadow-md disabled:opacity-50">
+                  {isSavingAddress ? "Saving..." : "Save Address"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

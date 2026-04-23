@@ -4,8 +4,15 @@ import { useState } from "react";
 import CategoryTabs from "@/Components/CategoryTabs";
 import FeaturedEvents from "@/Components/FeaturedEvents";
 
-export default function Eventpage() {
-  const [activeCategory, setActiveCategory] = useState("All");
+export default function Eventpage({ 
+  selectedCity, 
+  activeCategory, 
+  setActiveCategory 
+}: { 
+  selectedCity?: string | null, 
+  activeCategory: string, 
+  setActiveCategory: (cat: string) => void 
+}) {
 
   return (
     <div>
@@ -15,7 +22,7 @@ export default function Eventpage() {
         setActive={setActiveCategory}
       />
 
-      <FeaturedEvents activeCategory={activeCategory} />
+      <FeaturedEvents activeCategory={activeCategory} selectedCity={selectedCity} />
     </div>
   );
 }

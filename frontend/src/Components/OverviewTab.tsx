@@ -5,13 +5,17 @@ import { MdEvent, MdAttachMoney } from "react-icons/md";
 import { FiDollarSign } from "react-icons/fi";
 import { IoWarningOutline, IoCheckmarkCircleOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/context/authContext";
 
 export default function OverviewTab() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
 
+  const { refreshUser } = useAuth();
+
   useEffect(() => {
     fetchStats();
+    refreshUser(); // Refresh global auth state to sync Stripe status
   }, []);
 
   const fetchStats = async () => {
