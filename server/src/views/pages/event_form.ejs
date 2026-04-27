@@ -1,0 +1,638 @@
+<% // Defensive declarations using a different naming convention to avoid Temporal Dead Zone (TDZ) errors const
+    _pSettings=(typeof settings !=='undefined' && settings.platform) ? settings.platform : {}; const
+    _platformFeePercent=(typeof platformFeePercent !=='undefined' ) ? platformFeePercent : (_pSettings.feePercentage ||
+    0); const _platformFixedFee=(typeof platformFixedFee !=='undefined' ) ? platformFixedFee : (_pSettings.fixedFee ||
+    0); const _vatRate=(typeof vatRate !=='undefined' ) ? vatRate : (_pSettings.vatRate || 0); const
+    _stripePercent=(typeof stripePercent !=='undefined' ) ? stripePercent : (_pSettings.stripeFeePercentage || 0); const
+    _stripeFixed=(typeof stripeFixed !=='undefined' ) ? stripeFixed : (_pSettings.fixedStripeFee || 0); const
+    _currencySym=(typeof currentCurrencySymbol !=='undefined' ) ? currentCurrencySymbol : (_pSettings.currency==='EUR'
+    ? '€' : _pSettings.currency==='USD' ? '$' : '£' ); const _allOrganizersList=(typeof allOrganizers !=='undefined' ) ?
+    allOrganizers : []; %>
+
+    <%- contentFor('style') %>
+        <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+        <link href="/css/event-form.css" rel="stylesheet">
+
+        <%- contentFor('body') %>
+            <div class="main-container event-form-body" id="event-form-app" data-sym="<%= _currencySym %>"
+                data-pct-p="<%= _platformFeePercent %>" data-fix-p="<%= _platformFixedFee %>"
+                data-pct-v="<%= _vatRate %>" data-pct-s="<%= _stripePercent %>" data-fix-s="<%= _stripeFixed %>">
+
+                <div class="form-header-premium">
+                    <div class="header-content">
+                        <h1 class="page-title">
+                            <%= event ? 'Edit Event' : 'Create New Event' %>
+                        </h1>
+                        <p class="page-subtitle">Configure your event details, location, and ticketing options in one
+                            seamless workflow.</p>
+                    </div>
+                    <div class="form-progress-steps">
+                        <div class="step active" data-target="basic-info">
+                            <span class="step-num">1</span>
+                            <span class="step-label">Basic Info</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step" data-target="location">
+                            <span class="step-num">2</span>
+                            <span class="step-label">Location</span>
+                        </div>
+                        <div class="step-line"></div>
+                        <div class="step" data-target="tickets">
+                            <span class="step-num">3</span>
+                            <span class="step-label">Tickets</span>
+                        </div>
+                    </div>
+                </div>
+
+                <link href="/css/event-form.css" rel="stylesheet">
+
+                <form action="/admin/events/save" method="POST" id="event-form">
+                    <% if (event) { %><input type="hidden" name="id" value="<%= event._id %>">
+                        <% } %>
+
+                            <!-- Basic Information -->
+                            <div class="form-section-card" id="basic-info-section">
+                                <div class="section-head">
+                                    <div class="section-icon"><i class="fa-solid fa-circle-info"></i></div>
+                                    <div>
+                                        <h2 class="section-title">Basic Information</h2>
+                                        <p class="section-desc">The core identity and schedule of your event.</p>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="field-label">Event Title</label>
+                                    <input type="text" name="title" value="<%= event?.title || '' %>" class="form-input"
+                                        placeholder="e.g., Annual Islamic Conference 2025" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="field-label">Event Banner</label>
+                                    <div class="upload-area" onclick="document.getElementById('banner-file').click()">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                        <p id="banner-status">Click to upload banner image</p>
+                                        <span>Recommended: 1920x1080px (16:9 ratio), Max size: 256MB</span>
+                                        <img id="banner-preview" class="preview-img <%= event?.banner ? 'shown' : '' %>"
+                                            src="<%= event?.banner || '' %>">
+                                        <input type="hidden" name="banner" id="banner-input"
+                                            value="<%= event?.banner || '' %>">
+                                        <input type="file" id="banner-file" style="display:none" accept="image/*"
+                                            onchange="ajaxUpload(this, 'banner-input', 'banner-preview', 'banner-status')">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="field-label">Event Thumbnail</label>
+                                    <div class="radio-card-group">
+                                        <label class="radio-card">
+                                            <input type="radio" name="thumbnailOption" value="same" <%=!event ||
+                                                event.thumbnailOption==='same' ? 'checked' : '' %>>
+                                            <div class="radio-text">
+                                                <div>Use same image as banner</div>
+                                                <span>The banner image will be used for event cards on the home page and
+                                                    the image on the map when your event location is clicked on.</span>
+                                            </div>
+                                        </label>
+                                        <label class="radio-card">
+                                            <input type="radio" name="thumbnailOption" value="different"
+                                                <%=event?.thumbnailOption==='different' ? 'checked' : '' %>>
+                                            <div class="radio-text">
+                                                <div>Use different thumbnail image</div>
+                                                <span>Upload a separate image for event cards (recommended square or 4:3
+                                                    ratio)</span>
+                                            </div>
+                                        </label>
+                                    </div>
+
+                                    <div id="thumb-upload-container"
+                                        class="<%= event?.thumbnailOption === 'different' ? '' : 'hidden' %> mt-20">
+                                        <div class="upload-area"
+                                            onclick="document.getElementById('thumb-file').click()">
+                                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                                            <p id="thumb-status">Click to upload thumbnail</p>
+                                            <img id="thumb-preview"
+                                                class="preview-img <%= event?.thumbnail && event.thumbnailOption === 'different' ? 'shown' : '' %>"
+                                                src="<%= event?.thumbnail || '' %>">
+                                            <input type="hidden" name="thumbnail" id="thumb-input"
+                                                value="<%= event?.thumbnail || '' %>">
+                                            <input type="file" id="thumb-file" style="display:none" accept="image/*"
+                                                onchange="ajaxUpload(this, 'thumb-input', 'thumb-preview', 'thumb-status')">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="field-label">Category</label>
+                                    <select name="category" class="form-input" required>
+                                        <option value="">Select a category</option>
+                                        <% categories.forEach(cat=> { %>
+                                            <option value="<%= cat._id %>" <%=event &&
+                                                event.category?.toString()===cat._id.toString() ? 'selected' : '' %>><%=
+                                                    cat.name %>
+                                            </option>
+                                            <% }) %>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="field-label">Description</label>
+                                    <div id="editor"></div>
+                                    <input type="hidden" name="description" id="desc-input"
+                                        value="<%= event?.description || '' %>">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="field-label">Event Organiser <span
+                                            class="optional">(Optional)</span></label>
+                                    <select name="organizer" class="form-input" id="org-select">
+                                        <option value="<%= admin._id %>" <%=!event ||
+                                            event.organizer?.toString()===admin._id.toString() ? 'selected' : '' %>><%=
+                                                admin.username %>
+                                        </option>
+                                        <% _allOrganizersList.forEach(org=> { %>
+                                            <% if (org._id.toString() !==admin._id.toString()) { %>
+                                                <option value="<%= org._id %>" <%=event &&
+                                                    event.organizer?.toString()===org._id.toString() ? 'selected' : ''
+                                                    %>><%= org.username %>
+                                                </option>
+                                                <% } %>
+                                                    <% }) %>
+                                    </select>
+                                    <input type="hidden" name="organizerName" id="org-name-input"
+                                        value="<%= event ? event.organizerName : admin.username %>">
+                                    <span class="field-hint">Event will show "<span id="org-display-name">
+                                            <%= event ? event.organizerName : admin.username %>
+                                        </span>" as the organiser</span>
+                                </div>
+
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="field-label"><i class="fa-regular fa-calendar-days"></i> Start
+                                            Date</label>
+                                        <div class="icon-input-group">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <input type="date" name="startDate"
+                                                value="<%= event?.startDate ? new Date(event.startDate).toISOString().split('T')[0] : '' %>"
+                                                class="form-input" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="field-label"><i class="fa-regular fa-calendar-days"></i> End
+                                            Date</label>
+                                        <div class="icon-input-group">
+                                            <i class="fa-regular fa-calendar"></i>
+                                            <input type="date" name="endDate"
+                                                value="<%= event?.endDate ? new Date(event.endDate).toISOString().split('T')[0] : '' %>"
+                                                class="form-input" required>
+                                        </div>
+                                        <span class="field-hint">Please select a start date first</span>
+                                    </div>
+                                </div>
+
+                                <div class="grid-2">
+                                    <div class="form-group">
+                                        <label class="field-label"><i class="fa-regular fa-clock"></i> Start
+                                            Time</label>
+                                        <div class="icon-input-group">
+                                            <i class="fa-regular fa-clock"></i>
+                                            <input type="time" name="startTime" value="<%= event?.startTime || '' %>"
+                                                class="form-input" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="field-label"><i class="fa-regular fa-clock"></i> End Time</label>
+                                        <div class="icon-input-group">
+                                            <i class="fa-regular fa-clock"></i>
+                                            <input type="time" name="endTime" value="<%= event?.endTime || '' %>"
+                                                class="form-input" required>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="toggle-container">
+                                    <div class="toggle-info">
+                                        <span class="toggle-label">Event Type</span>
+                                        <span class="toggle-hint" id="type-hint">This is an in-person event</span>
+                                    </div>
+                                    <div class="switch-labels">
+                                        <span class="label-in" id="label-in">In-Person</span>
+                                        <label class="switch">
+                                            <input type="checkbox" id="type-switch" <%=event &&
+                                                event.eventType==='Online' ? 'checked' : '' %>>
+                                            <span class="slider"></span>
+                                        </label>
+                                        <span class="label-on" id="label-on">Online</span>
+                                        <input type="hidden" name="eventType" id="type-input"
+                                            value="<%= event?.eventType || 'In Person' %>">
+                                    </div>
+                                </div>
+
+                                <div class="grid-2 mt-20">
+                                    <div class="form-group">
+                                        <label class="field-label">Total Capacity</label>
+                                        <input type="number" name="capacity" value="<%= event?.capacity || '' %>"
+                                            class="form-input" placeholder="e.g., 500">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="field-label">Status</label>
+                                        <select name="status" class="form-input">
+                                            <option value="published" <%=!event || event.status==='published'
+                                                ? 'selected' : '' %>>Published</option>
+                                            <option value="draft" <%=event && event.status==='draft' ? 'selected' : ''
+                                                %>>Draft</option>
+                                        </select>
+                                    </div>
+                                    <div class="card-navigation">
+                                        <button type="button" class="btn btn-primary btn-next" onclick="goToStep(2)">
+                                            Next: Location <i class="fa-solid fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Event Location -->
+                                <div class="form-section-card <%= event && event.eventType === 'Online' ? 'hidden' : '' %>"
+                                    id="location-card">
+                                    <div class="section-head">
+                                        <div class="section-icon"><i class="fa-solid fa-location-dot"></i></div>
+                                        <div>
+                                            <h2 class="section-title">Event Venue & Location</h2>
+                                            <p class="section-desc">Where will your attendees gather for the event?</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="field-label">Venue Name</label>
+                                        <input type="text" name="venueName"
+                                            value="<%= event?.location?.venueName || '' %>" class="form-input"
+                                            placeholder="e.g., Community Center Hall">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="field-label">Address</label>
+                                        <input type="text" name="address" value="<%= event?.location?.address || '' %>"
+                                            class="form-input" placeholder="123 Main Street">
+                                    </div>
+
+                                    <div class="grid-3">
+                                        <div class="form-group">
+                                            <label class="field-label">City</label>
+                                            <input type="text" name="city"
+                                                value="<%= event?.location?.city || 'London' %>" class="form-input">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="field-label">Postcode</label>
+                                            <input type="text" name="postcode"
+                                                value="<%= event?.location?.postcode || '' %>" class="form-input"
+                                                placeholder="SW1A 1AA">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="field-label">Country</label>
+                                            <input type="text" name="country"
+                                                value="<%= event?.location?.country || 'United Kingdom' %>"
+                                                class="form-input">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="field-label">State / Province</label>
+                                        <input type="text" name="state" value="<%= event?.location?.state || '' %>"
+                                            class="form-input" placeholder="Greater London">
+                                        <div class="card-navigation between">
+                                            <button type="button" class="btn btn-outline btn-back"
+                                                onclick="goToStep(1)">
+                                                <i class="fa-solid fa-arrow-left"></i> Back
+                                            </button>
+                                            <button type="button" class="btn btn-primary btn-next"
+                                                onclick="goToStep(3)">
+                                                Next: Tickets <i class="fa-solid fa-arrow-right"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Ticket Types -->
+                                    <div class="form-section-card" id="tickets-section">
+                                        <div class="section-head">
+                                            <div class="section-icon"><i class="fa-solid fa-ticket"></i></div>
+                                            <div>
+                                                <h2 class="section-title">Ticket Tiers & Pricing</h2>
+                                                <p class="section-desc">Create various entry options and define your
+                                                    revenue structure.</p>
+                                            </div>
+                                        </div>
+
+                                        <div id="ticket-list">
+                                            <% if (event?.ticketTypes?.length> 0) { %>
+                                                <% event.ticketTypes.forEach((ticket, idx)=> { %>
+                                                    <div class="ticket-card">
+                                                        <div class="ticket-label">Ticket <%= idx + 1 %>
+                                                        </div>
+                                                        <div class="ticket-remove" onclick="removeTicket(this)"><i
+                                                                class="fa-solid fa-trash"></i></div>
+                                                        <div class="form-group"><label class="field-label">Ticket
+                                                                Name</label><input type="text" name="ticketName"
+                                                                value="<%= ticket?.name %>" class="form-input" required>
+                                                        </div>
+                                                        <div class="form-group"><label
+                                                                class="field-label">Description</label><textarea
+                                                                name="ticketDescription" class="form-input" rows="2"
+                                                                placeholder="Standard entry ticket"><%= ticket?.description %></textarea>
+                                                        </div>
+                                                        <div class="grid-2">
+                                                            <div class="form-group"><label class="field-label">Price (
+                                                                    <%= _currencySym %>)</label><input type="number"
+                                                                    name="ticketPrice" value="<%= ticket?.price %>"
+                                                                    class="form-input tk-price" step="0.01"></div>
+                                                            <div class="form-group"><label
+                                                                    class="field-label">Quantity</label><input
+                                                                    type="number" name="ticketQuantity"
+                                                                    value="<%= ticket?.quantity %>" class="form-input">
+                                                            </div>
+                                                        </div>
+                                                        <div class="ticket-sale-box">
+                                                            <div class="ticket-sale-title">Ticket Sale Period</div>
+                                                            <div class="grid-2">
+                                                                <div class="form-group">
+                                                                    <label class="field-label"
+                                                                        style="font-size:0.75rem">Sale
+                                                                        Start</label>
+                                                                    <div class="flex-row">
+                                                                        <input type="date" name="ticketSaleStartDate"
+                                                                            value="<%= ticket?.saleStart ? new Date(ticket.saleStart).toISOString().split('T')[0] : '' %>"
+                                                                            class="form-input">
+                                                                        <div class="icon-input-group flex-1"><i
+                                                                                class="fa-regular fa-clock"></i><input
+                                                                                type="time" name="ticketSaleStartTime"
+                                                                                value="<%= ticket?.saleStart ? new Date(ticket.saleStart).toTimeString().substring(0,5) : '' %>"
+                                                                                class="form-input"></div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="form-group">
+                                                                    <label class="field-label"
+                                                                        style="font-size:0.75rem">Sale
+                                                                        End</label>
+                                                                    <div class="flex-row">
+                                                                        <input type="date" name="ticketSaleEndDate"
+                                                                            value="<%= ticket?.saleEnd ? new Date(ticket.saleEnd).toISOString().split('T')[0] : '' %>"
+                                                                            class="form-input">
+                                                                        <div class="icon-input-group flex-1"><i
+                                                                                class="fa-regular fa-clock"></i><input
+                                                                                type="time" name="ticketSaleEndTime"
+                                                                                value="<%= ticket?.saleEnd ? new Date(ticket.saleEnd).toTimeString().substring(0,5) : '' %>"
+                                                                                class="form-input"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="field-hint">Set when tickets will be available
+                                                                for
+                                                                purchase</div>
+                                                        </div>
+                                                        <div class="fee-box">
+                                                            <div class="ticket-label mb-10 fs-085">Fee Breakdown</div>
+                                                            <div class="fee-line"><span>Platform Fee (<%=
+                                                                        _platformFeePercent %>%
+                                                                        + <%= _platformFixedFee %>)</span><span
+                                                                    class="v-platform">
+                                                                    <%= _currencySym %>0.00
+                                                                </span><input type="hidden" name="ticketPlatformFee"
+                                                                    value="<%= ticket?.platformFee %>"></div>
+                                                            <div class="fee-line"><span>VAT on Platform Fee (<%=
+                                                                        _vatRate %>
+                                                                        %)</span><span class="v-vat">
+                                                                    <%= _currencySym %>0.00
+                                                                </span><input type="hidden" name="ticketVatFee"
+                                                                    value="<%= ticket?.vatOnPlatformFee %>"></div>
+                                                            <div class="fee-line"><span>Stripe Processing Fee (<%=
+                                                                        _stripePercent %>% + <%= _stripeFixed %>
+                                                                            )</span><span class="v-stripe">
+                                                                    <%= _currencySym %>0.00
+                                                                </span><input type="hidden" name="ticketStripeFee"
+                                                                    value="<%= ticket?.stripeProcessingFee %>"></div>
+                                                            <div class="fee-line total"><span>Total Fees</span><span
+                                                                    class="v-total">
+                                                                    <%= _currencySym %>0.00
+                                                                </span><input type="hidden" name="ticketTotalFees"
+                                                                    value="<%= ticket?.totalFees %>"></div>
+                                                        </div>
+                                                        <div class="fee-payment-box">
+                                                            <div class="fee-payment-info"><strong>Fee
+                                                                    Payment</strong><span>Attendees pay the
+                                                                    fees</span><span class="buyer-total-hint">Customer
+                                                                    will pay: <%= _currencySym %>0.00</span></div>
+                                                            <label class="switch"><input type="checkbox"
+                                                                    name="feePayment" <%=!event || event.feePayment
+                                                                    ? 'checked' : '' %>
+                                                                class="fee-toggle"><span class="slider"></span></label>
+                                                        </div>
+                                                    </div>
+                                                    <% }) %>
+                                                        <% } else { %>
+                                                            <div class="ticket-card">
+                                                                <div class="ticket-label">Ticket 1</div>
+                                                                <div class="form-group"><label
+                                                                        class="field-label">Ticket
+                                                                        Name</label><input type="text" name="ticketName"
+                                                                        class="form-input"
+                                                                        placeholder="General Admission" required></div>
+                                                                <div class="form-group"><label
+                                                                        class="field-label">Description</label><textarea
+                                                                        name="ticketDescription" class="form-input"
+                                                                        rows="2"
+                                                                        placeholder="Standard entry ticket"></textarea>
+                                                                </div>
+                                                                <div class="grid-2">
+                                                                    <div class="form-group"><label
+                                                                            class="field-label">Price (
+                                                                            <%= _currencySym %>)
+                                                                        </label><input type="number" name="ticketPrice"
+                                                                            class="form-input tk-price" step="0.01"
+                                                                            value="0"></div>
+                                                                    <div class="form-group"><label
+                                                                            class="field-label">Quantity</label><input
+                                                                            type="number" name="ticketQuantity"
+                                                                            class="form-input" value="100"></div>
+                                                                </div>
+                                                                <div class="ticket-sale-box">
+                                                                    <div class="ticket-sale-title">Ticket Sale Period
+                                                                    </div>
+                                                                    <div class="grid-2">
+                                                                        <div class="form-group">
+                                                                            <label class="field-label"
+                                                                                style="font-size:0.75rem">Sale
+                                                                                Start</label>
+                                                                            <div class="flex-row">
+                                                                                <input type="date"
+                                                                                    name="ticketSaleStartDate"
+                                                                                    class="form-input">
+                                                                                <div class="icon-input-group flex-1"><i
+                                                                                        class="fa-regular fa-clock"></i><input
+                                                                                        type="time"
+                                                                                        name="ticketSaleStartTime"
+                                                                                        class="form-input"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="form-group">
+                                                                            <label class="field-label"
+                                                                                style="font-size:0.75rem">Sale
+                                                                                End</label>
+                                                                            <div class="flex-row">
+                                                                                <input type="date"
+                                                                                    name="ticketSaleEndDate"
+                                                                                    class="form-input">
+                                                                                <div class="icon-input-group flex-1"><i
+                                                                                        class="fa-regular fa-clock"></i><input
+                                                                                        type="time"
+                                                                                        name="ticketSaleEndTime"
+                                                                                        class="form-input"></div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="field-hint">Set when tickets will be
+                                                                        available
+                                                                        for purchase</div>
+                                                                </div>
+                                                                <div class="fee-box">
+                                                                    <div class="ticket-label mb-10 fs-085">Fee Breakdown
+                                                                    </div>
+                                                                    <div class="fee-line"><span>Platform Fee (<%=
+                                                                                _platformFeePercent %>% + <%=
+                                                                                    _platformFixedFee %>
+                                                                                    )</span><span class="v-platform">
+                                                                            <%= _currencySym %>0.00
+                                                                        </span><input type="hidden"
+                                                                            name="ticketPlatformFee" value="0"></div>
+                                                                    <div class="fee-line"><span>VAT on Platform Fee (<%=
+                                                                                _vatRate %>%)</span><span class="v-vat">
+                                                                            <%= _currencySym %>0.00
+                                                                        </span><input type="hidden" name="ticketVatFee"
+                                                                            value="0"></div>
+                                                                    <div class="fee-line"><span>Stripe Processing Fee (
+                                                                            <%= _stripePercent %>% + <%= _stripeFixed %>
+                                                                                    )</span><span class="v-stripe">
+                                                                            <%= _currencySym %>0.00
+                                                                        </span><input type="hidden"
+                                                                            name="ticketStripeFee" value="0"></div>
+                                                                    <div class="fee-line total"><span>Total
+                                                                            Fees</span><span class="v-total">
+                                                                            <%= _currencySym %>0.00
+                                                                        </span><input type="hidden"
+                                                                            name="ticketTotalFees" value="0"></div>
+                                                                </div>
+                                                                <div class="fee-payment-box">
+                                                                    <div class="fee-payment-info"><strong>Fee
+                                                                            Payment</strong><span>Attendees pay the
+                                                                            fees</span><span
+                                                                            class="buyer-total-hint">Customer
+                                                                            will pay: <%= _currencySym %>0.00</span>
+                                                                    </div>
+                                                                    <label class="switch"><input type="checkbox"
+                                                                            name="feePayment" checked
+                                                                            class="fee-toggle"><span
+                                                                            class="slider"></span></label>
+                                                                </div>
+                                                            </div>
+                                                            <% } %>
+                                        </div>
+                                        <button type="button" class="btn-add-more-modern" onclick="addTicket()">
+                                            <i class="fa-solid fa-plus-circle"></i> Add Another Ticket Type
+                                        </button>
+
+                                        <div class="card-navigation between">
+                                            <button type="button" class="btn btn-outline btn-back"
+                                                onclick="goToStep(2)">
+                                                <i class="fa-solid fa-arrow-left"></i> Back
+                                            </button>
+                                            <div class="footer-actions-inline">
+                                                <button type="button" class="btn btn-preview">Preview Event</button>
+                                                <button type="submit" class="btn btn-publish">Review & Publish</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                </form>
+            </div>
+
+            <template id="ticket-tpl">
+                <div class="ticket-card">
+                    <div class="ticket-label">Ticket #IDX</div>
+                    <div class="ticket-remove" onclick="removeTicket(this)"><i class="fa-solid fa-trash"></i></div>
+                    <div class="form-group"><label class="field-label">Ticket Name</label><input type="text"
+                            name="ticketName" class="form-input" placeholder="General Admission" required></div>
+                    <div class="form-group"><label class="field-label">Description</label><textarea
+                            name="ticketDescription" class="form-input" rows="2"
+                            placeholder="Standard entry ticket"></textarea></div>
+                    <div class="grid-2">
+                        <div class="form-group"><label class="field-label">Price (<%= _currencySym %>)</label><input
+                                type="number" name="ticketPrice" class="form-input tk-price" step="0.01" value="0">
+                        </div>
+                        <div class="form-group"><label class="field-label">Quantity</label><input type="number"
+                                name="ticketQuantity" class="form-input" value="100"></div>
+                    </div>
+                    <div class="ticket-sale-box">
+                        <div class="ticket-sale-title">Ticket Sale Period</div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label class="field-label" style="font-size:0.75rem">Sale Start</label>
+                                <div class="flex-row">
+                                    <input type="date" name="ticketSaleStartDate" class="form-input">
+                                    <div class="icon-input-group flex-1"><i class="fa-regular fa-clock"></i><input
+                                            type="time" name="ticketSaleStartTime" class="form-input"></div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="field-label" style="font-size:0.75rem">Sale End</label>
+                                <div class="flex-row">
+                                    <input type="date" name="ticketSaleEndDate" class="form-input">
+                                    <div class="icon-input-group flex-1"><i class="fa-regular fa-clock"></i><input
+                                            type="time" name="ticketSaleEndTime" class="form-input"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-hint">Set when tickets will be available for purchase</div>
+                    </div>
+                    <div class="fee-box">
+                        <div class="ticket-label mb-10 fs-085">Fee Breakdown</div>
+                        <div class="fee-line"><span>Platform Fee (<%= _platformFeePercent %>% + <%= _platformFixedFee %>
+                                        )</span><span class="v-platform">
+                                <%= _currencySym %>0.00
+                            </span><input type="hidden" name="ticketPlatformFee" value="0"></div>
+                        <div class="fee-line"><span>VAT on Platform Fee (<%= _vatRate %>%)</span><span class="v-vat">
+                                <%= _currencySym %>0.00
+                            </span><input type="hidden" name="ticketVatFee" value="0"></div>
+                        <div class="fee-line"><span>Stripe Processing Fee (<%= _stripePercent %>% + <%= _stripeFixed %>
+                                        )</span><span class="v-stripe">
+                                <%= _currencySym %>0.00
+                            </span><input type="hidden" name="ticketStripeFee" value="0"></div>
+                        <div class="fee-line total"><span>Total Fees</span><span class="v-total">
+                                <%= _currencySym %>0.00
+                            </span><input type="hidden" name="ticketTotalFees" value="0"></div>
+                    </div>
+                    <div class="fee-payment-box">
+                        <div class="fee-payment-info"><strong>Fee Payment</strong><span>Attendees pay the
+                                fees</span><span class="buyer-total-hint">Customer will pay: <%= _currencySym %>
+                                    0.00</span></div>
+                        <label class="switch"><input type="checkbox" name="feePayment" checked class="fee-toggle"><span
+                                class="slider"></span></label>
+                    </div>
+                </div>
+            </template>
+
+            <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+            <script src="/js/event-form.js"></script>
+
+            <style>
+                .btn-add-more-inline {
+                    background: #f8fafc;
+                    border: 1px dashed var(--primary);
+                    color: var(--primary);
+                    padding: 10px 20px;
+                    border-radius: 10px;
+                    font-weight: 700;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                }
+
+                .btn-add-more-inline:hover {
+                    background: #fff;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 6px rgba(227, 30, 36, 0.1);
+                }
+            </style>
+            </div>

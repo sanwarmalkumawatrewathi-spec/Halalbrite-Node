@@ -1,0 +1,165 @@
+<div class="page-header" style="margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+    <a href="/admin/orders" class="btn btn-ghost btn-sm"><i class="fa-solid fa-arrow-left"></i></a>
+    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--dark);">Order Detail: #<%= order.booking_reference %></h2>
+</div>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+    <div class="left-col">
+        <!-- Main Order Card -->
+        <div class="card" style="margin-bottom: 2rem; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+            <div class="card-header" style="background: white; border-bottom: 1px solid #f1f5f9; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <div class="flex items-center gap-3">
+                    <div style="width: 40px; height: 40px; background: #fee2e2; color: #ef4444; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin: 0;">Transaction Reference</p>
+                        <h3 style="font-size: 1.1rem; font-weight: 700; color: #1e293b; margin: 0;"><%= order.booking_reference %></h3>
+                    </div>
+                </div>
+                <div class="status-badge">
+                    <span class="badge <%= order.payment_status === 'paid' ? 'badge-success' : 'badge-warning' %>" style="padding: 6px 16px; font-size: 0.75rem; border-radius: 99px; text-transform: uppercase; font-weight: 700;">
+                        <%= order.payment_status %>
+                    </span>
+                </div>
+            </div>
+
+            <div class="card-body" style="padding: 2rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;">
+                    <!-- Customer Details -->
+                    <div>
+                        <h4 style="font-size: 0.875rem; font-weight: 700; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-user" style="color: #ef4444;"></i> Customer Information
+                        </h4>
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 2px;">Full Name</label>
+                                <p style="font-weight: 600; color: #334155;"><%= order.customer_name || (order.user_id ? order.user_id.username : 'Guest') %></p>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 2px;">Email Address</label>
+                                <p style="font-weight: 600; color: #334155;"><%= order.customer_email || (order.user_id ? order.user_id.email : '') %></p>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.7rem; font-weight: 600; color: #64748b; text-transform: uppercase; margin-bottom: 2px;">Phone Number</label>
+                                <p style="font-weight: 600; color: #334155;"><%= order.customer_phone || 'Not Provided' %></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping/Billing Address -->
+                    <div>
+                        <h4 style="font-size: 0.875rem; font-weight: 700; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-location-dot" style="color: #ef4444;"></i> Billing Address
+                        </h4>
+                        <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #f1f5f9;">
+                            <p style="margin: 0; color: #475569; line-height: 1.6; font-weight: 500;">
+                                <%= order.address_line1 %><br>
+                                <% if (order.address_line2) { %><%= order.address_line2 %><br><% } %>
+                                <%= order.city %>, <%= order.postcode %><br>
+                                <%= order.country %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #f1f5f9;">
+                    <h4 style="font-size: 0.875rem; font-weight: 700; color: #1e293b; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-ticket" style="color: #ef4444;"></i> Ticket & Event Details
+                    </h4>
+                    <div style="background: white; border: 1px solid #f1f5f9; border-radius: 12px; overflow: hidden;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #f8fafc; text-align: left;">
+                                    <th style="padding: 12px 20px; font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Event Name</th>
+                                    <th style="padding: 12px 20px; font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase;">Ticket Type</th>
+                                    <th style="padding: 12px 20px; font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; text-align: center;">Qty</th>
+                                    <th style="padding: 12px 20px; font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; text-align: right;">Unit Price</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 20px; font-weight: 700; color: #1e293b;"><%= order.event_id ? order.event_id.title : order.event_name %></td>
+                                    <td style="padding: 20px; color: #475569; font-weight: 500;"><%= order.ticket_name %></td>
+                                    <td style="padding: 20px; text-align: center; font-weight: 700; color: #1e293b;"><%= order.quantity %></td>
+                                    <td style="padding: 20px; text-align: right; font-weight: 700; color: #1e293b;"><%= formatPrice(order.amount_total / order.quantity) %></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-col">
+        <!-- Financial Summary Card -->
+        <div class="card" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); background: #1e293b; color: white;">
+            <div class="card-header" style="padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 700;">Financial Summary</h4>
+            </div>
+            <div class="card-body" style="padding: 1.5rem;">
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #94a3b8; font-size: 0.875rem;">Subtotal</span>
+                        <span style="font-weight: 600;"><%= formatPrice(order.amount_total) %></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #94a3b8; font-size: 0.875rem;">Organizer Earnings</span>
+                        <span style="font-weight: 600; color: #4ade80;"><%= formatPrice(order.organizer_amount) %></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #94a3b8; font-size: 0.875rem;">Platform Commission</span>
+                        <span style="font-weight: 600; color: #fb7185;"><%= formatPrice(order.platform_fee) %></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="color: #94a3b8; font-size: 0.875rem;">Payment Processing</span>
+                        <span style="font-weight: 600; color: #818cf8;"><%= formatPrice(order.stripe_fee || 0) %></span>
+                    </div>
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; font-size: 1rem;">Total Volume</span>
+                        <span style="font-weight: 800; font-size: 1.25rem; color: #ef4444;"><%= formatPrice(order.amount_total) %></span>
+                    </div>
+                </div>
+
+                <% if (order.exchange_rate !== 1) { %>
+                <div style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.75rem;">
+                    <p style="margin: 0 0 5px 0; color: #94a3b8;">Base Currency Equivalent:</p>
+                    <p style="margin: 0; font-weight: 700; font-size: 0.9rem;"><%= formatPriceRaw(order.base_amount_total, order.base_currency) %></p>
+                    <p style="margin: 10px 0 0 0; color: #94a3b8; font-style: italic;">Exchange Rate: 1 <%= order.base_currency %> = <%= order.exchange_rate %> <%= order.currency %></p>
+                </div>
+                <% } %>
+            </div>
+        </div>
+
+        <!-- Actions Card -->
+        <div class="card" style="margin-top: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+            <div class="card-body" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                <a href="/api/payments/booking/<%= order._id %>/download" target="_blank" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px;">
+                    <i class="fa-solid fa-download"></i> Download Tickets
+                </a>
+                <button onclick="resendEmail('<%= order._id %>')" class="btn btn-secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px;">
+                    <i class="fa-solid fa-envelope"></i> Resend Email
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function resendEmail(bookingId) {
+    if (!confirm('Are you sure you want to resend the ticket email to the customer?')) return;
+    
+    try {
+        const res = await fetch(`/api/payments/booking/${bookingId}/resend-email`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+            alert('Email resent successfully!');
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (err) {
+        alert('Failed to resend email: ' + err.message);
+    }
+}
+</script>

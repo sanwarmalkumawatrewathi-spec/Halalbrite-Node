@@ -1,0 +1,58 @@
+<div class="card">
+    <div class="card-header">
+        <h3 style="font-size: 1.1rem; color: var(--dark);">
+            <%= user ? 'Edit User' : 'Add New User' %>
+        </h3>
+        <a href="/admin/users" class="btn" style="background: #f3f4f6;">Back to List</a>
+    </div>
+    <div style="padding: 2rem;">
+        <form action="/admin/users/save" method="POST">
+            <% if (user) { %>
+                <input type="hidden" name="id" value="<%= user._id %>">
+            <% } %>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" value="<%= user ? user.username : '' %>" class="form-control" placeholder="Choose a unique username" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" value="<%= user ? user.email : '' %>" class="form-control" placeholder="user@example.com" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div class="form-group">
+                    <label>Password <%= user ? '(Leave blank to keep current)' : '' %></label>
+                    <input type="password" name="password" class="form-control" placeholder="<%= user ? '••••••••' : 'Enter strong password' %>" <%= user ? '' : 'required' %>>
+                </div>
+                <div class="form-group">
+                    <label>Account Status</label>
+                    <select name="status" class="form-control">
+                        <option value="active" <%= user && user.status === 'active' ? 'selected' : '' %>>Active</option>
+                        <option value="inactive" <%= user && user.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                        <option value="suspended" <%= user && user.status === 'suspended' ? 'selected' : '' %>>Suspended</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>User Role</label>
+                <select name="role" class="form-control" required>
+                    <option value="">Select a Role</option>
+                    <% roles.forEach(role => { %>
+                        <option value="<%= role._id %>" <%= user && user.roles && user.roles.some(r => r._id.toString() === role._id.toString()) ? 'selected' : '' %>><%= role.name %></option>
+                    <% }) %>
+                </select>
+                <small style="color: var(--gray);">Administrator has full access, Organizer can manage events, Attendee can book events.</small>
+            </div>
+
+            <div style="margin-top: 3rem; text-align: right; border-top: 1px solid var(--light-gray); padding-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="padding-left: 3rem; padding-right: 3rem;">
+                    <%= user ? 'Update User Account' : 'Create User Account' %>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,64 @@
+<div class="card">
+    <div class="card-header">
+        <h3>Global Event Management</h3>
+        <a href="/admin/events/add" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add New Event</a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event Details</th>
+                    <th>Organizer</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (events.length === 0) { %>
+                    <tr><td colspan="6" class="text-center text-muted" style="padding: 3rem;">No events found.</td></tr>
+                <% } else { %>
+                    <% events.forEach(event => { %>
+                        <tr>
+                            <td>
+                                <div style="display: flex; gap: 12px; align-items: center;">
+                                    <img src="<%= event.thumbnail %>" style="width: 50px; height: 35px; border-radius: 6px; object-fit: cover; background: #f1f5f9;">
+                                    <div>
+                                        <span class="customer-name"><%= event.title %></span><br>
+                                        <span class="customer-email"><%= event.price === 0 ? 'Free' : 'From ' + formatPrice(event.price) %></span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="customer-name"><%= event.organizer ? event.organizer.username : 'Deleted' %></span>
+                            </td>
+                            <td>
+                                <span class="badge" style="background: #fff7ed; color: #9a3412;">
+                                    <%= event.category ? event.category.name : 'Uncategorized' %>
+                                </span>
+                            </td>
+                            <td class="text-muted">
+                                <%= new Date(event.startDate).toLocaleDateString() %>
+                            </td>
+                            <td>
+                                <span class="badge <%= event.status === 'published' ? 'badge-success' : 'badge-warning' %>">
+                                    <%= event.status.charAt(0).toUpperCase() + event.status.slice(1) %>
+                                </span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 5px;">
+                                    <a href="/admin/events/view/<%= event._id %>" class="btn btn-sm btn-ghost" title="View"><i class="fa-solid fa-eye"></i></a>
+                                    <a href="/admin/events/edit/<%= event._id %>" class="btn btn-sm btn-ghost" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <form action="/admin/events/delete/<%= event._id %>" method="POST" onsubmit="return confirm('Delete event?')">
+                                        <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--danger);"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,74 @@
+<div class="stats-grid">
+    <div class="stat-card">
+        <i class="fa-solid fa-users stat-card-icon"></i>
+        <span class="label">Total Users</span>
+        <span class="value"><%= stats.users %></span>
+        <span class="trend up"><i class="fa-solid fa-arrow-up"></i> Registered Accounts</span>
+    </div>
+    <div class="stat-card">
+        <i class="fa-solid fa-calendar-check stat-card-icon"></i>
+        <span class="label">Total Events</span>
+        <span class="value"><%= stats.events %></span>
+        <span class="trend neutral"><i class="fa-solid fa-circle"></i> Live Platform</span>
+    </div>
+    <div class="stat-card">
+        <i class="fa-solid fa-ticket stat-card-icon"></i>
+        <span class="label">Total Bookings</span>
+        <span class="value"><%= stats.bookings %></span>
+        <span class="trend up"><i class="fa-solid fa-chart-line"></i> Sales Volume</span>
+    </div>
+    <div class="stat-card">
+        <i class="fa-solid fa-envelope stat-card-icon"></i>
+        <span class="label">New Inquiries</span>
+        <span class="value"><%= stats.inquiries %></span>
+        <span class="trend down"><i class="fa-solid fa-bell"></i> Action Required</span>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3>Recent Bookings & Sales</h3>
+        <a href="/admin/orders" class="btn btn-primary btn-sm">View All Orders</a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Event</th>
+                    <th>Ticket</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (recentBookings.length === 0) { %>
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No recent bookings found.</td>
+                    </tr>
+                <% } else { %>
+                    <% recentBookings.forEach(order => { %>
+                        <tr>
+                            <td>
+                                <div class="customer-info">
+                                    <span class="customer-name"><%= order.user_id ? order.user_id.username : 'Guest' %></span><br>
+                                    <span class="customer-email"><%= order.user_id ? order.user_id.email : '' %></span>
+                                </div>
+                            </td>
+                            <td><%= order.event_id ? order.event_id.title : (order.event_name || 'Deleted Event') %></td>
+                            <td><%= order.ticket_name %></td>
+                            <td><%= order.quantity %></td>
+                            <td><strong><%= formatPrice(order.amount_total || 0) %></strong></td>
+                            <td>
+                                <span class="badge badge-success"><%= order.payment_status %></span>
+                            </td>
+                            <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,69 @@
+<%- contentFor('style') %>
+<%- contentFor('body') %>
+<div class="stripe-admin-container">
+    <div class="stripe-admin-header">
+        <div>
+            <h1>Stripe Transactions</h1>
+            <p style="color: #64748b; margin-top: 5px;">Real-time ledger of all platform revenue splits and organizer earnings.</p>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-6">
+            <div class="stripe-settings-section" style="padding: 20px; display: flex; align-items: center; gap: 20px;">
+                <div style="background: rgba(46,125,50,0.1); color: #2e7d32; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fa-solid fa-piggy-bank"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-weight: 800; color: #1e293b;">£<%= (stats.totalPlatformFee || 0).toFixed(2) %></h3>
+                    <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Total Platform Earnings</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stripe-settings-section" style="padding: 20px; display: flex; align-items: center; gap: 20px;">
+                <div style="background: rgba(25,118,210,0.1); color: #1976d2; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-weight: 800; color: #1e293b;">£<%= (stats.totalAmount || 0).toFixed(2) %></h3>
+                    <p style="margin: 0; color: #64748b; font-size: 0.85rem;">Total Gross Volume</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stripe-admin-card">
+        <table class="stripe-data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Organizer</th>
+                    <th>Event</th>
+                    <th>Gross</th>
+                    <th>Platform Fee</th>
+                    <th>Net Organizer</th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (transactions.length === 0) { %>
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8;">No transactions recorded yet.</td>
+                    </tr>
+                <% } %>
+                <% transactions.forEach(tx => { %>
+                    <tr>
+                        <td><%= new Date(tx.createdAt).toLocaleDateString() %></td>
+                        <td><%= tx.organizer_id ? tx.organizer_id.username : 'Deleted User' %></td>
+                        <td><%= tx.event_id ? tx.event_id.title : 'Deleted Event' %></td>
+                        <td style="font-weight: 600;">£<%= (tx.amount || 0).toFixed(2) %></td>
+                        <td style="color: #10b981; font-weight: 700;">£<%= (tx.platform_fee || 0).toFixed(2) %></td>
+                        <td style="color: #3b82f6; font-weight: 700;">£<%= (tx.organizer_amount || 0).toFixed(2) %></td>
+                        <td><code style="font-size: 0.75rem; color: #64748b;"><%= tx.stripe_payment_intent_id ? tx.stripe_payment_intent_id.substring(0, 10) : 'Manual' %>...</code></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>

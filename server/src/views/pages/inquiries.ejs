@@ -1,0 +1,51 @@
+<div class="card">
+    <div class="card-header">
+        <h3>Customer Inquiries</h3>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Customer</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (inquiries.length === 0) { %>
+                    <tr><td colspan="5" class="text-center text-muted" style="padding: 3rem;">No inquiries found.</td></tr>
+                <% } else { %>
+                    <% inquiries.forEach(inq => { %>
+                        <tr>
+                            <td>
+                                <div class="customer-info">
+                                    <span class="customer-name"><%= inq.name || inq.fullName %></span><br>
+                                    <span class="customer-email"><%= inq.email %></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="event-title"><%= inq.subject %></span>
+                            </td>
+                            <td>
+                                <span class="badge <%= inq.status === 'new' ? 'badge-warning' : 'badge-success' %>">
+                                    <%= inq.status.toUpperCase() %>
+                                </span>
+                            </td>
+                            <td class="text-muted"><%= new Date(inq.createdAt).toLocaleDateString() %></td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-sm btn-ghost" title="View Message"><i class="fa-solid fa-envelope-open"></i></button>
+                                    <form action="/admin/inquiries/delete/<%= inq._id %>" method="POST" onsubmit="return confirm('Delete inquiry?')">
+                                        <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--danger);"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>

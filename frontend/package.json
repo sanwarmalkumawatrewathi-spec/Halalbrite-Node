@@ -1,0 +1,40 @@
+{
+  "name": "halabrite",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "set NODE_OPTIONS=--max-old-space-size=4096&& next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "clean": "rd /s /q .next"
+  },
+  "dependencies": {
+    "@react-oauth/google": "^0.13.5",
+    "@tiptap/extension-text-align": "^3.22.3",
+    "@tiptap/react": "^3.22.3",
+    "@tiptap/starter-kit": "^3.22.3",
+    "@types/js-cookie": "^3.0.6",
+    "@types/qrcode.react": "^1.0.5",
+    "js-cookie": "^3.0.5",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^1.8.0",
+    "next": "16.2.4",
+    "qrcode.react": "^4.2.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-facebook-login": "^4.1.1",
+    "react-icons": "^5.6.0",
+    "react-leaflet": "^5.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

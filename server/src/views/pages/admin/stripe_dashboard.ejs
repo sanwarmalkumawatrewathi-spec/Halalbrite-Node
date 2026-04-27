@@ -1,0 +1,63 @@
+<%- contentFor('style') %>
+<%- contentFor('body') %>
+<div class="stripe-admin-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>Stripe Connect Admin</h1>
+        </div>
+    </div>
+
+    <% if (notConfigured) { %>
+        <div class="stripe-setup-banner">
+            <div class="stripe-setup-icon"><i class="fa-solid fa-gears"></i></div>
+            <h2>Stripe Connection Required</h2>
+            <p>
+                To start managing your platform transactions and organizers, you need to configure your Stripe API keys.
+            </p>
+            <a href="/admin/stripe/settings" class="stripe-btn stripe-btn-primary">Configure Stripe Settings</a>
+        </div>
+    <% } else { %>
+        <!-- Connection Status Banner -->
+        <div class="stripe-status-alert">
+            <div>
+                <div class="status-title"><i class="fa-solid fa-circle-check"></i> Platform Stripe account is connected.</div>
+                <div class="account-id">Account ID: acct_<%= settings?.stripe?.testClientId || 'Not Configured' %></div>
+            </div>
+            <form action="/admin/stripe/disconnect" method="POST" onsubmit="return confirm('Are you sure you want to disconnect?');">
+                <button type="submit" class="stripe-btn stripe-btn-disconnect">Disconnect</button>
+            </form>
+        </div>
+
+        <!-- Platform Account Section Title -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <h2 class="stripe-section-title">Platform Stripe Account</h2>
+            </div>
+        </div>
+
+        <!-- Platform Statistics Replica -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <h3>Platform Statistics</h3>
+                <table class="stripe-data-table">
+                    <tr>
+                        <td>Connected Organizers</td>
+                        <td class="value-cell"><%= stats.connectedOrganizers %></td>
+                    </tr>
+                    <tr>
+                        <td>Total Payouts</td>
+                        <td class="value-cell"><%= settings?.platform?.currency === 'EUR' ? '€' : settings?.platform?.currency === 'USD' ? '$' : '£' %><%= stats.totalPayouts.toFixed(2) %></td>
+                    </tr>
+                    <tr>
+                        <td>Platform Revenue</td>
+                        <td class="value-cell"><%= settings?.platform?.currency === 'EUR' ? '€' : settings?.platform?.currency === 'USD' ? '$' : '£' %><%= stats.platformRevenue.toFixed(2) %></td>
+                    </tr>
+                    <tr>
+                        <td>Tickets Sold</td>
+                        <td class="value-cell"><%= stats.ticketsSold %></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    <% } %>
+</div>
