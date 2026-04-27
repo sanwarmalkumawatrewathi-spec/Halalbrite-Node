@@ -1,0 +1,52 @@
+<div class="card">
+    <div class="card-header">
+        <h3>User Management</h3>
+        <a href="/admin/users/add" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add New User</a>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>User Info</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (users.length === 0) { %>
+                    <tr><td colspan="5" class="text-center text-muted" style="padding: 3rem;">No users found.</td></tr>
+                <% } else { %>
+                    <% users.forEach(user => { %>
+                        <tr>
+                            <td>
+                                <div class="customer-info">
+                                    <span class="customer-name"><%= user.username %></span><br>
+                                    <span class="customer-email"><%= user.email %></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge" style="background: #eff6ff; color: #1e40af;"><%= user.roles && user.roles.length > 0 ? user.roles.map(r => r.name).join(', ') : 'No Role' %></span>
+                            </td>
+                            <td>
+                                <span class="badge <%= user.status === 'active' ? 'badge-success' : 'badge-danger' %>">
+                                    <%= user.status.charAt(0).toUpperCase() + user.status.slice(1) %>
+                                </span>
+                            </td>
+                            <td class="text-muted"><%= new Date(user.createdAt).toLocaleDateString() %></td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="/admin/users/edit/<%= user._id %>" class="btn btn-sm btn-ghost" title="Edit User"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    <form action="/admin/users/delete/<%= user._id %>" method="POST" onsubmit="return confirm('Delete this user?')">
+                                        <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--danger);" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>

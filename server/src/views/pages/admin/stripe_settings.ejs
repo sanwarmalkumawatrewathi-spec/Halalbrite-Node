@@ -1,0 +1,237 @@
+<%- contentFor('style') %>
+<%- contentFor('body') %>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Stripe Connect Configuration</h1>
+        <p class="page-subtitle">Manage your platform's financial integration, fees, and payout settings.</p>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <!-- Sync Tool Section -->
+        <div class="form-section-card mb-4">
+            <div class="form-section-header">
+                <i class="fa-solid fa-rotate"></i>
+                <div>
+                    <h2 class="form-section-title">Manual Data Synchronization</h2>
+                    <p class="form-section-desc">Backfill transaction and payout history directly from the Stripe API.</p>
+                </div>
+            </div>
+            
+            <form action="/admin/stripe/sync" method="POST" onsubmit="return confirm('Starting manual sync from Stripe API... Continue?');">
+                <div class="grid-3-col align-center">
+                    <div class="form-group">
+                        <label class="form-label">Sync Depth (Items per type)</label>
+                        <input type="number" name="limit" value="100" class="form-control">
+                    </div>
+                    <div style="padding-top: 1.8rem;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Sync Payouts Now
+                        </button>
+                    </div>
+                    <div class="sync-stats-mini">
+                        <div class="stat-mini">
+                            <span class="label">Cron Status</span>
+                            <span class="value success">Active</span>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <% if (success && success.includes('Sync Summary')) { %>
+                <div class="alert-success-modern mt-4">
+                    <div class="sync-summary-grid">
+                        <div class="summary-item">
+                            <i class="fa-solid fa-money-bill-transfer"></i>
+                            <span>Transfers: <strong><%= success.match(/Transfers: (\d+)/)?.[1] || 0 %></strong></span>
+                        </div>
+                        <div class="summary-item">
+                            <i class="fa-solid fa-building-columns"></i>
+                            <span>Payouts: <strong><%= success.match(/Payouts: (\d+)/)?.[1] || 0 %></strong></span>
+                        </div>
+                        <div class="summary-item">
+                            <i class="fa-solid fa-user-group"></i>
+                            <span>Organizers: <strong><%= success.match(/Organizers: (\d+)/)?.[1] || 0 %></strong></span>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+
+        <form action="/admin/stripe/settings/save" method="POST">
+            <!-- API Keys Section -->
+            <div class="form-section-card mb-4">
+                <div class="form-section-header">
+                    <i class="fa-solid fa-key"></i>
+                    <div>
+                        <h2 class="form-section-title">API Authentication</h2>
+                        <p class="form-section-desc">Configure your Stripe API keys for both testing and live environments.</p>
+                    </div>
+                </div>
+
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label class="form-label">Operation Mode</label>
+                        <select name="isTestMode" class="form-control">
+                            <option value="on" <%= settings?.stripe?.isTestMode ? 'selected' : '' %>>Test Mode (Sandbox)</option>
+                            <option value="off" <%= !settings?.stripe?.isTestMode ? 'selected' : '' %>>Live Mode (Production)</option>
+                        </select>
+                        <small class="form-hint">Enable "Test Mode" for development without charging real cards.</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Webhook Secret</label>
+                        <input type="password" name="webhookSecret" value="<%= settings?.stripe?.webhookSecret %>" class="form-control" placeholder="whsec_••••••••">
+                    </div>
+                </div>
+
+                <div class="section-divider">Test Environment (Sandbox)</div>
+                <div class="grid-3-col">
+                    <div class="form-group">
+                        <label class="form-label">Test Secret Key</label>
+                        <input type="password" name="testSecretKey" value="<%= settings?.stripe?.testSecretKey %>" class="form-control" placeholder="sk_test_••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Test Publishable Key</label>
+                        <input type="text" name="testPublishableKey" value="<%= settings?.stripe?.testPublishableKey %>" class="form-control" placeholder="pk_test_••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Test Client ID (Connect)</label>
+                        <input type="text" name="testClientId" value="<%= settings?.stripe?.testClientId %>" class="form-control" placeholder="ca_••••••••">
+                    </div>
+                </div>
+
+                <div class="section-divider">Live Environment (Production)</div>
+                <div class="grid-3-col">
+                    <div class="form-group">
+                        <label class="form-label">Live Secret Key</label>
+                        <input type="password" name="liveSecretKey" value="<%= settings?.stripe?.liveSecretKey %>" class="form-control" placeholder="sk_live_••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Live Publishable Key</label>
+                        <input type="text" name="livePublishableKey" value="<%= settings?.stripe?.livePublishableKey %>" class="form-control" placeholder="pk_live_••••••••">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Live Client ID (Connect)</label>
+                        <input type="text" name="liveClientId" value="<%= settings?.stripe?.liveClientId %>" class="form-control" placeholder="ca_••••••••">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Platform Fees & Payouts Section -->
+            <div class="form-section-card mb-4">
+                <div class="form-section-header">
+                    <i class="fa-solid fa-coins"></i>
+                    <div>
+                        <h2 class="form-section-title">Fees & Payout Strategy</h2>
+                        <p class="form-section-desc">Define your platform's commission structure and automatic payout rules.</p>
+                    </div>
+                </div>
+
+                <div class="grid-3-col">
+                    <div class="form-group">
+                        <label class="form-label">Platform Fee (%)</label>
+                        <div class="input-with-icon">
+                            <input type="number" step="0.01" name="feePercentage" value="<%= settings?.platform?.feePercentage %>" class="form-control">
+                            <span class="icon">%</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Fixed Platform Fee</label>
+                        <div class="input-with-icon">
+                            <span class="icon"><%= settings?.platform?.currency === 'EUR' ? '€' : '£' %></span>
+                            <input type="number" step="0.01" name="fixedFee" value="<%= settings?.platform?.fixedFee %>" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">VAT Rate (%)</label>
+                        <div class="input-with-icon">
+                            <input type="number" step="0.01" name="vatRate" value="<%= settings?.platform?.vatRate %>" class="form-control">
+                            <span class="icon">%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-3-col mt-3">
+                    <div class="form-group">
+                        <label class="form-label">Stripe Percent Fee (%)</label>
+                        <input type="number" step="0.01" name="stripeFeePercentage" value="<%= settings?.platform?.stripeFeePercentage %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Stripe Fixed Fee</label>
+                        <input type="number" step="0.01" name="fixedStripeFee" value="<%= settings?.platform?.fixedStripeFee %>" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">System Currency</label>
+                        <select name="currency" class="form-control">
+                            <option value="GBP" <%= settings?.platform?.currency === 'GBP' ? 'selected' : '' %>>GBP (£)</option>
+                            <option value="EUR" <%= settings?.platform?.currency === 'EUR' ? 'selected' : '' %>>EUR (€)</option>
+                            <option value="USD" <%= settings?.platform?.currency === 'USD' ? 'selected' : '' %>>USD ($)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid-2-col mt-3">
+                    <div class="form-group">
+                        <label class="form-label">Payout Threshold</label>
+                        <input type="number" name="payoutThreshold" value="<%= settings?.platform?.payoutThreshold %>" class="form-control">
+                        <small class="form-hint">Minimum balance required for organizer payouts.</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Payout Schedule</label>
+                        <select name="payoutSchedule" class="form-control">
+                            <option value="Manual" <%= settings?.platform?.payoutSchedule === 'Manual' ? 'selected' : '' %>>Manual Approval</option>
+                            <option value="Daily" <%= settings?.platform?.payoutSchedule === 'Daily' ? 'selected' : '' %>>Daily Automated</option>
+                            <option value="Weekly" <%= settings?.platform?.payoutSchedule === 'Weekly' ? 'selected' : '' %>>Weekly Automated</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Webhook Info Section -->
+            <div class="form-section-card mb-5">
+                <div class="form-section-header">
+                    <i class="fa-solid fa-link"></i>
+                    <div>
+                        <h2 class="form-section-title">Webhook Integration</h2>
+                        <p class="form-section-desc">Receive real-time updates from Stripe to synchronize your database.</p>
+                    </div>
+                </div>
+
+                <div class="webhook-config-box">
+                    <div class="url-label">Endpoint URL:</div>
+                    <div class="url-copy-box">
+                        <code>https://<%= host || 'your-domain.com' %>/api/v1/payments/webhook</code>
+                        <button type="button" class="btn-copy" onclick="copyToClipboard(this)"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                    <div class="event-tags">
+                        <div class="tags-label">Listening for Events:</div>
+                        <div class="tags-list">
+                            <span class="event-tag">account.updated</span>
+                            <span class="event-tag">charge.succeeded</span>
+                            <span class="event-tag">payout.paid</span>
+                            <span class="event-tag">transfer.created</span>
+                            <span class="event-tag">payment_intent.succeeded</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions-bar">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fa-solid fa-save"></i> Save Configuration
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function copyToClipboard(btn) {
+    const code = btn.previousElementSibling.innerText;
+    navigator.clipboard.writeText(code);
+    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+    setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i>'; }, 2000);
+}
+</script>

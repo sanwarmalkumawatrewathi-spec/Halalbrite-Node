@@ -1,0 +1,108 @@
+<div class="card">
+    <div class="card-header">
+        <h3 style="font-size: 1.1rem; color: var(--dark);">Event Details: <%= event.title %></h3>
+        <div style="display: flex; gap: 10px;">
+            <a href="/admin/events/edit/<%= event._id %>" class="btn btn-sm" style="background: #eef2ff; color: #4338ca;"><i class="fa-solid fa-pen"></i> Edit Event</a>
+            <a href="/admin/orders?event=<%= event._id %>" class="btn btn-sm" style="background: #fdf2f2; color: #991b1b;"><i class="fa-solid fa-receipt"></i> View Sales</a>
+            <a href="/admin/events" class="btn" style="background: #f3f4f6;">Back to List</a>
+        </div>
+    </div>
+    <div style="padding: 2rem;">
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 3rem;">
+            <!-- Left Column: Details -->
+            <div>
+                <section style="margin-bottom: 2rem;">
+                    <h4 style="color: var(--primary); margin-bottom: 1rem;">Description</h4>
+                    <div style="line-height: 1.6; color: #4b5563;"><%= event.description %></div>
+                </section>
+
+                <section style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4 style="color: var(--primary); margin: 0;">Ticket Types</h4>
+                        <span class="badge" style="background: #fef3c7; color: #92400e;">
+                            Fees Paid By: <strong><%= event.feePayment ? 'Organizer' : 'Buyer' %></strong>
+                        </span>
+                    </div>
+                    <div class="table-responsive">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <thead style="background: #f9fafb;">
+                                <tr>
+                                    <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Ticket Name</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Price</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Qty</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Fees Breakdown</th>
+                                    <th style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: left;">Sale Period</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% event.ticketTypes.forEach(ticket => { %>
+                                    <tr>
+                                        <td style="padding: 12px; border-bottom: 1px solid #f3f4f6;">
+                                            <strong><%= ticket.name %></strong>
+                                            <% if (ticket.description) { %>
+                                                <div style="font-size: 0.8rem; color: #6b7280;"><%= ticket.description %></div>
+                                            <% } %>
+                                        </td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #f3f4f6;"><%= ticket.price === 0 ? 'Free' : formatPrice(ticket.price) %></td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #f3f4f6;"><%= ticket.quantity %></td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #f3f4f6;">
+                                            <div style="font-size: 0.8rem;">
+                                                Plat: <%= formatPrice(ticket.platformFee) %> + VAT: <%= formatPrice(ticket.vatOnPlatformFee) %><br>
+                                                Stripe: <%= formatPrice(ticket.stripeProcessingFee) %><br>
+                                                <strong>Total Fees: <%= formatPrice(ticket.totalFees) %></strong>
+                                            </div>
+                                        </td>
+                                        <td style="padding: 12px; border-bottom: 1px solid #f3f4f6; font-size: 0.8rem;">
+                                            <% if (ticket.saleStart) { %>
+                                                Start: <%= new Date(ticket.saleStart).toLocaleDateString() %><br>
+                                            <% } %>
+                                            <% if (ticket.saleEnd) { %>
+                                                End: <%= new Date(ticket.saleEnd).toLocaleDateString() %>
+                                            <% } %>
+                                            <% if (!ticket.saleStart && !ticket.saleEnd) { %>
+                                                -
+                                            <% } %>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Column: Sidebar info -->
+            <div>
+                <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <h5 style="margin-bottom: 1rem; color: var(--dark);">Event Stats</h5>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        <span style="color: var(--gray);">Total Bookings:</span>
+                        <strong><%= bookingsCount %></strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        <span style="color: var(--gray);">Status:</span>
+                        <span class="badge <%= event.status === 'published' ? 'badge-success' : 'badge-warning' %>"><%= event.status %></span>
+                    </div>
+                    <hr style="margin: 1rem 0; border: 0; border-top: 1px solid #e5e7eb;">
+                    
+                    <h5 style="margin-bottom: 1rem; color: var(--dark);">Logistics</h5>
+                    <div style="margin-bottom: 1rem; font-size: 0.9rem;">
+                        <i class="fa-solid fa-calendar" style="color: var(--primary); width: 20px;"></i>
+                        <%= new Date(event.startDate).toLocaleDateString() %> - <%= new Date(event.endDate).toLocaleDateString() %>
+                    </div>
+                    <% if (event.location && event.location.venueName) { %>
+                        <div style="margin-bottom: 1rem; font-size: 0.9rem;">
+                            <i class="fa-solid fa-location-dot" style="color: var(--primary); width: 20px;"></i>
+                            <%= event.location.venueName %><br>
+                            <span style="margin-left: 20px; color: var(--gray);"><%= event.location.city %>, <%= event.location.postcode %></span>
+                        </div>
+                    <% } %>
+                    <div style="margin-bottom: 1rem; font-size: 0.9rem;">
+                        <i class="fa-solid fa-user-tie" style="color: var(--primary); width: 20px;"></i>
+                        Organizer: <strong><%= event.organizer ? event.organizer.username : 'Unknown' %></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
