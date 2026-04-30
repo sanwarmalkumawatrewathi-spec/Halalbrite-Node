@@ -8,7 +8,7 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     <!-- Custom Style -->
     <!-- Custom Style -->
     <link rel="stylesheet" href="/css/modern-admin.css">
@@ -17,38 +17,40 @@
 
 <body>
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside id="mySidebar" class="sidebar">
         <a href="/admin/dashboard" class="logo">
             <img src="/images/logo.svg" alt="HalalBrite">
             <span>Halal Brite</span>
         </a>
 
         <nav class="sidebar-nav">
-            <a href="/admin/dashboard" class="nav-item <%= activePage === 'dashboard' ? 'active' : '' %>">
+            <a href="/admin/dashboard" class="nav-item <%= activePage === 'dashboard' ? 'active' : '' %>"
+                title="Dashboard">
                 <i class="fa-solid fa-chart-line"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="/admin/users" class="nav-item <%= activePage === 'users' ? 'active' : '' %>">
+            <a href="/admin/users" class="nav-item <%= activePage === 'users' ? 'active' : '' %>" title="Users">
                 <i class="fa-solid fa-users"></i>
                 <span>Users</span>
             </a>
-            <a href="/admin/events" class="nav-item <%= activePage === 'events' ? 'active' : '' %>">
+            <a href="/admin/events" class="nav-item <%= activePage === 'events' ? 'active' : '' %>" title="Events">
                 <i class="fa-solid fa-calendar-days"></i>
                 <span>Events</span>
             </a>
-            <a href="/admin/categories" class="nav-item <%= activePage === 'categories' ? 'active' : '' %>">
+            <a href="/admin/categories" class="nav-item <%= activePage === 'categories' ? 'active' : '' %>"
+                title="Categories">
                 <i class="fa-solid fa-tags"></i>
                 <span>Categories</span>
             </a>
-            <a href="/admin/orders" class="nav-item <%= activePage === 'orders' ? 'active' : '' %>">
+            <a href="/admin/orders" class="nav-item <%= activePage === 'orders' ? 'active' : '' %>" title="Orders">
                 <i class="fa-solid fa-receipt"></i>
                 <span>Orders</span>
             </a>
 
-            <div style="margin: 1rem 0; height: 1px; background: rgba(255,255,255,0.1);"></div>
+
 
             <div class="nav-item-wrapper">
-                <div class="nav-item <%= activePage === 'stripe' ? 'active' : '' %>"
+                <div class="nav-item <%= activePage === 'stripe' ? 'active' : '' %>" title="Stripe Connect"
                     onclick="toggleSubmenu('stripe-submenu')">
                     <i class="fa-solid fa-money-bill-transfer"></i>
                     <span>Stripe Connect</span>
@@ -67,32 +69,42 @@
                         class="submenu-item <%= (typeof activeSubPage !== 'undefined' && activeSubPage === 'transactions') ? 'active' : '' %>">Transactions</a>
                 </div>
             </div>
-            <a href="/admin/cms" class="nav-item <%= activePage === 'cms' ? 'active' : '' %>">
+            <a href="/admin/cms" class="nav-item <%= activePage === 'cms' ? 'active' : '' %>" title="Static Pages">
                 <i class="fa-solid fa-file-lines"></i>
                 <span>Static Pages</span>
             </a>
-            <a href="/admin/faqs" class="nav-item <%= activePage === 'faqs' ? 'active' : '' %>">
+            <a href="/admin/faqs" class="nav-item <%= activePage === 'faqs' ? 'active' : '' %>" title="Help & FAQs">
                 <i class="fa-solid fa-circle-question"></i>
                 <span>Help & FAQs</span>
             </a>
-            <a href="/admin/inquiries" class="nav-item <%= activePage === 'inquiries' ? 'active' : '' %>">
+            <a href="/admin/inquiries" class="nav-item <%= activePage === 'inquiries' ? 'active' : '' %>"
+                title="Inquiries">
                 <i class="fa-solid fa-envelope"></i>
                 <span>Inquiries</span>
             </a>
-            <a href="/admin/settings" class="nav-item <%= activePage === 'settings' ? 'active' : '' %>">
+            <a href="/admin/settings" class="nav-item <%= activePage === 'settings' ? 'active' : '' %>"
+                title="App Settings">
                 <i class="fa-solid fa-gears"></i>
                 <span>App Settings</span>
             </a>
         </nav>
 
-        <a href="/admin/logout" class="nav-item logoutbtn">
+        <a href="/admin/logout" class="nav-item logoutbtn" title="Logout">
             <i class="fa-solid fa-right-from-bracket"></i>
             <span>Logout</span>
         </a>
+
     </aside>
 
     <div class="main-wrapper">
         <header class="header">
+            <button onclick="toggleBar()" class="btn-menu">
+                <svg viewBox="0 0 20 20" class="menu-icon">
+                    <path class="line line1" d="M3 5h12"></path>
+                    <path class="line line2" d="M3 10h6"></path>
+                    <path class="line line3" d="M3 15h12"></path>
+                </svg>
+            </button>
             <div class="header-search">
                 <h2>
                     <%= activePage.charAt(0).toUpperCase() + activePage.slice(1) %> Management
@@ -136,6 +148,13 @@
 
     <!-- Scripts -->
     <script>
+
+        function toggleBar() {
+            document.getElementById("mySidebar").classList.toggle("collapsed");
+
+            // icon animation toggle
+            document.querySelector(".menu-icon").classList.toggle("active");
+        }
         function toggleSubmenu(id) {
             const menu = document.getElementById(id);
             const isVisible = menu.style.display === 'block';
