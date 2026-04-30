@@ -19,7 +19,8 @@ const generateBookingReference = () => {
 // @access  Private/Organizer
 exports.connectStripe = async (req, res) => {
     try {
-        const url = await stripeService.getConnectUrl(req.user);
+        const origin = req.get('origin');
+        const url = await stripeService.getConnectUrl(req.user, origin);
         res.json({ message: 'Stripe Connect Onboarding URL generated', url });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -67,11 +68,13 @@ exports.stripeCallback = async (req, res) => {
         await User.findByIdAndUpdate(state, { stripeConnectedId });
 
         // Redirect to dashboard (assuming Next.js path)
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const origin = req.get('origin');
+        const frontendUrl = origin || process.env.FRONTEND_URL || 'http://localhost:3000';
         res.redirect(`${frontendUrl}/OrganiserDashboard?status=stripe_connected`);
     } catch (error) {
         console.error('❌ Stripe OAuth Error:', error);
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const origin = req.get('origin');
+        const frontendUrl = origin || process.env.FRONTEND_URL || 'http://localhost:3000';
         res.redirect(`${frontendUrl}/OrganiserDashboard?status=error&message=${encodeURIComponent(error.message)}`);
     }
 };
@@ -372,7 +375,7 @@ exports.createCheckoutSession = async (req, res) => {
                 success: true,
                 message: 'Free ticket booked successfully',
                 data: {
-                    url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/success?bookingId=${booking._id}`,
+                    url: `${req.get('origin') || process.env.FRONTEND_URL || 'http://localhost:3000'}/checkout/success?bookingId=${booking._id}`,
                     bookingId: booking._id,
                     isFree: true
                 }
@@ -392,7 +395,7 @@ exports.createCheckoutSession = async (req, res) => {
             currency: requestedCurrency,
             customerEmail: attendeeEmail || (req.user ? req.user.email : ''),
             eventBanner: event.banner ? (event.banner.startsWith('http') ? event.banner : `${process.env.BACKEND_URL || 'http://localhost:5000'}${event.banner}`) : null
-        });
+        }, req.get('origin'));
 
         booking.stripe_session_id = session.id;
         await booking.save();

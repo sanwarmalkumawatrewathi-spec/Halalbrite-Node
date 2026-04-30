@@ -30,7 +30,7 @@ class StripeService {
      * Generate the Onboarding URL for an organizer to connect their Stripe account.
      * Uses the modern "Express" Connect flow via Account Links.
      */
-    async getConnectUrl(user) {
+    async getConnectUrl(user, dynamicBaseUrl = null) {
         const stripeInstance = await this.getStripeInstance();
         
         // 1. Create a new Express account if they don't have one
@@ -55,7 +55,7 @@ class StripeService {
         }
 
         // 2. Generate Account Link
-        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const baseUrl = dynamicBaseUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
         
         const accountLink = await stripeInstance.accountLinks.create({
             account: accountId,
@@ -70,9 +70,9 @@ class StripeService {
     /**
      * Create an Account Link for an Express account to finish onboarding or update details.
      */
-    async createAccountLink(accountId, type = 'account_onboarding') {
+    async createAccountLink(accountId, type = 'account_onboarding', dynamicBaseUrl = null) {
         const stripeInstance = await this.getStripeInstance();
-        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const baseUrl = dynamicBaseUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
 
         return await stripeInstance.accountLinks.create({
             account: accountId,
@@ -324,9 +324,9 @@ class StripeService {
     /**
      * Create a Stripe Checkout Session for a ticket purchase.
      */
-    async createCheckoutSession(params) {
+    async createCheckoutSession(params, dynamicBaseUrl = null) {
         const stripeInstance = await this.getStripeInstance();
-        const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const baseUrl = dynamicBaseUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
 
         const sessionData = {
             payment_method_types: ['card'],
