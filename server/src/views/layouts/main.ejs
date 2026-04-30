@@ -18,7 +18,7 @@
 <body>
     <!-- Sidebar -->
     <aside id="mySidebar" class="sidebar">
-        <a href="/admin/dashboard" class="logo">
+        <a href="/admin/dashboard" class="logo  desktoplogo">
             <img src="/images/logo.svg" alt="HalalBrite">
             <span>Halal Brite</span>
         </a>
@@ -98,14 +98,20 @@
 
     <div class="main-wrapper">
         <header class="header">
-            <button onclick="toggleBar()" class="btn-menu">
-                <svg viewBox="0 0 20 20" class="menu-icon">
-                    <path class="line line1" d="M3 5h12"></path>
-                    <path class="line line2" d="M3 10h6"></path>
-                    <path class="line line3" d="M3 15h12"></path>
-                </svg>
-            </button>
+
+
             <div class="header-search">
+                <a href="/admin/dashboard" class="logo phone-logo">
+                    <img src="/images/logo.svg" alt="HalalBrite">
+                    <span>Halal Brite</span>
+                </a>
+                <button onclick="toggleBar()" class="btn-menu">
+                    <svg viewBox="0 0 20 20" class="menu-icon">
+                        <path class="line line1" d="M3 5h12"></path>
+                        <path class="line line2" d="M3 10h6"></path>
+                        <path class="line line3" d="M3 15h12"></path>
+                    </svg>
+                </button>
                 <h2>
                     <%= activePage.charAt(0).toUpperCase() + activePage.slice(1) %> Management
                 </h2>
@@ -127,6 +133,12 @@
                 <span class="nameadi">Admin: <strong>
                         <%= admin.username %>
                     </strong></span>
+
+                <!-- Dark Mode Toggle -->
+                <button id="darkModeToggle" class="btn-dark-toggle" title="Toggle Dark Mode">
+                    <i class="fa-solid fa-moon" id="darkModeIcon"></i>
+                </button>
+
                 <div class="user-avatar">
                     <%= admin.username.charAt(0).toUpperCase() %>
                 </div>
@@ -175,6 +187,32 @@
             // Refresh to apply changes
             window.location.reload();
         });
+
+        // ===== DARK MODE LOGIC =====
+        const htmlEl = document.documentElement;
+        const toggleBtn = document.getElementById('darkModeToggle');
+        const darkIcon = document.getElementById('darkModeIcon');
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('admin-theme') || 'light';
+        htmlEl.setAttribute('data-theme', savedTheme);
+        updateDarkIcon(savedTheme);
+
+        toggleBtn?.addEventListener('click', function () {
+            const current = htmlEl.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            htmlEl.setAttribute('data-theme', next);
+            localStorage.setItem('admin-theme', next);
+            updateDarkIcon(next);
+        });
+
+        function updateDarkIcon(theme) {
+            if (darkIcon) {
+                darkIcon.className = theme === 'dark'
+                    ? 'fa-solid fa-sun'
+                    : 'fa-solid fa-moon';
+            }
+        }
     </script>
     <script src="/js/stripe-admin.js"></script>
     <%- script %>
