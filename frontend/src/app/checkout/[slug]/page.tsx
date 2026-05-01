@@ -16,7 +16,7 @@ function CheckoutContent() {
     const { currentCurrency, formatPrice, convertPrice } = useCurrency();
     const { user } = useAuth();
 
-    const eventId = params.id;
+    const eventId = params.slug;
     const ticketName = searchParams.get("ticket");
     const quantity = parseInt(searchParams.get("qty") || "0");
 
@@ -87,7 +87,7 @@ function CheckoutContent() {
                 // Fetch Event
                 const eventRes = await fetch(`${baseUrl}/api/events/${eventId}`);
                 const eventData = await eventRes.json();
-                setEvent(eventData);
+                setEvent(eventData.data || eventData);
 
                 // Fetch Settings
                 const settingsRes = await fetch(`${baseUrl}/api/admin/settings/public`);

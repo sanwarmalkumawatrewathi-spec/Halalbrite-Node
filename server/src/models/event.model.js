@@ -99,12 +99,31 @@ const eventSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
+    slug: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
     status: {
         type: String,
         enum: ['draft', 'published', 'cancelled', 'completed'],
         default: 'published'
     }
 }, { timestamps: true });
+
+// Generate slug before saving
+eventSchema.pre('save', async function() {
+    if (this.isModified('title') || !this.slug) {
+        let baseSlug = this.title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        let uniqueSlug = baseSlug;
+        let counter = 1;
+        
+        while (await mongoose.model('Event').findOne({ slug: uniqueSlug, _id: { $ne: this._id } })) {
+            uniqueSlug = `${baseSlug}-${counter++}`;
+        }
+        this.slug = uniqueSlug;
+    }
+});
 
 // Pre-save hook to handle geo-spatial indexing
 eventSchema.pre('save', async function() {

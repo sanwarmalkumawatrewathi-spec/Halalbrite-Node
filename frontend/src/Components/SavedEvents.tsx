@@ -15,6 +15,7 @@ type SavedEvent = {
   };
   banner: string;
   priceLabel: string;
+  slug?: string;
 };
 
 type Organizer = {
@@ -22,6 +23,7 @@ type Organizer = {
   username: string;
   avatar: string;
   bio: string;
+  slug?: string;
 };
 
 export default function SavedEvents() {
@@ -142,7 +144,7 @@ export default function SavedEvents() {
 
                   <div className="mt-auto flex items-center justify-between border-t border-gray-50 pt-3">
                     <span className="font-bold text-gray-900 text-sm">{event.priceLabel}</span>
-                    <Link href={`/eventpage/${event._id}`} className="text-red-600 text-xs font-bold hover:underline">
+                    <Link href={`/event/${event.slug || event._id}`} className="text-red-600 text-xs font-bold hover:underline">
                         Details →
                     </Link>
                   </div>
@@ -178,7 +180,9 @@ export default function SavedEvents() {
                       )}
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900">{org.username}</h3>
+                      <Link href={`/organiser/${org.slug || org._id}`} className="hover:text-red-600 transition">
+                        <h3 className="font-bold text-gray-900">{org.username}</h3>
+                      </Link>
                       <p className="text-sm text-gray-500 line-clamp-1">{org.bio || "Event Organiser"}</p>
                     </div>
                   </div>

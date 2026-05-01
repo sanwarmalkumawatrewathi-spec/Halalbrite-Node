@@ -286,12 +286,29 @@ exports.saveUser = async (req, res) => {
     try {
         console.log('📝 Saving user:', req.body);
         const { id, username, email, password, role, status } = req.body;
+        
+        // Extract preferences
+        const preferences = {
+            eventUpdates: req.body.pref_eventUpdates === 'on',
+            promotions: req.body.pref_promotions === 'on',
+            newsletter: req.body.pref_newsletter === 'on'
+        };
+
+        const socialLinks = {
+            website: req.body.website,
+            facebook: req.body.facebook,
+            instagram: req.body.instagram,
+            twitter: req.body.twitter
+        };
 
         const data = {
             username,
             email,
-            role,
-            status: status || 'active'
+            roles: [role],
+            status: status || 'active',
+            preferences,
+            bio: req.body.bio,
+            socialLinks
         };
 
         if (id) {
@@ -308,6 +325,9 @@ exports.saveUser = async (req, res) => {
             user.email = email;
             user.roles = [role];
             user.status = status;
+            user.preferences = preferences;
+            user.bio = req.body.bio;
+            user.socialLinks = socialLinks;
             await user.save();
             console.log('✅ User updated successfully');
         } else {
@@ -317,7 +337,6 @@ exports.saveUser = async (req, res) => {
             }
             const newUser = await User.create({
                 ...data,
-                roles: [role],
                 password
             });
             console.log('✅ User created successfully:', newUser._id);
@@ -506,8 +525,18 @@ exports.getCMSForm = async (req, res) => {
 // @route   POST /admin/cms/save
 exports.saveCMS = async (req, res) => {
     try {
-        const { id, title, slug, content } = req.body;
-        const data = { title, slug, content, lastUpdatedBy: req.user._id };
+        const { id, title, slug, content, metaTitle, metaDescription, metaKeywords, showInMenu, menuLocation } = req.body;
+        const data = { 
+            title, 
+            slug, 
+            content, 
+            metaTitle, 
+            metaDescription, 
+            metaKeywords, 
+            showInMenu: showInMenu === 'on',
+            menuLocation,
+            lastUpdatedBy: req.user._id 
+        };
 
         if (id) {
             await StaticPage.findByIdAndUpdate(id, data);

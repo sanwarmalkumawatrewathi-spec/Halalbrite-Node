@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Event = require('../models/event.model');
 const User = require('../models/user.model');
 
@@ -89,16 +90,31 @@ exports.getEvents = async (req, res) => {
 // @access  Public
 exports.getEventById = async (req, res) => {
     try {
-        const event = await Event.findById(req.params.id)
-            .populate('organizer', 'username avatar email')
-            .populate('category', 'name slug description icon');
+        const { id } = req.params;
+        const searchId = id.toLowerCase();
+        let event = null;
+
+        // 1. Try finding by ID if it's a valid ObjectId
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            event = await Event.findById(id)
+                .populate('organizer', '-password')
+                .populate('category');
+        }
+
+        // 2. If not found by ID, try finding by slug
+        if (!event) {
+            event = await Event.findOne({ slug: searchId })
+                .populate('organizer', '-password')
+                .populate('category');
+        }
+
         if (event) {
-            res.json(event);
+            res.json({ success: true, data: event });
         } else {
-            res.status(404).json({ message: 'Event not found' });
+            res.status(404).json({ success: false, message: 'Event not found' });
         }
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

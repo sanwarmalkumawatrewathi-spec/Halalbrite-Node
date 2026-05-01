@@ -79,8 +79,11 @@ export default function FeaturedEvents({ activeCategory, selectedCity }: Props) 
             <EventCard
               key={i}
               id={event._id}
+              slug={event.slug}
               title={event.title}
               organizer={event.organizerName || event.organizer?.username || "Organizer"}
+              organizerId={typeof event.organizer === 'object' ? event.organizer._id : event.organizer}
+              organizerSlug={event.organizer?.slug}
               date={`${formatDate(event.startDate)} ${event.startTime || ""}`}
               location={`${event.location?.city || ""}, ${event.location?.country || "UK"}`}
               price={event.price}

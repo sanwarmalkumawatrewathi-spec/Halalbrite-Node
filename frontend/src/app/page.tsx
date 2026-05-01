@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import Eventpage from '@/app/eventpage/page'
+import CategoryTabs from '@/Components/CategoryTabs'
+import FeaturedEvents from '@/Components/FeaturedEvents'
 import Footer from '@/Components/Footer'
 import Header from '@/Components/Header'
 import Herosections from '@/Components/Herosections'
@@ -44,11 +45,13 @@ export default function Page() {
       <Header />
       <Herosections onLocationSelect={(city) => setSelectedCity(city)} />
 
-      <Eventpage 
-        selectedCity={selectedCity} 
-        activeCategory={activeCategory} 
-        setActiveCategory={setActiveCategory} 
-      />
+      <div className="max-w-7xl mx-auto pt-10">
+        <CategoryTabs active={activeCategory} setActive={setActiveCategory} />
+        <FeaturedEvents 
+          activeCategory={activeCategory} 
+          selectedCity={selectedCity} 
+        />
+      </div>
 
       <div className="max-w-7xl mx-auto px-6 py-10">
         <h2 className="text-2xl font-bold text-red-900 mb-2">

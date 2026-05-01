@@ -63,6 +63,7 @@ mongoose.connect(process.env.MONGODB_URI)
     const adminViewRoutes = require('./apis/admin/adminView.routes');
     const adminStripeRoutes = require('./apis/admin/stripe.routes');
     const bookingRoutes = require('./apis/bookings/booking.routes');
+    const organizerRoutes = require('./apis/organizer.routes');
 
     // Routes
     app.use('/api/auth', authRoutes);
@@ -79,6 +80,7 @@ mongoose.connect(process.env.MONGODB_URI)
     app.use('/admin', adminViewRoutes);
     app.use('/api/v1/admin/stripe', adminStripeRoutes);
     app.use('/api/bookings', bookingRoutes);
+    app.use('/api/organizers', organizerRoutes);
 
     // Global Error Handler
     app.use((err, req, res, next) => {

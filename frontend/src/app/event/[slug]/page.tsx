@@ -1,7 +1,8 @@
 "use client";
+
 import dynamic from 'next/dynamic';
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, use } from "react";
 import { useAuth } from "@/context/authContext";
 import Footer from "@/Components/Footer";
 import Header from "@/Components/Header";
@@ -10,31 +11,35 @@ const MapComponent = dynamic(() => import("@/Components/MapComponent"), { ssr: f
 import Link from "next/link";
 import { MapPin, Share2, Heart, Calendar, Clock, Users } from "lucide-react";
 
-export default function EventDetails() {
-  const params = useParams();
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+export default function EventDetails({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = use(params);
   const router = useRouter();
   const { user, toggleFollowOrganizer, toggleSavedEvent } = useAuth();
-  const [event, setEvent] = useState(null);
+  const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-        const response = await fetch(`${baseUrl}/api/events/${id}`);
+        const response = await fetch(`${baseUrl}/api/events/${slug}`);
         const data = await response.json();
-        setEvent(data);
+        
+        if (!response.ok || data.success === false) {
+           setEvent(null);
+        } else {
+           setEvent(data.data || data);
+        }
       } catch (error) {
         console.error("Failed to fetch event details:", error);
       } finally {
         setLoading(false);
       }
     };
-    if (id) fetchEvent();
-  }, [id]);
+    if (slug) fetchEvent();
+  }, [slug]);
 
-  const formatDate = (dateStr) => {
+  const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
       return date.toLocaleDateString('en-GB', {
@@ -125,18 +130,32 @@ export default function EventDetails() {
       {/* Organiser Section */}
       <section className="max-w-7xl mx-auto px-6 py-6 ">
         <div className="bg-white rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between shadow-xl border border-red-50">
-          <div className="flex items-center gap-5">
-            <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center text-red-900 ">
-              {event.organizerName?.substring(0, 2) || event.organizer?.username?.substring(0, 2) || "OR"}
+          {event.organizer ? (
+            <Link href={`/organiser/${event.organizer.slug || (typeof event.organizer === 'object' ? event.organizer._id : event.organizer)}`} className="flex items-center gap-5 hover:opacity-80 transition group">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center text-red-900 font-bold shadow-sm group-hover:scale-105 transition">
+                {event.organizerName?.substring(0, 2) || event.organizer?.username?.substring(0, 2) || "OR"}
+              </div>
+              <div>
+                <p className="text-gray-600 text-xs sm:text-sm">Organised by</p>
+                <h3 className="text-red-900 text-sm sm:text-base md:text-lg font-bold group-hover:text-red-600 transition truncate">
+                  {event.organizerName || event.organizer?.username || "Organizer"}
+                </h3>
+                <p className="text-xs text-gray-500 font-medium">View Organiser Profile →</p>
+              </div>
+            </Link>
+          ) : (
+            <div className="flex items-center gap-5">
+              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 font-bold">
+                OR
+              </div>
+              <div>
+                <p className="text-gray-600 text-xs sm:text-sm">Organised by</p>
+                <h3 className="text-gray-900 text-sm sm:text-base md:text-lg font-bold">
+                  {event.organizerName || "Organizer"}
+                </h3>
+              </div>
             </div>
-            <div>
-              <p className="text-gray-600 text-xs sm:text-sm">Organised by</p>
-              <h3 className="text-red-900 text-sm sm:text-base md:text-lg font-semibold truncate">
-                {event.organizerName || event.organizer?.username || "Organizer"}
-              </h3>
-              <p className="text-sm text-gray-500">Official Community Partner</p>
-            </div>
-          </div>
+          )}
           {event.organizer && (
             <button 
               onClick={async () => {
@@ -172,7 +191,7 @@ export default function EventDetails() {
               </h2>
 
               <div className="prose prose-red max-w-none text-gray-700 leading-relaxed space-y-4">
-                {event.description.split('\n').map((para, i) => (
+                {event.description?.split('\n').map((para: string, i: number) => (
                   <p key={i}>{para}</p>
                 ))}
               </div>
@@ -229,10 +248,10 @@ export default function EventDetails() {
                     router.push('/authpage');
                     return;
                   }
-                  await toggleSavedEvent(id);
+                  await toggleSavedEvent(event._id);
                 }}
                 className={`flex items-center justify-center gap-3  border rounded-2xl px-4 py-4 w-full transition-all ${
-                  user?.savedEvents?.includes(id) 
+                  user?.savedEvents?.includes(event._id) 
                     ? "bg-red-50 text-red-600 border-red-200" 
                     : "text-gray-600 border-gray-200 hover:bg-gray-50"
                 }`}
@@ -240,9 +259,9 @@ export default function EventDetails() {
                 <Heart 
                   size={20} 
                   className="" 
-                  fill={user?.savedEvents?.includes(id) ? "currentColor" : "none"} 
+                  fill={user?.savedEvents?.includes(event._id) ? "currentColor" : "none"} 
                 />
-                {user?.savedEvents?.includes(id) ? "Saved to Favorites" : "Save to Favorites"}
+                {user?.savedEvents?.includes(event._id) ? "Saved to Favorites" : "Save to Favorites"}
               </button>
             </div>
           </div>

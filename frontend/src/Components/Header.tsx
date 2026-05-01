@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { FaChevronDown, FaUser, FaThLarge } from "react-icons/fa";
 import { FiLogOut } from "react-icons/fi";
+import CustomModal from "./CustomModal";
 
 import { useAuth } from "@/context/authContext";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -14,9 +15,10 @@ import { useRouter } from "next/navigation";
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [openCurrency, setOpenCurrency] = useState(false);
-  const { user, logout, isOrganizer, isAdministrator, isStripeConnected } = useAuth();
+   const { user, logout, isOrganizer, isAdministrator, isStripeConnected } = useAuth();
   const { currentCurrency, allCurrencies, setCurrency } = useCurrency();
   const router = useRouter();
+  const [showStripeModal, setShowStripeModal] = useState(false);
 
   return (
     <header className="w-full bg-white shadow-sm sticky top-0 z-50" suppressHydrationWarning>
@@ -114,8 +116,7 @@ export default function Header() {
           <button 
             onClick={() => {
               if (isOrganizer && !isStripeConnected && !isAdministrator) {
-                alert("Please connect your Stripe account in the Organiser Dashboard before posting an event.");
-                router.push('/OrganiserDashboard');
+                setShowStripeModal(true);
               } else {
                 router.push('/post-an-event');
               }
@@ -201,6 +202,18 @@ export default function Header() {
           )}
         </div>
       </div>
+      <CustomModal
+        isOpen={showStripeModal}
+        onClose={() => setShowStripeModal(false)}
+        onConfirm={() => {
+          setShowStripeModal(false);
+          router.push('/OrganiserDashboard');
+        }}
+        title="Connect Stripe Account"
+        message="Please connect your Stripe account in the Organiser Dashboard before posting an event."
+        confirmText="Go to Dashboard"
+        type="warning"
+      />
     </header>
   );
 }

@@ -9,6 +9,7 @@
                 <tr>
                     <th>User Info</th>
                     <th>Role</th>
+                    <th>Preferences</th>
                     <th>Status</th>
                     <th>Joined</th>
                     <th>Actions</th>
@@ -16,7 +17,7 @@
             </thead>
             <tbody>
                 <% if (users.length === 0) { %>
-                    <tr><td colspan="5" class="text-center text-muted" style="padding: 3rem;">No users found.</td></tr>
+                    <tr><td colspan="6" class="text-center text-muted" style="padding: 3rem;">No users found.</td></tr>
                 <% } else { %>
                     <% users.forEach(user => { %>
                         <tr>
@@ -28,6 +29,19 @@
                             </td>
                             <td>
                                 <span class="badge" style="background: #eff6ff; color: #1e40af;"><%= user.roles && user.roles.length > 0 ? user.roles.map(r => r.name).join(', ') : 'No Role' %></span>
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 5px;">
+                                    <span class="badge" style="background: <%= user.preferences?.eventUpdates ? '#dcfce7' : '#f3f4f6' %>; color: <%= user.preferences?.eventUpdates ? '#166534' : '#9ca3af' %>;" title="Event Updates">
+                                        <i class="fa-solid fa-calendar-check"></i>
+                                    </span>
+                                    <span class="badge" style="background: <%= user.preferences?.promotions ? '#dcfce7' : '#f3f4f6' %>; color: <%= user.preferences?.promotions ? '#166534' : '#9ca3af' %>;" title="Promotions">
+                                        <i class="fa-solid fa-tags"></i>
+                                    </span>
+                                    <span class="badge" style="background: <%= user.preferences?.newsletter ? '#dcfce7' : '#f3f4f6' %>; color: <%= user.preferences?.newsletter ? '#166534' : '#9ca3af' %>;" title="Newsletter">
+                                        <i class="fa-solid fa-envelope-open-text"></i>
+                                    </span>
+                                </div>
                             </td>
                             <td>
                                 <span class="badge <%= user.status === 'active' ? 'badge-success' : 'badge-danger' %>">

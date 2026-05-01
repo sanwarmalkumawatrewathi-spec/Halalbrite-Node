@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 
 type MapEvent = {
   _id: string;
+  slug?: string;
   title: string;
   organizerName: string;
   startDate: string;
@@ -81,7 +82,7 @@ export default function EventCardGrid({ events, loading }: EventCardGridProps) {
           const isSaved = user?.savedEvents?.includes(event._id);
           
           return (
-            <Link key={event._id} href={`/eventpage/${event._id}`} className="flex">
+            <Link key={event._id} href={`/event/${event.slug || event._id}`} className="flex">
               <div className="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden w-full flex flex-col">
                 {/* IMAGE */}
                 <div className="relative">

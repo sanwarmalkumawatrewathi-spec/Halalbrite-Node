@@ -6,7 +6,7 @@
         <a href="/admin/cms" class="btn" style="background: #f3f4f6;">Back to List</a>
     </div>
     <div style="padding: 2rem;">
-        <form action="/admin/cms/save" method="POST">
+        <form action="/admin/cms/save" method="POST" id="cmsForm">
             <% if (page) { %>
                 <input type="hidden" name="id" value="<%= page._id %>">
             <% } %>
@@ -19,13 +19,46 @@
                 <div class="form-group">
                     <label>URL Slug</label>
                     <input type="text" name="slug" value="<%= page ? page.slug : '' %>" class="form-control" placeholder="e.g., about-us" required>
-                    <small style="color: var(--gray);">Internal identifier for links.</small>
+                    <small style="color: var(--gray);">URL: /<%= page ? page.slug : 'slug' %></small>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb;">
+                <div>
+                    <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">SEO Settings</h4>
+                    <div class="form-group">
+                        <label>Meta Title</label>
+                        <input type="text" name="metaTitle" value="<%= page ? page.metaTitle : '' %>" class="form-control" placeholder="SEO Title">
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Meta Description</label>
+                        <textarea name="metaDescription" class="form-control" rows="3" placeholder="SEO Description"><%= page ? page.metaDescription : '' %></textarea>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Meta Keywords</label>
+                        <input type="text" name="metaKeywords" value="<%= page ? page.metaKeywords : '' %>" class="form-control" placeholder="Keywords, separated, by, commas">
+                    </div>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Menu Settings</h4>
+                    <div class="form-group flex-row" style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
+                        <input type="checkbox" name="showInMenu" id="showInMenu" <%= page && page.showInMenu ? 'checked' : '' %> style="width: 18px; height: 18px;">
+                        <label for="showInMenu" style="margin-bottom: 0;">Show in Footer Menu</label>
+                    </div>
+                    <div class="form-group">
+                        <label>Menu Location</label>
+                        <select name="menuLocation" class="form-control">
+                            <option value="none" <%= page && page.menuLocation === 'none' ? 'selected' : '' %>>None</option>
+                            <option value="company" <%= page && page.menuLocation === 'company' ? 'selected' : '' %>>Company</option>
+                            <option value="support" <%= page && page.menuLocation === 'support' ? 'selected' : '' %>>Support</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
             <div class="form-group" style="margin-top: 1.5rem;">
-                <label>Page Content (Markdown/HTML supported)</label>
-                <textarea name="content" class="form-control" rows="15" placeholder="Write your page content here..." style="font-family: monospace; font-size: 0.9rem;" required><%= page ? page.content : '' %></textarea>
+                <label>Page Content</label>
+                <textarea name="content" id="editor" class="form-control" rows="15" placeholder="Write your page content here..."><%= page ? page.content : '' %></textarea>
             </div>
 
             <% if (page) { %>
@@ -42,3 +75,30 @@
         </form>
     </div>
 </div>
+
+<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+<script>
+    ClassicEditor
+        .create(document.querySelector('#editor'), {
+            toolbar: [
+                'heading', '|', 
+                'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|',
+                'insertTable', 'mediaEmbed', 'undo', 'redo'
+            ]
+        })
+        .catch(error => {
+            console.error(error);
+        });
+</script>
+
+<style>
+    .ck-editor__editable {
+        min-height: 400px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--dark);
+    }
+</style>

@@ -12,7 +12,10 @@ type Ticket = {
   amount_total: number;
   currency: string;
   payment_status: "paid" | "pending" | "cancelled" | "refunded" | "free";
-  event_id: string;
+  event_id: {
+    _id: string;
+    slug?: string;
+  };
 };
 
 export default function MyTickets() {
@@ -117,7 +120,7 @@ export default function MyTickets() {
               </button>
 
               <button 
-                onClick={() => router.push(`/eventpage/${ticket.event_id}`)} 
+                onClick={() => router.push(`/event/${ticket.event_id?.slug || ticket.event_id?._id || ticket.event_id}`)} 
                 className="border border-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition"
               >
                 Details

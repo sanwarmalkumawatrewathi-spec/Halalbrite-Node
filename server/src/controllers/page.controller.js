@@ -5,7 +5,7 @@ const StaticPage = require('../models/staticPage.model');
 // @access  Public
 exports.getPages = async (req, res) => {
     try {
-        const pages = await StaticPage.find({}).select('title slug updatedAt');
+        const pages = await StaticPage.find({}).select('title slug showInMenu menuLocation updatedAt');
         res.json({
             message: 'Pages fetched successfully',
             data: pages

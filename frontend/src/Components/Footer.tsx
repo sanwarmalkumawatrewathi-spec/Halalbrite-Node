@@ -1,11 +1,33 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { TbCalendarEvent } from "react-icons/tb";
 import { FaInstagram } from "react-icons/fa";
 import { FaFacebook } from "react-icons/fa";
 import { AiFillTwitterCircle } from "react-icons/ai";
 export default function Footer() {
+    const [companyPages, setCompanyPages] = useState<any[]>([]);
+    const [supportPages, setSupportPages] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchPages = async () => {
+            try {
+                const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+                const response = await fetch(`${baseUrl}/api/pages`);
+                const result = await response.json();
+                if (response.ok) {
+                    const pages = result.data || [];
+                    setCompanyPages(pages.filter((p: any) => p.showInMenu && p.menuLocation === 'company'));
+                    setSupportPages(pages.filter((p: any) => p.showInMenu && p.menuLocation === 'support'));
+                }
+            } catch (err) {
+                console.error("Failed to fetch footer pages:", err);
+            }
+        };
+        fetchPages();
+    }, []);
+
     return (
         <footer className="bg-red-700 text-white mt-[80px]">
             <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -25,26 +47,13 @@ export default function Footer() {
                 <div>
                     <h3 className="font-semibold mb-4">Company</h3>
                     <ul className="space-y-2 text-sm">
-                        <li>
-                            <Link href="/about" className="hover:underline">
-                                About Us
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/how-it-works" className="hover:underline">
-                                How It Works
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/contact" className="hover:underline">
-                                Contact
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/careers" className="hover:underline">
-                                Careers
-                            </Link>
-                        </li>
+                        {companyPages.map(page => (
+                            <li key={page.slug}>
+                                <Link href={`/${page.slug}`} className="hover:underline">
+                                    {page.title}
+                                </Link>
+                            </li>
+                        ))}
                     </ul>
                 </div>
 
@@ -52,31 +61,13 @@ export default function Footer() {
                 <div>
                     <h3 className="font-semibold mb-4">Support</h3>
                     <ul className="space-y-2 text-sm">
-                        <li>
-                            <Link href="/terms" className="hover:underline">
-                                Terms of Service
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/refund" className="hover:underline">
-                                Refund Policy
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/halal-standards" className="hover:underline">
-                                Halal Standards
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/privacy" className="hover:underline">
-                                Privacy Policy
-                            </Link>
-                        </li>
-                        <li>
-                            <Link href="/cookies" className="hover:underline">
-                                Cookie Policy
-                            </Link>
-                        </li>
+                        {supportPages.map(page => (
+                            <li key={page.slug}>
+                                <Link href={`/${page.slug}`} className="hover:underline">
+                                    {page.title}
+                                </Link>
+                            </li>
+                        ))}
                     </ul>
                 </div>
 

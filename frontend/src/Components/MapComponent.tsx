@@ -7,6 +7,7 @@ import Link from "next/link";
 
 type MapEvent = {
   _id: string;
+  slug?: string;
   title: string;
   location?: {
     venueName?: string;
@@ -127,7 +128,7 @@ export default function MapComponent({ center, events }: MapComponentProps) {
                   <h3 className="font-bold text-red-900 text-sm leading-tight mb-1">{event.title}</h3>
                   <p className="text-xs text-gray-600 mb-2">{event.location?.city}</p>
                   <Link
-                    href={`/eventpage/${event._id}`}
+                    href={`/event/${event.slug || event._id}`}
                     className="block text-center bg-red-600 text-white text-xs font-bold py-2 rounded hover:bg-red-700 transition"
                   >
                     View Details

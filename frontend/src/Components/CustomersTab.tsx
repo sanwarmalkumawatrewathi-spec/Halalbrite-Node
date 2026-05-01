@@ -111,25 +111,6 @@ export default function CustomersTab() {
           </table>
         </div>
       </div>
-
-      {/* Refund Requests (Static for now as backend doesn't have a specific refund model yet) */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h2 className="font-bold text-gray-800 text-lg">Refund Requests</h2>
-            <p className="text-sm text-gray-500">
-              Review and process customer refund requests
-            </p>
-          </div>
-          <span className="text-[10px] font-bold bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full uppercase tracking-wider">
-            0 Pending
-          </span>
-        </div>
-
-        <div className="border border-dashed border-gray-200 rounded-xl p-10 text-center">
-            <p className="text-gray-400 text-sm italic">No pending refund requests.</p>
-        </div>
-      </div>
     </div>
   );
 }

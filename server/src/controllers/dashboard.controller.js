@@ -211,7 +211,7 @@ exports.getMyTickets = async (req, res) => {
         const bookings = await Booking.find({ user_id: req.user._id })
             .populate({
                 path: 'event_id',
-                select: 'title startDate endDate location banner organizer',
+                select: 'title startDate endDate location banner organizer slug',
                 populate: { path: 'organizer', select: 'username' }
             })
             .sort({ createdAt: -1 });
@@ -245,11 +245,11 @@ exports.getSavedItems = async (req, res) => {
         const user = await User.findById(req.user._id)
             .populate({
                 path: 'savedEvents',
-                select: 'title startDate endDate price priceLabel banner location'
+                select: 'title startDate endDate price priceLabel banner location slug'
             })
             .populate({
                 path: 'followedOrganizers',
-                select: 'username avatar bio'
+                select: 'username avatar bio slug'
             });
 
         res.json({

@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { FaUser } from "react-icons/fa";
-import { MdPayment } from "react-icons/md";
 import { FiHeart } from "react-icons/fi";
 import { IoSettingsOutline } from "react-icons/io5";
 import { TbTicket } from "react-icons/tb";
 import MyTickets from "../Components/MyTickets";
-import PaymentTab from "../Components/PaymentTab";
 import SavedEvents from "../Components/SavedEvents";
 import SettingsTab from "../Components/SettingsTab";
 import ProfileTab from "../Components/ProfileTab";
@@ -16,7 +14,6 @@ import ProfileTab from "../Components/ProfileTab";
 const tabs = [
   { id: "profile", label: "Profile", icon: FaUser },
   { id: "tickets", label: "My Tickets", icon: TbTicket },
-  { id: "payment", label: "Payment", icon: MdPayment },
   { id: "saved", label: "Saved", icon: FiHeart },
   { id: "settings", label: "Settings", icon: IoSettingsOutline },
 ];
@@ -69,7 +66,6 @@ export default function AccountTabs() {
 
 
         {activeTab === "tickets" && <MyTickets />}
-        {activeTab === "payment" && <PaymentTab />}
         {activeTab === "saved" && <SavedEvents />}
         {activeTab === "settings" && <SettingsTab />}
       </div>

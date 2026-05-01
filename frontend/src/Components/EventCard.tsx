@@ -8,8 +8,11 @@ import { useRouter } from "next/navigation";
 
 type EventCardProps = {
     id: string;
+    slug?: string;
   title: string;
   organizer: string;
+  organizerId?: string;
+  organizerSlug?: string;
   date: string;
   location: string;
   price: number | string;
@@ -19,8 +22,11 @@ type EventCardProps = {
 
 export default function EventCard({
   id,
+  slug,
   title,
   organizer,
+  organizerId,
+  organizerSlug,
   date,
   location,
   price,
@@ -35,7 +41,8 @@ export default function EventCard({
   const isSaved = user?.savedEvents?.includes(id);
 
   const handleSaveToggle = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigating to event details
+    e.stopPropagation();
+    e.preventDefault();
     if (!user) {
       router.push('/authpage');
       return;
@@ -43,10 +50,15 @@ export default function EventCard({
     await toggleSavedEvent(id);
   };
 
-  return (
+  const handleCardClick = () => {
+    router.push(`/event/${slug || id}`);
+  };
 
-      <Link href={`/eventpage/${id}`}>
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden w-[300px] my-3 ">
+  return (
+    <div 
+      onClick={handleCardClick}
+      className="bg-white rounded-2xl shadow-md overflow-hidden w-[300px] my-3 cursor-pointer hover:shadow-lg transition-shadow"
+    >
       {/* Image */}
       <div className="relative">
         <img
@@ -79,7 +91,13 @@ export default function EventCard({
           {title}
         </h3>
 
-        <p className="text-gray-500 text-sm">{organizer}</p>
+        {organizerId ? (
+          <Link href={`/organiser/${organizerSlug || organizerId}`} onClick={(e) => e.stopPropagation()}>
+            <p className="text-red-600 text-sm hover:underline font-medium">{organizer}</p>
+          </Link>
+        ) : (
+          <p className="text-gray-500 text-sm">{organizer}</p>
+        )}
 
         {/* Date */}
         <div className="flex items-center gap-2 text-gray-500 text-xs">
@@ -105,7 +123,6 @@ export default function EventCard({
         </div>
       </div>
     </div>
-   </Link>
   
   );
 }

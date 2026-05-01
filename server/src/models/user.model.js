@@ -70,6 +70,17 @@ const userSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }],
+    followers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    socialLinks: {
+        website: String,
+        facebook: String,
+        instagram: String,
+        twitter: String,
+        linkedin: String
+    },
     preferences: {
         eventUpdates: { type: Boolean, default: true },
         promotions: { type: Boolean, default: false },
@@ -97,12 +108,31 @@ const userSchema = new mongoose.Schema({
         type: Map,
         of: String
     },
+    slug: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
     status: {
         type: String,
         enum: ['active', 'inactive', 'suspended'],
         default: 'active'
     }
 }, { timestamps: true });
+
+// Generate slug before saving
+userSchema.pre('save', async function() {
+    if (this.isModified('username') || !this.slug) {
+        let baseSlug = this.username.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        let uniqueSlug = baseSlug;
+        let counter = 1;
+        
+        while (await mongoose.model('User').findOne({ slug: uniqueSlug, _id: { $ne: this._id } })) {
+            uniqueSlug = `${baseSlug}-${counter++}`;
+        }
+        this.slug = uniqueSlug;
+    }
+});
 
 // Hash password before saving
 userSchema.pre('save', async function() {

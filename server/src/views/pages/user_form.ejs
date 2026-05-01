@@ -48,6 +48,55 @@
                 <small style="color: var(--gray);">Administrator has full access, Organizer can manage events, Attendee can book events.</small>
             </div>
 
+            <div class="form-group" style="margin-top: 2rem;">
+                <label style="display: block; margin-bottom: 1rem;">Email Preferences</label>
+                <div style="display: flex; gap: 2rem; background: #f9fafb; padding: 1.5rem; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="pref_eventUpdates" <%= !user || user.preferences?.eventUpdates ? 'checked' : '' %>>
+                        <span>Event Updates</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="pref_promotions" <%= user && user.preferences?.promotions ? 'checked' : '' %>>
+                        <span>Promotions</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="pref_newsletter" <%= !user || user.preferences?.newsletter ? 'checked' : '' %>>
+                        <span>Newsletter</span>
+                    </label>
+                </div>
+            </div>
+
+            <hr style="margin: 3rem 0; border: none; border-top: 1px solid #eee;">
+
+            <h4 style="margin-bottom: 1.5rem; color: var(--dark);">Organiser Profile Details (Optional)</h4>
+            
+            <div class="form-group">
+                <label>Organiser Bio / Description</label>
+                <textarea name="bio" class="form-control" rows="4" placeholder="Tell users about this organiser..."><%= user ? user.bio : '' %></textarea>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+                <div class="form-group">
+                    <label>Website URL</label>
+                    <input type="url" name="website" value="<%= user?.socialLinks?.website || '' %>" class="form-control" placeholder="https://example.com">
+                </div>
+                <div class="form-group">
+                    <label>Facebook URL</label>
+                    <input type="url" name="facebook" value="<%= user?.socialLinks?.facebook || '' %>" class="form-control" placeholder="https://facebook.com/page">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div class="form-group">
+                    <label>Instagram URL</label>
+                    <input type="url" name="instagram" value="<%= user?.socialLinks?.instagram || '' %>" class="form-control" placeholder="https://instagram.com/profile">
+                </div>
+                <div class="form-group">
+                    <label>Twitter / X URL</label>
+                    <input type="url" name="twitter" value="<%= user?.socialLinks?.twitter || '' %>" class="form-control" placeholder="https://twitter.com/profile">
+                </div>
+            </div>
+
             <div style="margin-top: 3rem; text-align: right; border-top: 1px solid var(--light-gray); padding-top: 2rem;">
                 <button type="submit" class="btn btn-primary" style="padding-left: 3rem; padding-right: 3rem;">
                     <%= user ? 'Update User Account' : 'Create User Account' %>

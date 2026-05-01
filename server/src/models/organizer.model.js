@@ -27,7 +27,9 @@ const organizerSchema = new mongoose.Schema({
         facebook: String,
         instagram: String,
         linkedin: String,
-        twitter: String
+        twitter: String,
+        youtube: String,
+        otherWebsite: String
     },
     status: {
         type: String,

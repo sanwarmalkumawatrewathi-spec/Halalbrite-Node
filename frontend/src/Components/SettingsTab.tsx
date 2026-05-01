@@ -1,20 +1,40 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/authContext";
+import CustomModal from "./CustomModal";
 
 export default function SettingsTab() {
   const router = useRouter();
   const { user, isOrganizer, becomeOrganizer, updateUser } = useAuth();
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [modalConfig, setModalConfig] = useState({
+    title: "",
+    message: "",
+    confirmText: "Confirm",
+    onConfirm: () => {},
+    showCancel: true,
+    type: "info" as "info" | "success" | "warning" | "error"
+  });
   
   const [prefs, setPrefs] = useState({
     eventUpdates: user?.preferences?.eventUpdates ?? true,
     promotions: user?.preferences?.promotions ?? false,
     newsletter: user?.preferences?.newsletter ?? true,
   });
+
+  // Sync preferences when user object updates
+  useEffect(() => {
+    if (user?.preferences) {
+      setPrefs({
+        eventUpdates: user.preferences.eventUpdates,
+        promotions: user.preferences.promotions,
+        newsletter: user.preferences.newsletter,
+      });
+    }
+  }, [user]);
 
   const togglePreference = async (key: string, value: boolean) => {
     const newPrefs = { ...prefs, [key]: value };
@@ -45,12 +65,36 @@ export default function SettingsTab() {
     const res = await becomeOrganizer();
     setIsUpgrading(false);
     if (res.success) {
-      setShowUpgradeModal(false);
-      alert("Account upgraded to Organiser successfully!");
-      router.push("/OrganiserDashboard");
+      setModalConfig({
+        title: "Success!",
+        message: "Account upgraded to Organiser successfully!",
+        confirmText: "Go to Dashboard",
+        onConfirm: () => router.push("/OrganiserDashboard"),
+        showCancel: false,
+        type: "success"
+      });
     } else {
-      alert(res.message || "Upgrade failed");
+      setModalConfig({
+        title: "Upgrade Failed",
+        message: res.message || "Upgrade failed",
+        confirmText: "Close",
+        onConfirm: () => setShowUpgradeModal(false),
+        showCancel: false,
+        type: "error"
+      });
     }
+  };
+
+  const startUpgrade = () => {
+    setModalConfig({
+      title: "Upgrade to Organiser Account?",
+      message: "Your account will be upgraded to an organiser account. You'll gain access to event creation and management features, along with your own organiser dashboard. You can continue using all regular user features as well.",
+      confirmText: "Confirm Upgrade",
+      onConfirm: handleUpgrade,
+      showCancel: true,
+      type: "info"
+    });
+    setShowUpgradeModal(true);
   };
 
   return (
@@ -86,7 +130,7 @@ export default function SettingsTab() {
           </div>
 
           <button 
-            onClick={() => setShowUpgradeModal(true)} 
+            onClick={startUpgrade} 
             className="mt-6 bg-red-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-red-700 transition shadow-md"
           >
             Upgrade to Organiser Account
@@ -174,53 +218,16 @@ export default function SettingsTab() {
       </div>
 
       {/* Upgrade Modal */}
-      {showUpgradeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl w-full max-w-lg p-8 shadow-2xl relative animate-in fade-in zoom-in duration-200">
-            
-            <button
-              onClick={() => setShowUpgradeModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
-            >
-              ✕
-            </button>
-
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-6 text-red-600">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-            </div>
-
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Upgrade to Organiser Account?
-            </h2>
-
-            <p className="text-gray-500 mb-8">
-              Your account will be upgraded to an organiser account. You'll gain access
-              to event creation and management features, along with your own organiser
-              dashboard. You can continue using all regular user features as well.
-            </p>
-
-            <div className="flex flex-col sm:flex-row justify-end gap-3">
-              <button
-                disabled={isUpgrading}
-                onClick={() => setShowUpgradeModal(false)}
-                className="px-6 py-2.5 text-sm font-bold border border-gray-300 rounded-xl hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-
-              <button
-                disabled={isUpgrading}
-                onClick={handleUpgrade}
-                className="px-8 py-2.5 text-sm font-bold bg-red-600 text-white rounded-xl hover:bg-red-700 transition shadow-lg shadow-red-200 flex items-center justify-center"
-              >
-                {isUpgrading ? "Upgrading..." : "Confirm Upgrade"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <CustomModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        onConfirm={modalConfig.onConfirm}
+        title={modalConfig.title}
+        message={modalConfig.message}
+        confirmText={modalConfig.confirmText}
+        showCancel={modalConfig.showCancel}
+        type={modalConfig.type}
+      />
     </div>
   );
 }

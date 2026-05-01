@@ -46,7 +46,8 @@ exports.register = async (req, res) => {
                     token: generateToken(user._id),
                     savedEvents: user.savedEvents || [],
                     followedOrganizers: user.followedOrganizers || [],
-                    addresses: user.addresses || []
+                    addresses: user.addresses || [],
+                    preferences: user.preferences
                 }
             });
         }
@@ -74,7 +75,8 @@ exports.login = async (req, res) => {
                 token: generateToken(user._id),
                 savedEvents: user.savedEvents || [],
                 followedOrganizers: user.followedOrganizers || [],
-                addresses: user.addresses || []
+                addresses: user.addresses || [],
+                preferences: user.preferences
             });
         } else {
             res.status(401).json({ message: 'Invalid email or password' });
@@ -159,7 +161,8 @@ exports.getProfile = async (req, res) => {
             stripeConnectedId: user.stripeConnectedId || null,
             savedEvents: user.savedEvents || [],
             followedOrganizers: user.followedOrganizers || [],
-            addresses: user.addresses || []
+            addresses: user.addresses || [],
+            preferences: user.preferences
         });
     } else {
         res.status(404).json({ message: 'User not found' });
@@ -215,7 +218,8 @@ const handleSocialLogin = async (res, socialData, provider) => {
             isSocialLogin: user.isSocialLogin,
             savedEvents: user.savedEvents || [],
             followedOrganizers: user.followedOrganizers || [],
-            addresses: user.addresses || []
+            addresses: user.addresses || [],
+            preferences: user.preferences
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -267,19 +271,23 @@ exports.appleLogin = async (req, res) => {
     }
 };
 
-// @desc    Update user preferences
-// @route   PUT /api/auth/preferences
-// @access  Private
+/**
+ * @desc    Update user preferences
+ * @route   PUT /api/auth/preferences
+ * @access  Private
+ */
 exports.updatePreferences = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
-        if (user) {
-            user.preferences = { ...user.preferences, ...req.body };
-            await user.save();
-            res.json(user.preferences);
-        } else {
-            res.status(404).json({ message: 'User not found' });
-        }
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        user.preferences = { ...user.preferences, ...req.body };
+        await user.save();
+
+        res.json({
+            message: 'Preferences updated successfully',
+            preferences: user.preferences
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -287,7 +295,6 @@ exports.updatePreferences = async (req, res) => {
 
 // @desc    Update user profile
 // @route   PUT /api/auth/profile
-
 // @access  Private
 exports.updateProfile = async (req, res) => {
     try {
@@ -320,6 +327,7 @@ exports.updateProfile = async (req, res) => {
                 roles: populatedUser.roles.map(r => r.slug),
                 stripeConnectedId: populatedUser.stripeConnectedId || null,
                 token: generateToken(populatedUser._id),
+                preferences: populatedUser.preferences
             });
         } else {
             res.status(404).json({ message: 'User not found' });
@@ -367,28 +375,8 @@ exports.becomeOrganizer = async (req, res) => {
             email: updatedUser.email,
             roles: updatedUser.roles.map(r => r.slug),
             stripeConnectedId: updatedUser.stripeConnectedId || null,
-            token: generateToken(updatedUser._id)
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-
-// @desc    Update user preferences
-// @route   PUT /api/auth/preferences
-// @access  Private
-exports.updatePreferences = async (req, res) => {
-    try {
-        const user = await User.findById(req.user._id);
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
-        user.preferences = { ...user.preferences, ...req.body };
-        await user.save();
-
-        res.json({
-            message: 'Preferences updated successfully',
-            preferences: user.preferences
+            token: generateToken(updatedUser._id),
+            preferences: updatedUser.preferences
         });
     } catch (error) {
         res.status(500).json({ message: error.message });
