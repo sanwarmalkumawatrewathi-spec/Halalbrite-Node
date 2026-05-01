@@ -69,7 +69,7 @@ export default function PayoutsTab() {
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Pending</p>
           <h2 className="text-2xl font-bold text-orange-500 mt-2">
-            €0.00
+            €{(stats?.pendingBalance || 0).toFixed(2)}
           </h2>
           <p className="text-xs text-gray-500 mt-2">Currently processing</p>
         </div>

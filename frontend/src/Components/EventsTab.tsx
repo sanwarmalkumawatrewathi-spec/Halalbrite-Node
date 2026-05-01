@@ -18,6 +18,7 @@ const statusStyles: any = {
 export default function EventsTab() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -39,6 +40,30 @@ export default function EventsTab() {
       console.error("Failed to fetch events:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDelete = async (eventId: string) => {
+    if (!confirm('Are you sure you want to delete this event? This cannot be undone.')) return;
+    setDeletingId(eventId);
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/events/${eventId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const result = await response.json();
+      if (result.success || response.ok) {
+        fetchEvents();
+      } else {
+        alert(result.message || 'Failed to delete event');
+      }
+    } catch (error) {
+      console.error('Error deleting event:', error);
+      alert('Network error while deleting.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -111,13 +136,26 @@ export default function EventsTab() {
                       <td className="text-red-600 font-bold">€{(e.totalRevenue || 0).toFixed(2)}</td>
                       <td className="py-4 px-4">
                         <div className="flex justify-end gap-3 text-gray-400">
-                          <button className="p-2 border border-gray-100 rounded-lg hover:text-gray-900 hover:border-gray-200 transition bg-white shadow-sm">
+                          <button
+                            onClick={() => router.push(`/event/${e.slug || e._id}`)}
+                            title="View event"
+                            className="p-2 border border-gray-100 rounded-lg hover:text-gray-900 hover:border-gray-200 transition bg-white shadow-sm"
+                          >
                             <FaRegEye />
                           </button>
-                          <button className="p-2 border border-gray-100 rounded-lg hover:text-blue-600 hover:border-blue-100 transition bg-white shadow-sm">
+                          <button
+                            onClick={() => router.push(`/post-an-event?edit=${e._id}`)}
+                            title="Edit event"
+                            className="p-2 border border-gray-100 rounded-lg hover:text-blue-600 hover:border-blue-100 transition bg-white shadow-sm"
+                          >
                             <FiEdit />
                           </button>
-                          <button className="p-2 border border-gray-100 rounded-lg hover:text-red-600 hover:border-red-100 transition bg-white shadow-sm">
+                          <button
+                            onClick={() => handleDelete(e._id)}
+                            disabled={deletingId === e._id}
+                            title="Delete event"
+                            className="p-2 border border-gray-100 rounded-lg hover:text-red-600 hover:border-red-100 transition bg-white shadow-sm disabled:opacity-50"
+                          >
                             <MdDeleteOutline />
                           </button>
                         </div>

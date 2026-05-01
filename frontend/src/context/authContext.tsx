@@ -108,6 +108,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         body: JSON.stringify({ email, password }),
       });
 
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Connection failed" }));
+        return { success: false, message: errorData.message || 'Login failed' };
+      }
+
       const data = await response.json();
 
       if (response.ok) {

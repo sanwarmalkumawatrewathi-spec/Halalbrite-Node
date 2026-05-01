@@ -5,11 +5,11 @@ import { BsCalendar4Event } from "react-icons/bs";
 import { FaRegCalendarAlt, FaRegClock } from "react-icons/fa";
 import EventType from "@/Components/EventType";
 import TicketSection from "@/Components/TicketSection";
-
 import { useAuth } from "@/context/authContext";
 
-export default function EventForm() {
+export default function EventForm({ editId }: { editId?: string | null }) {
     const { user } = useAuth();
+    const isEditMode = !!editId;
     const [categories, setCategories] = useState<any[]>([]);
     const [form, setForm] = useState<{
         title: string;
@@ -31,6 +31,7 @@ export default function EventForm() {
         postcode: string;
         country: string;
         meetingLink: string;
+        bannerPreview: string;
     }>({
         title: "",
         category: "",
@@ -52,6 +53,7 @@ export default function EventForm() {
         postcode: "",
         country: "UK",
         meetingLink: "",
+        bannerPreview: "",
     });
 
     const [tickets, setTickets] = useState([
@@ -78,26 +80,95 @@ export default function EventForm() {
         }
     }, [user]);
 
+    // Fetch existing event data when in edit mode
     useEffect(() => {
-        const fetchCategories = async () => {
+        if (!editId) return;
+        const fetchEvent = async () => {
             try {
                 const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-                console.log("🛠️ Fetching categories from:", `${baseUrl}/api/categories`);
-                
+                const token = localStorage.getItem("token");
+                const res = await fetch(`${baseUrl}/api/events/${editId}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const ev = data.data || data;
+                if (ev && ev._id) {
+                    // Parse dates
+                    const startD = ev.startDate ? new Date(ev.startDate) : null;
+                    const endD = ev.endDate ? new Date(ev.endDate) : null;
+                    const toDateStr = (d: Date | null) => {
+                        if (!d || isNaN(d.getTime())) return '';
+                        const year = d.getFullYear();
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const day = String(d.getDate()).padStart(2, '0');
+                        return `${year}-${month}-${day}`;
+                    };
+                    const toTimeStr = (d: Date | null) => {
+                        if (!d || isNaN(d.getTime())) return '';
+                        const hours = String(d.getHours()).padStart(2, '0');
+                        const minutes = String(d.getMinutes()).padStart(2, '0');
+                        return `${hours}:${minutes}`;
+                    };
+
+                    setForm(prev => ({
+                        ...prev,
+                        title: ev.title || '',
+                        category: ev.category?._id || ev.category || '',
+                        description: ev.description || '',
+                        organizer: ev.organizer?._id || ev.organizer || prev.organizer,
+                        organizerName: ev.organizerName || prev.organizerName,
+                        startDate: toDateStr(startD),
+                        endDate: toDateStr(endD),
+                        startTime: toTimeStr(startD),
+                        endTime: toTimeStr(endD),
+                        eventType: ev.eventType || 'in-person',
+                        venue: ev.location?.venueName || '',
+                        address: ev.location?.address || '',
+                        city: ev.location?.city || '',
+                        postcode: ev.location?.postcode || '',
+                        country: ev.location?.country || 'UK',
+                        meetingLink: ev.meetingLink || '',
+                        bannerPreview: ev.banner || '',
+                    }));
+
+                    // Pre-fill tickets if available
+                    if (ev.ticketTypes && ev.ticketTypes.length > 0) {
+                        const mappedTickets = ev.ticketTypes.map((t: any) => {
+                            const startD = t.saleStart ? new Date(t.saleStart) : null;
+                            const endD = t.saleEnd ? new Date(t.saleEnd) : null;
+                            return {
+                                ...t,
+                                saleStartDate: toDateStr(startD),
+                                saleStartTime: toTimeStr(startD),
+                                saleEndDate: toDateStr(endD),
+                                saleEndTime: toTimeStr(endD),
+                                chargeCustomer: t.chargeCustomer !== undefined ? t.chargeCustomer : true
+                            };
+                        });
+                        setTickets(mappedTickets);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch event for editing:', err);
+            }
+        };
+        fetchEvent();
+    }, [editId]);
+
+    const fetchCategories = async () => {
+            try {
+                const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
                 const res = await fetch(`${baseUrl}/api/categories`);
                 const data = await res.json();
-                
-                console.log("✅ Categories received:", data);
-                
                 if (Array.isArray(data)) {
                     setCategories(data);
-                } else {
-                    console.error("❌ API response is not an array:", data);
                 }
             } catch (error) {
                 console.error("❌ Failed to fetch categories:", error);
             }
         };
+
+    useEffect(() => {
         fetchCategories();
     }, []);
 
@@ -148,11 +219,21 @@ export default function EventForm() {
             }
 
             // 3. Prepare Event Data
+            const formattedTickets = tickets.map(t => {
+                const saleStart = t.saleStartDate && t.saleStartTime ? `${t.saleStartDate}T${t.saleStartTime}:00` : null;
+                const saleEnd = t.saleEndDate && t.saleEndTime ? `${t.saleEndDate}T${t.saleEndTime}:00` : null;
+                return {
+                    ...t,
+                    saleStart,
+                    saleEnd
+                };
+            });
+
             const eventData = {
                 ...form,
-                banner: bannerUrl,
-                thumbnail: thumbnailUrl,
-                ticketTypes: tickets,
+                banner: bannerUrl || (isEditMode ? undefined : ""),
+                thumbnail: thumbnailUrl || (isEditMode ? undefined : ""),
+                ticketTypes: formattedTickets,
                 location: {
                     venueName: form.venue,
                     address: form.address,
@@ -162,10 +243,12 @@ export default function EventForm() {
                 }
             };
 
-            // 4. Create Event
+            // 4. Create or Update Event
             const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-            const res = await fetch(`${baseUrl}/api/events`, {
-                method: "POST",
+            const url = isEditMode ? `${baseUrl}/api/events/${editId}` : `${baseUrl}/api/events`;
+            const method = isEditMode ? "PUT" : "POST";
+            const res = await fetch(url, {
+                method,
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -174,11 +257,11 @@ export default function EventForm() {
             });
 
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Failed to create event");
+            if (!res.ok) throw new Error(data.message || (isEditMode ? "Failed to update event" : "Failed to create event"));
 
-            setStatus({ type: "success", message: "Event created successfully! Redirecting..." });
+            setStatus({ type: "success", message: isEditMode ? "Event updated successfully! Redirecting..." : "Event created successfully! Redirecting..." });
             setTimeout(() => {
-                window.location.href = "/OrganiserDashboard";
+                window.location.href = "/organizer-dashboard";
             }, 2000);
 
         } catch (error: any) {
@@ -214,12 +297,20 @@ export default function EventForm() {
                 </div>
 
 
-                {/* Banner Upload (UI only) */}
+                {/* Banner Upload */}
         <div>
           <label className="text-sm font-medium">Event Banner</label>
+          {/* Show current banner preview in edit mode */}
+          {form.bannerPreview && (
+            <div className="mt-2 mb-3 relative">
+              <img src={form.bannerPreview} alt="Current banner" className="w-full h-40 object-cover rounded-xl border border-gray-200" />
+              <span className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded">Current Banner</span>
+            </div>
+          )}
           <div className="mt-2 border-2 border-dashed rounded-xl p-6 text-center text-gray-400 cursor-pointer hover:bg-gray-50">
             <div className="text-2xl">⬆️</div>
-            <input type="file" className="text-sm mt-2" placeholder="Click to upload banner image"/>
+            <p className="text-xs mt-1">{form.bannerPreview ? 'Upload new banner to replace' : 'Click to upload banner image'}</p>
+            <input name="banner" type="file" accept="image/*" className="text-sm mt-2" />
           </div>
         </div>
 
@@ -299,6 +390,7 @@ export default function EventForm() {
                         onChange={(value) =>
                             setForm((prev) => ({ ...prev, description: value }))
                         }
+                        initialValue={form.description}
                     />
                 </div>
 
@@ -429,7 +521,7 @@ export default function EventForm() {
     disabled={loading}
     className={`px-5 py-2 rounded-full text-sm bg-red-600 text-white flex items-center gap-2 hover:bg-red-700 transition ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
   >
-    {loading ? 'Publishing...' : '✓ Review & Publish'}
+    {loading ? (isEditMode ? 'Updating...' : 'Publishing...') : (isEditMode ? '✓ Update Event' : '✓ Review & Publish')}
   </button>
 </div>
 

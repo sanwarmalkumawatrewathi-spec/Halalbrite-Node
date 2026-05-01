@@ -69,7 +69,7 @@ export default function SettingsTab() {
         title: "Success!",
         message: "Account upgraded to Organiser successfully!",
         confirmText: "Go to Dashboard",
-        onConfirm: () => router.push("/OrganiserDashboard"),
+        onConfirm: () => router.push("/organizer-dashboard"),
         showCancel: false,
         type: "success"
       });

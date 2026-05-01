@@ -25,6 +25,13 @@ export default function OverviewTab() {
       const response = await fetch(`${API_URL}/api/dashboard/organizer/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("API Error Response:", text);
+        return;
+      }
+
       const result = await response.json();
       if (result.success) {
         setData(result.data);
@@ -33,6 +40,43 @@ export default function OverviewTab() {
       console.error("Failed to fetch stats:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleManageStripe = async () => {
+    try {
+      let API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+      if (!API_URL || API_URL === 'undefined') {
+        API_URL = 'http://localhost:5000';
+      }
+      API_URL = API_URL.replace(/\/$/, '');
+      
+      const token = localStorage.getItem('token');
+      const fullUrl = `${API_URL}/api/payments/stripe-login`;
+      console.log("[DEBUG] HandleManageStripe - Target URL:", fullUrl);
+      console.log("[DEBUG] Current process.env.NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
+      
+      const response = await fetch(fullUrl, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("Manage Stripe API Error:", text);
+        alert("Failed to get login link. Check console for details.");
+        return;
+      }
+
+      const result = await response.json();
+      
+      if (result.url) {
+        window.open(result.url, '_blank');
+      } else {
+        alert(result.message || "Failed to generate login link");
+      }
+    } catch (error) {
+      console.error("Manage Stripe error:", error);
+      alert("An error occurred while opening Stripe dashboard.");
     }
   };
 
@@ -112,12 +156,20 @@ export default function OverviewTab() {
             <p className="text-sm text-green-700 mt-1">
               Your Stripe account is linked. You can now receive payouts from ticket sales.
             </p>
-            <button 
-              onClick={handleDisconnectStripe}
-              className="mt-3 text-green-700 border border-green-800 p-3.5 text-xs font-bold hover:underline"
-            >
-              Disconnect Account
-            </button>
+            <div className="flex gap-4 mt-3">
+              <button 
+                onClick={handleManageStripe}
+                className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-bold shadow-md hover:bg-green-700 transition"
+              >
+                Manage Stripe Account
+              </button>
+              <button 
+                onClick={handleDisconnectStripe}
+                className="text-green-700 border border-green-800 px-5 py-2 rounded-lg text-xs font-bold hover:bg-green-100 transition"
+              >
+                Disconnect Account
+              </button>
+            </div>
           </div>
         </div>
       ) : (

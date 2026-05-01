@@ -39,7 +39,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
             title: "Success!",
             message: "You are now an organiser! Welcome to the team.",
             confirmText: "Go to Dashboard",
-            onConfirm: () => router.push('/OrganiserDashboard'),
+            onConfirm: () => router.push('/organizer-dashboard'),
             showCancel: false,
             type: "success"
           });
@@ -194,7 +194,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
             )}
             {isOrganizer && (
                <button 
-                onClick={() => router.push('/OrganiserDashboard')} 
+                onClick={() => router.push('/organizer-dashboard')} 
                 className="mt-6 w-full  text-red-600 py-2 rounded-lg text-sm font-bold hover:bg-red-200 transition border border-red-500"
               >
                 Go to Dashboard

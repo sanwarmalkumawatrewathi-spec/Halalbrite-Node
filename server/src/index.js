@@ -22,6 +22,12 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Debug logger
+app.use((req, res, next) => {
+    console.log(`[DEBUG] ${req.method} ${req.url}`);
+    next();
+});
+
 // EJS Setup
 app.use(expressLayouts);
 app.set('view engine', 'ejs');

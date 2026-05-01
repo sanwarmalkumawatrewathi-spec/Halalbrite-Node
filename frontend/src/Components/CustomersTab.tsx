@@ -23,6 +23,13 @@ export default function CustomersTab() {
       const response = await fetch(`${API_URL}/api/dashboard/organizer/customers`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("Customers API Error:", text);
+        return;
+      }
+
       const result = await response.json();
       if (result.success) {
         setCustomers(result.data);
@@ -32,6 +39,43 @@ export default function CustomersTab() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleExport = () => {
+    if (customers.length === 0) {
+      alert("No customer data to export.");
+      return;
+    }
+
+    // Define headers
+    const headers = ["Customer", "Email", "Event", "Tickets", "Total Spent", "Purchase Date"];
+    
+    // Create rows (properly handling commas in values by wrapping in quotes)
+    const rows = customers.map(booking => [
+      booking.user_id?.username || "N/A",
+      booking.user_id?.email || "N/A",
+      booking.event_id?.title || "N/A",
+      booking.quantity || 0,
+      booking.amount_total ? booking.amount_total.toFixed(2) : "0.00",
+      new Date(booking.createdAt).toLocaleDateString()
+    ]);
+
+    // Combine headers and rows into CSV format
+    const csvString = [
+      headers.join(","),
+      ...rows.map(row => row.map(val => `"${val}"`).join(","))
+    ].join("\n");
+
+    // Create a blob and trigger download
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `HalalBrite_Customers_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) return <div className="p-10 text-center">Loading customers...</div>;
@@ -47,7 +91,10 @@ export default function CustomersTab() {
               View and message your event attendees
             </p>
           </div>
-          <button className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2 text-sm font-bold rounded-lg hover:bg-gray-100 transition">
+          <button 
+            onClick={handleExport}
+            className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-2 text-sm font-bold rounded-lg hover:bg-gray-100 transition flex items-center gap-2"
+          >
             Export to Excel
           </button>
         </div>
@@ -83,7 +130,7 @@ export default function CustomersTab() {
                     <td className="text-gray-500">{booking.user_id?.email}</td>
                     <td className="font-medium text-gray-700">{booking.event_id?.title}</td>
                     <td className="text-gray-900 font-bold">{booking.quantity}</td>
-                    <td className="text-red-600 font-bold">€{booking.total_amount?.toFixed(2)}</td>
+                    <td className="text-red-600 font-bold">{booking.currency === 'EUR' ? '€' : booking.currency === 'USD' ? '$' : '£'}{booking.amount_total?.toFixed(2)}</td>
                     <td className="text-gray-500">{new Date(booking.createdAt).toLocaleDateString()}</td>
                     <td className="py-4 px-4">
                       <div className="flex justify-end gap-2">

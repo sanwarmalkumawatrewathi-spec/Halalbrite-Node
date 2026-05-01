@@ -172,7 +172,7 @@ export default function Header() {
                       </button>
                     </Link>
                     {isOrganizer && (
-                      <Link href="/OrganiserDashboard" onClick={() => setOpen(false)}>
+                      <Link href="/organizer-dashboard" onClick={() => setOpen(false)}>
                         <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                           <FaThLarge className="text-gray-500" />
                           Organiser Dashboard
@@ -207,7 +207,7 @@ export default function Header() {
         onClose={() => setShowStripeModal(false)}
         onConfirm={() => {
           setShowStripeModal(false);
-          router.push('/OrganiserDashboard');
+          router.push('/organizer-dashboard');
         }}
         title="Connect Stripe Account"
         message="Please connect your Stripe account in the Organiser Dashboard before posting an event."

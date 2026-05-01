@@ -70,12 +70,12 @@ exports.stripeCallback = async (req, res) => {
         // Redirect to dashboard (assuming Next.js path)
         const origin = req.get('origin');
         const frontendUrl = origin || process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendUrl}/OrganiserDashboard?status=stripe_connected`);
+        res.redirect(`${frontendUrl}/organizer-dashboard?status=stripe_connected`);
     } catch (error) {
         console.error('❌ Stripe OAuth Error:', error);
         const origin = req.get('origin');
         const frontendUrl = origin || process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendUrl}/OrganiserDashboard?status=error&message=${encodeURIComponent(error.message)}`);
+        res.redirect(`${frontendUrl}/organizer-dashboard?status=error&message=${encodeURIComponent(error.message)}`);
     }
 };
 
@@ -118,6 +118,22 @@ exports.getOrganizerBalance = async (req, res) => {
 
         const balance = await stripeService.getAccountBalance(req.user.stripeConnectedId);
         res.json({ success: true, data: balance });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Get Stripe Login Link for Express Dashboard
+// @route   GET /api/payments/connect/login-link
+// @access  Private/Organizer
+exports.createLoginLink = async (req, res) => {
+    try {
+        if (!req.user.stripeConnectedId) {
+            return res.status(400).json({ message: 'Stripe account not connected' });
+        }
+
+        const loginLink = await stripeService.createLoginLink(req.user.stripeConnectedId);
+        res.json({ success: true, url: loginLink.url });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

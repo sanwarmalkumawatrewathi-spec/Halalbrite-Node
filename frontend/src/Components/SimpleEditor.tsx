@@ -1,6 +1,7 @@
 "use client";
 
 import { useEditor, EditorContent } from "@tiptap/react";
+import { useEffect } from "react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
@@ -21,8 +22,10 @@ import {
 
 export default function SimpleEditor({
   onChange,
+  initialValue,
 }: {
   onChange: (value: string) => void;
+  initialValue?: string;
 }) {
   const editor = useEditor({
     extensions: [
@@ -41,6 +44,13 @@ export default function SimpleEditor({
       onChange(editor.getHTML());
     },
   });
+
+  // Set initial content once the editor is ready (for edit mode pre-filling)
+  useEffect(() => {
+    if (editor && initialValue && initialValue.trim() !== '' && editor.isEmpty) {
+      editor.commands.setContent(initialValue);
+    }
+  }, [editor, initialValue]);
 
   if (!editor) return null;
 

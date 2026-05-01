@@ -82,7 +82,8 @@ const eventSchema = new mongoose.Schema({
         platformFee: { type: Number, default: 0 },
         vatOnPlatformFee: { type: Number, default: 0 },
         stripeProcessingFee: { type: Number, default: 0 },
-        totalFees: { type: Number, default: 0 }
+        totalFees: { type: Number, default: 0 },
+        chargeCustomer: { type: Boolean, default: true }
     }],
     feePayment: {
         type: Boolean,

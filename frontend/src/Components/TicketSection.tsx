@@ -117,7 +117,7 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
 
                         <div className="space-y-1">
                             <label className="text-sm font-medium text-gray-700">
-                                Discription
+                                Description
                             </label>
                             <input
                                 value={t.description}

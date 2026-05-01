@@ -5,7 +5,7 @@ import { IoBusinessOutline, IoLockClosedOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 
 const categoriesList = [
-  "Conference", "Workshop", "Community", 
+  "Conference", "Workshop", "Community",
   "Food Festival", "Educational", "Charity",
   "Outdoors", "Children", "Sports",
   "Youth", "University", "Career",
@@ -46,6 +46,13 @@ export default function OrganiserTab() {
       const response = await fetch(`${API_URL}/api/dashboard/organizer/organisations`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+
+      if (!response.ok) {
+        const text = await response.text();
+        console.error("Organisations API Error:", text);
+        return;
+      }
+
       const result = await response.json();
       if (result.success) {
         setOrganisations(result.data);
@@ -116,7 +123,7 @@ export default function OrganiserTab() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this organisation?')) return;
-    
+
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
       const token = localStorage.getItem('token');
@@ -140,19 +147,19 @@ export default function OrganiserTab() {
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
       const token = localStorage.getItem('token');
-      const url = editingId 
+      const url = editingId
         ? `${API_URL}/api/dashboard/organizer/organisations/${editingId}`
         : `${API_URL}/api/dashboard/organizer/organisations`;
-        
+
       const response = await fetch(url, {
         method: editingId ? 'PUT' : 'POST',
-        headers: { 
+        headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(formData)
       });
-      
+
       const result = await response.json();
       if (result.success) {
         resetForm();
@@ -182,7 +189,7 @@ export default function OrganiserTab() {
           </div>
 
           {!isFormOpen && (
-            <button 
+            <button
               onClick={() => setIsFormOpen(true)}
               className="bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-red-100 hover:bg-red-700 transition"
             >
@@ -201,8 +208,8 @@ export default function OrganiserTab() {
             <div className="space-y-5">
               <div>
                 <label className="block text-sm font-bold text-gray-800 mb-1">Organisation Name *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name="name"
                   required
                   value={formData.name}
@@ -220,15 +227,15 @@ export default function OrganiserTab() {
                   <p className="text-xs text-gray-500">or click to browse</p>
                   <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">PNG, JPG, GIF up to 5MB</p>
                 </div>
-                
+
                 <div className="flex items-center gap-4 my-4">
                   <div className="flex-1 h-px bg-gray-200"></div>
                   <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">OR USE URL</span>
                   <div className="flex-1 h-px bg-gray-200"></div>
                 </div>
 
-                <input 
-                  type="url" 
+                <input
+                  type="url"
                   name="logo"
                   value={formData.logo}
                   onChange={handleInputChange}
@@ -240,8 +247,8 @@ export default function OrganiserTab() {
 
               <div>
                 <label className="block text-sm font-bold text-gray-800 mb-1">Website</label>
-                <input 
-                  type="url" 
+                <input
+                  type="url"
                   name="website"
                   value={formData.website}
                   onChange={handleInputChange}
@@ -252,7 +259,7 @@ export default function OrganiserTab() {
 
               <div>
                 <label className="block text-sm font-bold text-gray-800 mb-1">Organisation Bio *</label>
-                <textarea 
+                <textarea
                   name="bio"
                   required
                   rows={4}
@@ -266,7 +273,7 @@ export default function OrganiserTab() {
               <div>
                 <label className="block text-sm font-bold text-gray-800 mb-1">What Event Categories Do You Organise? *</label>
                 <p className="text-xs text-gray-500 mb-3">Select multiple categories that best describe your events</p>
-                
+
                 <div className="bg-white border border-gray-200 rounded-xl p-5">
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
                     {categoriesList.map(cat => (
@@ -369,7 +376,7 @@ export default function OrganiserTab() {
                     <p className="text-sm text-gray-600 mt-3 leading-relaxed">
                       {org.bio || org.description || 'No description provided for this organisation.'}
                     </p>
-                    
+
                     {org.categories && org.categories.length > 0 && (
                       <p className="text-xs text-gray-600 mt-2 font-medium">
                         Event Categories: <span className="font-normal">{org.categories.join(', ')}</span>
@@ -385,14 +392,14 @@ export default function OrganiserTab() {
                         {org.socialLinks?.twitter && <a href={org.socialLinks.twitter} target="_blank" rel="noreferrer"><FiTwitter className="cursor-pointer hover:text-[#1DA1F2] transition" /></a>}
                         {org.socialLinks?.youtube && <a href={org.socialLinks.youtube} target="_blank" rel="noreferrer"><FiYoutube className="cursor-pointer hover:text-[#FF0000] transition" /></a>}
                         {org.socialLinks?.otherWebsite && <a href={org.socialLinks.otherWebsite} target="_blank" rel="noreferrer"><FiLink className="cursor-pointer hover:text-gray-700 transition" /></a>}
-                        
+
                         {!org.socialLinks?.facebook && !org.socialLinks?.instagram && !org.socialLinks?.linkedin && !org.socialLinks?.twitter && !org.socialLinks?.youtube && !org.socialLinks?.otherWebsite && (
                           <span className="text-xs italic text-gray-400">No social links</span>
                         )}
                       </div>
-                      
+
                       <div className="h-4 w-px bg-gray-200 ml-2 hidden sm:block"></div>
-                      
+
                       <p className="text-xs text-gray-400 font-medium">
                         Created on {new Date(org.createdAt).toLocaleDateString()}
                       </p>
@@ -402,9 +409,9 @@ export default function OrganiserTab() {
               ))
             ) : (
               <div className="text-center py-12 border border-dashed border-gray-200 rounded-xl">
-                 <IoBusinessOutline className="text-4xl text-gray-200 mx-auto mb-3" />
-                 <p className="text-gray-500 font-medium">No organisations found.</p>
-                 <p className="text-xs text-gray-400 mt-1">Add an organisation to start branding your events.</p>
+                <IoBusinessOutline className="text-4xl text-gray-200 mx-auto mb-3" />
+                <p className="text-gray-500 font-medium">No organisations found.</p>
+                <p className="text-xs text-gray-400 mt-1">Add an organisation to start branding your events.</p>
               </div>
             )}
           </div>

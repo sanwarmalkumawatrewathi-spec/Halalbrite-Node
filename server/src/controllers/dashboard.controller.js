@@ -4,6 +4,7 @@ const Booking = require('../models/booking.model');
 const Organizer = require('../models/organizer.model');
 const Payout = require('../models/payout.model');
 const Category = require('../models/category.model');
+const stripeService = require('../services/stripe.service');
 const mongoose = require('mongoose');
 
 // ==========================================
@@ -453,12 +454,25 @@ exports.getOrganizerStats = async (req, res) => {
             }
         ]);
 
+        let stripeBalance = { available: 0, pending: 0 };
+        if (stripeConnected) {
+            try {
+                const balance = await stripeService.getAccountBalance(user.stripeConnectedId);
+                // Sum up available and pending balances across all currencies (assuming main currency for simplicity)
+                stripeBalance.available = balance.available.reduce((acc, b) => acc + (b.amount / 100), 0);
+                stripeBalance.pending = balance.pending.reduce((acc, b) => acc + (b.amount / 100), 0);
+            } catch (err) {
+                console.error('Error fetching Stripe balance:', err.message);
+            }
+        }
+
         res.json({
             success: true,
             data: {
                 stripeConnected,
                 stats: {
-                    availableBalance: 0, // In real world, fetch from Stripe API
+                    availableBalance: stripeBalance.available,
+                    pendingBalance: stripeBalance.pending,
                     ticketsSold: totalTicketsSold,
                     activeEvents: activeEventsCount,
                     totalRevenue
