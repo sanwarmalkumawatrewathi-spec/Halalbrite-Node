@@ -15,46 +15,19 @@ import { useRouter } from "next/navigation";
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [openCurrency, setOpenCurrency] = useState(false);
-   const { user, logout, isOrganizer, isAdministrator, isStripeConnected } = useAuth();
+  const { user, logout, isOrganizer, isAdministrator, isStripeConnected } = useAuth();
   const { currentCurrency, allCurrencies, setCurrency } = useCurrency();
   const router = useRouter();
   const [showStripeModal, setShowStripeModal] = useState(false);
 
   return (
-    <header className="w-full bg-white shadow-sm sticky top-0 z-50" suppressHydrationWarning>
+    <header className="w-full bg-white shadow-sm sticky top-0 z-[999]" suppressHydrationWarning>
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
 
         {/* Logo */}
         <Link href="/">
           <div className="w-16 sm:w-20 h-12 sm:h-16 flex items-center cursor-pointer">
-            <svg
-              viewBox="0 0 100 120"
-              className="w-full h-full"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <text
-                x="50"
-                y="60"
-                textAnchor="middle"
-                fill="#DC2626"
-                fontSize="60"
-                fontFamily="cursive"
-                fontWeight="700"
-              >
-                H
-              </text>
-              <circle cx="50" cy="38" r="3" fill="#EF4444" />
-              <text
-                x="50"
-                y="92"
-                textAnchor="middle"
-                fill="#DC2626"
-                fontSize="20"
-                fontWeight="700"
-              >
-                HalalBrite
-              </text>
-            </svg>
+            <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full"><text x="50" y="60" text-anchor="middle" fill="#DC2626" font-size="60" font-family="cursive, 'Apple Chancery', 'Comic Sans MS', fantasy" font-weight="700" stroke-width="2.5" stroke="#DC2626" paint-order="stroke">H</text><circle cx="50" cy="38" r="3" fill="#EF4444"></circle><text x="50" y="92" text-anchor="middle" fill="#DC2626" font-size="24" font-family="'Trebuchet MS', 'Arial Rounded MT Bold', Verdana, sans-serif" font-weight="700">HalalBrite</text></svg>
           </div>
         </Link>
 
@@ -62,7 +35,7 @@ export default function Header() {
         <div className="flex items-center gap-6">
 
           <div className="relative">
-            <button 
+            <button
               onClick={() => setOpenCurrency(!openCurrency)}
               className="flex items-center gap-1.5 text-gray-700 text-sm font-medium hover:text-red-700 bg-gray-50 px-3 py-1.5 rounded-full transition-all"
             >
@@ -72,10 +45,10 @@ export default function Header() {
               {currentCurrency.code}
               <FaChevronDown className={`text-[10px] opacity-50 transition-transform ${openCurrency ? 'rotate-180' : ''}`} />
             </button>
-            
+
             {openCurrency && (
               <div className="absolute right-0 top-full mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-xl py-1 z-[60] animate-in fade-in slide-in-from-top-2 duration-200">
-              
+
                 {allCurrencies.map((cur) => (
                   <button
                     key={cur.code}
@@ -83,11 +56,10 @@ export default function Header() {
                       setCurrency(cur.code);
                       setOpenCurrency(false);
                     }}
-                    className={`flex items-center justify-between w-full px-4 py-3 text-sm transition-all duration-200 ${
-                      currentCurrency.code === cur.code 
-                        ? 'text-red-700 bg-red-50 font-bold' 
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-red-600 font-medium'
-                    }`}
+                    className={`flex items-center justify-between w-full px-4 py-3 text-sm transition-all duration-200 ${currentCurrency.code === cur.code
+                      ? 'text-red-700 bg-red-50 font-bold'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-red-600 font-medium'
+                      }`}
                   >
                     <div className="flex items-center gap-2">
                       <span className="w-6 h-6 flex items-center justify-center bg-white rounded shadow-sm text-[10px] border border-gray-100">
@@ -113,7 +85,7 @@ export default function Header() {
           </Link>
 
           {/* Post Event */}
-          <button 
+          <button
             onClick={() => {
               if (isOrganizer && !isStripeConnected && !isAdministrator) {
                 setShowStripeModal(true);
