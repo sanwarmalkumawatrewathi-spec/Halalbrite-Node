@@ -44,7 +44,7 @@ export default function EventCardGrid({ events, loading }: EventCardGridProps) {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6 ">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="bg-gray-100 animate-pulse rounded-xl h-[380px] w-full" />
@@ -63,8 +63,8 @@ export default function EventCardGrid({ events, loading }: EventCardGridProps) {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      
+    <div className="max-w-7xl mx-auto px-4 py-6 pb-20">
+
       {/* HEADER */}
       <p className="mb-4 mt-4 text-sm text-gray-700">
         Showing <span className="text-red-600 font-semibold">{events.length}</span> events
@@ -78,18 +78,22 @@ export default function EventCardGrid({ events, loading }: EventCardGridProps) {
             month: 'short',
             year: 'numeric'
           });
-          const imageUrl = event.banner?.startsWith('http') ? event.banner : `${baseUrl}${event.banner}`;
+          const imageUrl = event.banner ? (event.banner.startsWith('http') ? event.banner : `${baseUrl}${event.banner}`) : null;
           const isSaved = user?.savedEvents?.includes(event._id);
-          
+
           return (
             <Link key={event._id} href={`/event/${event.slug || event._id}`} className="flex">
               <div className="bg-white rounded-xl shadow hover:shadow-lg transition overflow-hidden w-full flex flex-col">
                 {/* IMAGE */}
                 <div className="relative">
                   <img
-                    src={imageUrl || "/featured.jpg"}
+                    src={imageUrl || "/images/noimage.jpg"}
                     alt={event.title}
                     className="h-44 w-full object-cover"
+                    onError={(e: any) => {
+                      e.target.onerror = null;
+                      e.target.src = "/images/noimage.jpg";
+                    }}
                   />
 
                   {/* CATEGORY TAG */}
@@ -98,13 +102,13 @@ export default function EventCardGrid({ events, loading }: EventCardGridProps) {
                   </span>
 
                   {/* LIKE ICON */}
-                  <button 
+                  <button
                     onClick={(e) => handleSave(e, event._id)}
                     className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow hover:scale-110 transition-transform"
                   >
-                    <Heart 
-                      size={16} 
-                      className={isSaved ? "text-red-600" : "text-gray-500"} 
+                    <Heart
+                      size={16}
+                      className={isSaved ? "text-red-600" : "text-gray-500"}
                       fill={isSaved ? "currentColor" : "none"}
                     />
                   </button>
@@ -150,4 +154,4 @@ export default function EventCardGrid({ events, loading }: EventCardGridProps) {
       </div>
     </div>
   );
-}
+}

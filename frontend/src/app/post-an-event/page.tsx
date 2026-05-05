@@ -48,13 +48,13 @@ function PostEventFormContent() {
           </p>
         </div>
         <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center">
-          <button 
+          <button
             onClick={() => router.push('/organizer-dashboard')}
             className="bg-red-600 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-red-700 transition"
           >
             Go to Dashboard to Connect
           </button>
-          <button 
+          <button
             onClick={() => router.push('/')}
             className="bg-gray-100 text-gray-700 px-8 py-3 rounded-xl font-bold hover:bg-gray-200 transition"
           >
@@ -67,8 +67,8 @@ function PostEventFormContent() {
 
   return (
     <>
-      <section className='mb-8'>
-        <h2 className='text-red-900 text-3xl font-medium mb-3'>
+      <section className='mb-8 '>
+        <h2 className='text-red-900 text-3xl font-400 font-medium mb-3'>
           {editId ? 'Edit Event' : 'Create New Event'}
         </h2>
         <p className='text-[#1c1917]'>Fill in all the details below and click Review &amp; Publish when ready</p>
@@ -80,10 +80,10 @@ function PostEventFormContent() {
 
 export default function PostEvent() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header/>
-      
-      <main className="max-w-7xl mx-auto p-6 py-10">
+    <div className=" bg-gray-50">
+      <Header />
+
+      <main className="max-w-4xl mx-auto p-6 py-10">
         <Suspense fallback={
           <div className="text-xl font-semibold text-red-600 animate-pulse text-center py-20">
             Loading...
@@ -92,8 +92,8 @@ export default function PostEvent() {
           <PostEventFormContent />
         </Suspense>
       </main>
-      
-      <Footer/>
+
+      <Footer />
     </div>
   );
 }

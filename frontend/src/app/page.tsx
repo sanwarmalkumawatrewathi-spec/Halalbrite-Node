@@ -36,7 +36,7 @@ export default function Page() {
 
   // Filter events for map based on active category
   const mapEvents = events.filter((event: any) => {
-    return activeCategory === "All" || 
+    return activeCategory === "All" ||
       event.category?.name?.toLowerCase() === activeCategory?.toLowerCase();
   });
 
@@ -45,20 +45,20 @@ export default function Page() {
       <Header />
       <Herosections onLocationSelect={(city) => setSelectedCity(city)} />
 
-      <div className="max-w-7xl mx-auto pt-10">
+      <div className="max-w-7xl mx-auto pt-3">
         <CategoryTabs active={activeCategory} setActive={setActiveCategory} />
-        <FeaturedEvents 
-          activeCategory={activeCategory} 
-          selectedCity={selectedCity} 
+        <FeaturedEvents
+          activeCategory={activeCategory}
+          selectedCity={selectedCity}
         />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <h2 className="text-2xl font-bold text-red-900 mb-2">
+      <div className="max-w-7xl mx-auto px-6 py-2">
+        <h2 className="text-2xl font-bold text-red-900 mb-2 d-none">
           {selectedCity ? `Event Map: ${selectedCity}` : 'Event Map'}
           {activeCategory !== 'All' && ` - ${activeCategory}`}
         </h2>
-        <p className="text-gray-600 mb-6">Explore events happening near you</p>
+        <p className="text-gray-600 mb-6 d-none">Explore events happening near you</p>
         <MapComponent events={mapEvents} />
       </div>
 

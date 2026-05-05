@@ -22,13 +22,13 @@ export default function PayoutsTab() {
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
       const token = localStorage.getItem('token');
-      
+
       // Fetch payouts
       const payoutsRes = await fetch(`${API_URL}/api/dashboard/organizer/payouts`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const payoutsResult = await payoutsRes.json();
-      
+
       // Fetch stats for balance info
       const statsRes = await fetch(`${API_URL}/api/dashboard/organizer/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -52,99 +52,123 @@ export default function PayoutsTab() {
     .reduce((acc, p) => acc + (p.amount || 0), 0);
 
   return (
-    <div className="max-w-7xl mx-auto p-0 space-y-6">
+    <div className="max-w-full mx-auto p-0 space-y-6">
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Available */}
-        <div className="rounded-xl p-6 text-white bg-gradient-to-br from-purple-600 to-indigo-700 shadow-lg">
-          <div className="flex justify-between items-center opacity-80 mb-2">
-            <p className="text-sm font-medium uppercase tracking-wider">Available Balance</p>
-            <IoWalletOutline className="text-lg" />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white overflow-hidden w-full">
+          <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white h-full">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-purple-100 font-medium">Available Balance</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wallet w-5 h-5"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a8 8 0 0 1-9.27 7.8A4.02 4.02 0 0 1 5.38 16H4a2 2 0 0 1-2-2V4"></path><path d="M21 12v4"></path><path d="M12 21h-2"></path><circle cx="18" cy="14" r="1"></circle></svg>
+            </div>
+            <p className="text-white mb-1 text-3xl font-bold">€{(stats?.availableBalance || 0).toFixed(2)}</p>
+            <div className="flex items-center gap-1 text-purple-100 text-sm">
+              <span>Ready for next payout</span>
+            </div>
           </div>
-          <h2 className="text-3xl font-bold">€{(stats?.availableBalance || 0).toFixed(2)}</h2>
-          <p className="text-xs mt-3 opacity-70">Ready for next payout</p>
         </div>
 
-        {/* Pending */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Pending</p>
-          <h2 className="text-2xl font-bold text-orange-500 mt-2">
-            €{(stats?.pendingBalance || 0).toFixed(2)}
-          </h2>
-          <p className="text-xs text-gray-500 mt-2">Currently processing</p>
+        <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white p-6 w-full overflow-hidden">
+          <div className="flex flex-col h-full justify-between">
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Pending</p>
+              <h2 className="text-3xl font-bold text-amber-500 mt-1">€{(stats?.pendingBalance || 0).toFixed(2)}</h2>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock w-4 h-4 text-amber-500"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              Currently processing
+            </div>
+          </div>
         </div>
 
-        {/* Total */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <p className="text-sm text-gray-400 font-bold uppercase tracking-wider">Total Paid Out</p>
-          <h2 className="text-2xl font-bold text-green-600 mt-2">
-            €{totalPaidOut.toFixed(2)}
-          </h2>
-          <p className="text-xs text-gray-500 mt-2">Lifetime earnings</p>
+        <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white p-6 w-full overflow-hidden">
+          <div className="flex flex-col h-full justify-between">
+            <div className="mb-4">
+              <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Paid Out</p>
+              <h2 className="text-3xl font-bold text-green-600 mt-1">€{totalPaidOut.toFixed(2)}</h2>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check-circle w-4 h-4 text-green-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              Lifetime earnings
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <div className="mb-8">
-          <h2 className="font-bold text-gray-800 text-lg">Payout History</h2>
-          <p className="text-sm text-gray-500">
-            Track your payment disbursements
-          </p>
+      <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white overflow-hidden w-full min-w-0">
+        <div data-slot="card-header" className="@container/card-header auto-rows-min grid-rows-[auto_auto] gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-col space-y-1.5 pb-4">
+          <h4 data-slot="card-title" className="leading-none text-red-900 font-semibold text-lg">Payout History</h4>
+          <p data-slot="card-description" className="text-muted-foreground mt-1 text-sm">Track your payment disbursements</p>
         </div>
+        <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-0">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
+            <div className="inline-block min-w-full align-middle">
+              <div className="px-4 sm:px-6">
+                <div data-slot="table-container" className="relative w-full overflow-x-auto">
+                  <table data-slot="table" className="w-full caption-bottom text-sm min-w-[700px]">
+                    <thead data-slot="table-header" className="[&amp;_tr]:border-b">
+                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Date</th>
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Amount</th>
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Status</th>
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Method</th>
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-right">Reference</th>
+                      </tr>
+                    </thead>
+                    <tbody data-slot="table-body" className="[&amp;_tr:last-child]:border-0">
+                      {payouts.length > 0 ? (
+                        payouts.map((p, i) => {
+                          const isPaid = p.status === 'paid';
+                          const badgeClasses = isPaid
+                            ? "bg-green-100 text-green-800 hover:bg-green-100"
+                            : "bg-amber-100 text-amber-800 hover:bg-amber-100";
 
-        <div className="overflow-x-auto">
-          <table className="min-w-[700px] w-full text-sm">
-            <thead className="text-left text-gray-400 font-bold uppercase text-[10px] tracking-wider border-b border-gray-50 bg-gray-50/50">
-              <tr>
-                <th className="py-3 px-4">Date</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Method</th>
-                <th className="text-right px-4 text-gray-300">#Ref</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-gray-50">
-              {payouts.length > 0 ? (
-                payouts.map((p, i) => (
-                  <tr key={i} className="hover:bg-gray-50/50 transition">
-                    <td className="py-4 px-4 text-gray-600">{new Date(p.createdAt).toLocaleDateString()}</td>
-                    <td className="text-green-600 font-bold">€{(p.amount || 0).toFixed(2)}</td>
-                    <td>
-                      <span
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${statusStyles[p.status] || 'bg-gray-100 text-gray-500'}`}
-                      >
-                        {p.status === "paid" ? (
-                          <IoCheckmarkCircle />
-                        ) : (
-                          <IoTimeOutline />
-                        )}
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="text-gray-500">{p.payoutMethod || 'Bank Transfer'}</td>
-                    <td className="text-right px-4 text-gray-300 text-xs font-mono">{p._id.toString().slice(-8).toUpperCase()}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-gray-400 italic">
-                    No payout history found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                          return (
+                            <tr key={i} data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                              <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">
+                                {new Date(p.createdAt).toLocaleDateString()}
+                              </td>
+                              <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-green-700 whitespace-nowrap font-medium">
+                                €{(p.amount || 0).toFixed(2)}
+                              </td>
+                              <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
+                                <span data-slot="badge" className={`inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&amp;>svg]:size-3 gap-1 [&amp;>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&amp;]:hover:bg-primary/90 capitalize ${badgeClasses}`}>
+                                  {isPaid ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check-circle w-3 h-3 mr-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                                  ) : (
+                                    <IoTimeOutline className="w-3 h-3 mr-1" />
+                                  )}
+                                  {p.status}
+                                </span>
+                              </td>
+                              <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-500 whitespace-nowrap">
+                                {p.payoutMethod || 'Bank Transfer'}
+                              </td>
+                              <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-right text-gray-400 font-mono text-xs">
+                                #{p._id ? p._id.toString().slice(-8).toUpperCase() : 'REF'}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="py-12 text-center text-gray-400 italic border-b-0">
+                            No payout history found.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* Footer */}
-        <div className="text-center mt-10 pt-6 border-t border-gray-50 space-y-4">
-          <p className="text-sm text-gray-500">
-            View detailed payout information and manage account settings on Stripe Express
-          </p>
-          <button className="bg-red-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-red-100 hover:bg-red-700 transition">
+        <div data-slot="card-footer" className="flex items-center justify-center p-6 pt-0 border-t border-gray-100 mt-6 flex-col space-y-4">
+          <p className="text-sm text-gray-500 text-center">View detailed payout information and manage account settings on Stripe Express</p>
+          <button data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg shadow-md">
             View Stripe Express Dashboard
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-external-link w-4 h-4 ml-2"><path d="M15 3h6v6"></path><path d="M10 14 21 3"></path><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path></svg>
           </button>
         </div>
       </div>

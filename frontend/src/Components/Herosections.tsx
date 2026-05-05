@@ -67,7 +67,7 @@ export default function Herosections({ onLocationSelect }: { onLocationSelect?: 
 
     >
       <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20 relative' style={{
-        backgroundImage: "url('/heroimage.jpg')",
+        backgroundImage: "url('/images/heroimage.jpg')",
       }}>
         <div className="absolute inset-0 bg-black/50" />
 
@@ -85,14 +85,14 @@ export default function Herosections({ onLocationSelect }: { onLocationSelect?: 
           <div className="flex flex-col sm:flex-row gap-5 justify-center mb-10">
             <button
               onClick={() => router.push('/events')}
-              className="flex items-center justify-center gap-3 bg-white text-red-600 border-1 border-red-600 px-8 py-2 rounded-xl font-bold text-lg hover:bg-red-50 transition-all shadow-xl hover:-translate-y-1"
+              className="flex items-center justify-center gap-3 bg-white text-red-600 border-1 border-red-600 px-6 py-2 rounded-xl font-bold text-[14px] hover:bg-red-50 transition-all shadow-xl hover:-translate-y-1"
             >
               <IoSearch size={22} /> Find Events
             </button>
 
             <button
               onClick={() => router.push('/post-an-event')}
-              className="flex items-center justify-center gap-3 bg-red-600 text-white px-8 py-1 rounded-xl font-bold text-lg hover:bg-red-700 transition-all shadow-xl hover:-translate-y-1"
+              className="flex items-center justify-center gap-3 bg-red-600 text-white px-8 py-1 rounded-xl font-bold text-[14px] hover:bg-red-700 transition-all shadow-xl hover:-translate-y-1"
             >
               <TbCalendarEvent size={22} /> Post an Event
             </button>
@@ -102,7 +102,7 @@ export default function Herosections({ onLocationSelect }: { onLocationSelect?: 
           <div className="relative inline-block" ref={dropdownRef}>
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="flex items-center gap-3 bg-white/95 backdrop-blur-sm px-6 py-3.5 rounded-full shadow-2xl text-gray-700 text-sm font-bold hover:bg-white transition-all border-2 border-transparent focus:border-red-500 group"
+              className="flex items-center gap-3 bg-white/95 backdrop-blur-sm px-2 py-2 rounded-xl shadow-2xl text-gray-700 text-sm font-bold hover:bg-white transition-all border-2 border-transparent focus:border-red-500 group"
             >
               <HiLocationMarker className="text-red-500 group-hover:scale-110 transition-transform" size={20} />
               <span className="min-w-[120px] text-left">find events in..</span>

@@ -90,21 +90,21 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
     }
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!organiser) return <div className="min-h-screen flex items-center justify-center">Organiser not found</div>;
+  if (loading) return <div className=" flex items-center justify-center">Loading...</div>;
+  if (!organiser) return <div className=" flex items-center justify-center">Organiser not found</div>;
 
   const displayName = organiser.firstName ? `${organiser.firstName} ${organiser.lastName}` : organiser.username;
   const initials = organiser.username.substring(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className=" bg-gray-50">
       <Header />
-      
+
       {/* Red Banner Section */}
       <div className="bg-red-600 pt-16 pb-32 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-            
+
             {/* Profile Image / Logo */}
             <div className="relative">
               <div className="w-48 h-48 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 text-6xl font-bold border-4 border-white shadow-xl overflow-hidden">
@@ -124,7 +124,7 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
             {/* Content Area */}
             <div className="flex-1 text-center md:text-left text-white">
               <h1 className="text-4xl font-bold mb-2">{displayName}</h1>
-              
+
               <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm opacity-90 mb-6">
                 <div className="flex items-center gap-2">
                   <FaUsers className="text-lg" />
@@ -161,7 +161,7 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
 
               {/* Action Buttons */}
               <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                <button 
+                <button
                   onClick={toggleFollow}
                   className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition transform hover:scale-105 ${isFollowing ? 'bg-white text-red-600' : 'bg-white text-red-600'}`}
                 >
@@ -180,16 +180,16 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
       {/* Events Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 mb-20">
         <div className="bg-white rounded-3xl shadow-xl p-8">
-          
+
           {/* Tabs */}
           <div className="flex items-center gap-2 mb-10 bg-gray-50 p-1.5 rounded-2xl w-fit">
-            <button 
+            <button
               onClick={() => handleTabChange("upcoming")}
               className={`px-8 py-3 rounded-xl text-sm font-bold transition ${activeTab === "upcoming" ? 'bg-red-600 text-white shadow-lg' : 'text-gray-600 hover:bg-gray-100'}`}
             >
               Upcoming Events
             </button>
-            <button 
+            <button
               onClick={() => handleTabChange("past")}
               className={`px-8 py-3 rounded-xl text-sm font-bold transition ${activeTab === "past" ? 'bg-red-600 text-white shadow-lg' : 'text-gray-600 hover:bg-gray-100'}`}
             >
@@ -215,13 +215,13 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
                     <div className="space-y-2.5 mb-6">
                       <div className="flex items-center gap-3 text-sm text-gray-600">
                         <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center text-red-600">
-                           <FaCalendarAlt size={14} />
+                          <FaCalendarAlt size={14} />
                         </div>
                         <span>{new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} at {event.startTime}</span>
                       </div>
                       <div className="flex items-center gap-3 text-sm text-gray-600">
                         <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center text-red-600">
-                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                         </div>
                         <span>{event.location?.city}, {event.location?.country}</span>
                       </div>

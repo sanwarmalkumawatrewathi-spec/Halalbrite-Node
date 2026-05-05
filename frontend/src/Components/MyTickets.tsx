@@ -53,96 +53,77 @@ export default function MyTickets() {
     if (loading) return <div className="p-10 text-center">Loading tickets...</div>;
     
     if (tickets.length === 0) return (
-      <div className="p-10 text-center bg-white rounded-xl border border-gray-200 m-6">
-        <p className="text-gray-500 mb-4">You don't have any tickets yet.</p>
-        <button onClick={() => router.push('/events')} className="bg-red-600 text-white px-6 py-2 rounded-md font-medium hover:bg-red-700 transition">
-          Explore Events
-        </button>
+      <div data-slot="card" className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl border border-gray-200">
+        <div data-slot="card-header" className="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 p-4 sm:p-6 pb-0">
+          <h4 data-slot="card-title" className="text-lg sm:text-xl font-semibold">My Tickets</h4>
+          <p data-slot="card-description" className="text-gray-500 text-sm">View and manage your event tickets</p>
+        </div>
+        <div data-slot="card-content" className="p-4 sm:p-6 pt-0 text-center py-10">
+          <p className="text-gray-500 mb-4">You don't have any tickets yet.</p>
+          <button onClick={() => router.push('/events')} className="bg-red-600 text-white px-6 py-2 rounded-md font-medium hover:bg-red-700 transition">
+            Explore Events
+          </button>
+        </div>
       </div>
     );
 
   return (
-    <div className="p-4 border border-gray-300">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold text-gray-900">My Tickets</h1>
-        <p className="text-gray-500 text-sm">
-          View and manage your event tickets
-        </p>
-      </div>
-
-      {/* Ticket List */}
-      <div className="space-y-4">
-        {tickets.map((ticket) => (
-          <div
-            key={ticket._id}
-            className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-          >
-            {/* Left Content */}
-            <div>
-              <h2 className="font-semibold text-gray-900 text-lg">
-                {ticket.event_name}
-              </h2>
-              <p className="text-sm text-gray-500 mt-1">
-                {new Date(ticket.event_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </p>
-
-              <div className="flex items-center gap-3 mt-3 text-sm">
-                <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-700">
-                  {ticket.ticket_name} × {ticket.quantity}
-                </span>
-                <span className="font-bold text-gray-900">
-                    {ticket.currency} {ticket.amount_total.toFixed(2)}
-                </span>
-
-                {/* Status Badge */}
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-                    ticket.payment_status === "paid" || ticket.payment_status === "free"
-                      ? "bg-green-100 text-green-700"
-                      : ticket.payment_status === "cancelled" || ticket.payment_status === "refunded"
-                      ? "bg-red-100 text-red-700"
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}
-                >
-                  {ticket.payment_status}
-                </span>
+    <div className="space-y-6" suppressHydrationWarning>
+      <div data-slot="card" className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl border border-gray-200 shadow-sm">
+        <div data-slot="card-header" className="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 p-4 sm:p-6 pb-0">
+          <h4 data-slot="card-title" className="text-lg sm:text-xl font-semibold">My Tickets</h4>
+          <p data-slot="card-description" className="text-gray-500 text-sm">View and manage your event tickets</p>
+        </div>
+        <div data-slot="card-content" className="p-4 sm:p-6 pt-0">
+          <div className="space-y-3 sm:space-y-4">
+            {tickets.map((ticket) => (
+              <div key={ticket._id} className="border border-gray-200 bg-white rounded-lg p-3 sm:p-4 hover:border-red-300 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-gray-900 text-sm sm:text-base font-semibold">{ticket.event_name}</h3>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                      {new Date(ticket.event_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-1.5 sm:mt-2">
+                      <span className="text-xs sm:text-sm text-gray-600">{ticket.ticket_name} × {ticket.quantity}</span>
+                      <span className="text-xs sm:text-sm text-gray-900 font-semibold">{ticket.currency} {ticket.amount_total.toFixed(2)}</span>
+                      <span data-slot="badge" className={`inline-flex items-center justify-center rounded-md px-2 py-0.5 font-medium w-fit whitespace-nowrap text-white text-xs ${ticket.payment_status === "paid" || ticket.payment_status === "free" ? "bg-green-600" : ticket.payment_status === "cancelled" || ticket.payment_status === "refunded" ? "bg-red-600" : "bg-yellow-500"}`}>
+                        {ticket.payment_status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2 sm:flex-shrink-0">
+                    <button 
+                      onClick={()=>router.push(`/TicketPreview`)}
+                      data-slot="button" 
+                      className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 text-white rounded-md px-3 bg-red-600 hover:bg-red-700 flex-1 sm:flex-initial text-xs sm:text-sm h-8 sm:h-9"
+                    >
+                      View Ticket
+                    </button>
+                    <button 
+                      onClick={() => router.push(`/event/${ticket.event_id?.slug || ticket.event_id?._id || ticket.event_id}`)}
+                      data-slot="button" 
+                      className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 border bg-white text-gray-900 hover:bg-gray-100 rounded-md px-3 flex-1 sm:flex-initial text-xs sm:text-sm h-8 sm:h-9 border-gray-200"
+                    >
+                      Details
+                    </button>
+                    <button 
+                      onClick={() => {
+                          setSelectedTicket(ticket);
+                          setShowRefundModal(true);
+                      }}
+                      disabled={ticket.payment_status !== "paid"}
+                      data-slot="button" 
+                      className={`inline-flex items-center justify-center whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 border rounded-md px-3 flex-1 sm:flex-initial text-xs sm:text-sm h-8 sm:h-9 ${ticket.payment_status === "paid" ? "bg-white text-red-600 border-red-200 hover:bg-red-50" : "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"}`}
+                    >
+                      Request Refund
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-
-            {/* Right Actions */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button 
-                onClick={()=>router.push(`/TicketPreview`)} 
-                className="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition"
-              >
-                View Ticket
-              </button>
-
-              <button 
-                onClick={() => router.push(`/event/${ticket.event_id?.slug || ticket.event_id?._id || ticket.event_id}`)} 
-                className="border border-gray-300 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition"
-              >
-                Details
-              </button>
-
-              <button 
-                onClick={() => {
-                    setSelectedTicket(ticket);
-                    setShowRefundModal(true);
-                }}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                  ticket.payment_status === "paid"
-                    ? "border border-red-500 text-red-500 hover:bg-red-50"
-                    : "border border-gray-200 text-gray-400 cursor-not-allowed"
-                }`}
-                disabled={ticket.payment_status !== "paid"}
-              >
-                Request Refund
-              </button>
-            </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
 
       {showRefundModal && (

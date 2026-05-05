@@ -175,8 +175,8 @@ function CheckoutContent() {
         }
     };
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-    if (!event || !ticketName) return <div className="min-h-screen flex items-center justify-center text-red-600">Invalid Session</div>;
+    if (loading) return <div className=" flex items-center justify-center">Loading...</div>;
+    if (!event || !ticketName) return <div className=" flex items-center justify-center text-red-600">Invalid Session</div>;
 
     const selectedTicket = event.ticketTypes?.find((t: any) => t.name === ticketName);
     const financial = calcFees(selectedTicket);
@@ -184,7 +184,7 @@ function CheckoutContent() {
     const grandTotal = financial.total * quantity;
 
     return (
-        <div className="bg-[#fef3f6] min-h-screen font-sans">
+        <div className="bg-[#fef3f6]  font-sans">
             <Header />
 
             <main className="max-w-7xl mx-auto px-6 py-12">
@@ -565,43 +565,43 @@ function CheckoutContent() {
                                     </div>
                                 </div>
 
-<div className="bg-[#f5f6f7] rounded-xl px-4 py-3 flex items-center gap-2 text-gray-600 mt-4 mb-2.5">
-  <FiLock className="text-gray-500" size={16} />
-  
-  <span className="text-sm font-medium">
-    Your payment is secured with 256-bit SSL encryption
-  </span>
-</div>
+                                <div className="bg-[#f5f6f7] rounded-xl px-4 py-3 flex items-center gap-2 text-gray-600 mt-4 mb-2.5">
+                                    <FiLock className="text-gray-500" size={16} />
 
-                            
-
-                            
-                            
+                                    <span className="text-sm font-medium">
+                                        Your payment is secured with 256-bit SSL encryption
+                                    </span>
+                                </div>
 
 
 
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="w-full bg-red-600 text-white py-4 rounded-[24px] font-black text-xl hover:bg-red-700 transition-all shadow-xl shadow-red-200 active:scale-[0.98] disabled:bg-gray-400 flex items-center justify-center gap-3"
-                            >
-                                {processing ? (
-                                    <>
-                                        <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin" />
-                                        Processing...
-                                    </>
-                                ) : (
-                                    <>
-                                        <FiLock className="text-white" size={16} />
-                                        Complete Purchase - {formatPrice(financial.total * quantity)}
-                                    </>
-                                )}
-                            </button>
 
-                            <p className="text-center  text-gray-500
+
+
+
+
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="w-full bg-red-600 text-white py-4 rounded-[24px] font-black text-xl hover:bg-red-700 transition-all shadow-xl shadow-red-200 active:scale-[0.98] disabled:bg-gray-400 flex items-center justify-center gap-3"
+                                >
+                                    {processing ? (
+                                        <>
+                                            <div className="w-6 h-6 border-4 border-white border-t-transparent rounded-full animate-spin" />
+                                            Processing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FiLock className="text-white" size={16} />
+                                            Complete Purchase - {formatPrice(financial.total * quantity)}
+                                        </>
+                                    )}
+                                </button>
+
+                                <p className="text-center  text-gray-500
                      max-w-sm mx-auto leading-relaxed mt-4">
-                                By completing this purchase, you agree to our Terms of Service and Refund Policy
-                            </p>
+                                    By completing this purchase, you agree to our Terms of Service and Refund Policy
+                                </p>
 
                             </div>
                         </form>

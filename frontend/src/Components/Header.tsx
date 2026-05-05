@@ -27,7 +27,11 @@ export default function Header() {
         {/* Logo */}
         <Link href="/">
           <div className="w-16 sm:w-20 h-12 sm:h-16 flex items-center cursor-pointer">
-            <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full"><text x="50" y="60" text-anchor="middle" fill="#DC2626" font-size="60" font-family="cursive, 'Apple Chancery', 'Comic Sans MS', fantasy" font-weight="700" stroke-width="2.5" stroke="#DC2626" paint-order="stroke">H</text><circle cx="50" cy="38" r="3" fill="#EF4444"></circle><text x="50" y="92" text-anchor="middle" fill="#DC2626" font-size="24" font-family="'Trebuchet MS', 'Arial Rounded MT Bold', Verdana, sans-serif" font-weight="700">HalalBrite</text></svg>
+            <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+              <text x="60" y="65" textAnchor="middle" fill="#DC2626" fontSize="70" fontFamily="cursive, 'Apple Chancery', 'Comic Sans MS', fantasy" fontWeight="700" strokeWidth="2" stroke="#DC2626" paintOrder="stroke">H</text>
+              <circle cx="60" cy="42" r="4" fill="#EF4444" />
+              <text x="60" y="105" textAnchor="middle" fill="#DC2626" fontSize="22" fontFamily="'Trebuchet MS', 'Arial Rounded MT Bold', Verdana, sans-serif" fontWeight="900">HalalBrite</text>
+            </svg>
           </div>
         </Link>
 
@@ -93,7 +97,7 @@ export default function Header() {
                 router.push('/post-an-event');
               }
             }}
-            className="flex items-center gap-2 border border-red-700 text-red-700 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-red-50"
+            className="flex items-center justify-center gap-2 border border-red-700 text-red-700 px-4 py-0.5 cursor-pointer rounded-md text-sm font-medium hover:bg-red-50 h-[34px]"
           >
             <span className="text-lg">+</span>
             Post an Event
@@ -105,7 +109,7 @@ export default function Header() {
               {/* Top Click Area */}
               <div
                 onClick={() => setOpen(!open)}
-                className="flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
+                className="flex items-center gap-2 px-4 py-3 rounded-md cursor-pointer hover:bg-gray-200 transition-colors h-[34px]"
               >
                 {user.avatar ? (
                   <img src={user.avatar} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
@@ -138,14 +142,14 @@ export default function Header() {
                   {/* Menu Items */}
                   <div className="py-1">
                     <Link href="/myaccount" onClick={() => setOpen(false)}>
-                      <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                      <button className="flex items-center cursor-pointer gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                         <FaUser className="text-gray-500" />
                         My Account
                       </button>
                     </Link>
                     {isOrganizer && (
                       <Link href="/organizer-dashboard" onClick={() => setOpen(false)}>
-                        <button className="flex items-center gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                        <button className="flex items-center cursor-pointer gap-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
                           <FaThLarge className="text-gray-500" />
                           Organiser Dashboard
                         </button>
@@ -156,7 +160,7 @@ export default function Header() {
                         setOpen(false);
                         logout();
                       }}
-                      className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      className="flex items-center gap-3 w-full px-4 cursor-pointer py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
                     >
                       <FiLogOut className="text-red-500" />
                       Log Out
@@ -166,8 +170,8 @@ export default function Header() {
               )}
             </div>
           ) : (
-            <Link href="/authpage">
-              <button className="bg-red-600 text-white px-5 py-1.5 rounded-md text-sm font-medium hover:bg-red-700 transition-colors">
+            <Link href="/login-register">
+              <button className="bg-red-600 text-white px-4 py-0.5 rounded-md cursor-pointer text-sm font-medium hover:bg-red-700 transition-colors h-[34px]">
                 Login / Sign Up
               </button>
             </Link>

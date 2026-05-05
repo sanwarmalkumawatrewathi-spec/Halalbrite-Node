@@ -37,6 +37,9 @@ export default function EventCard({
   const { user, toggleSavedEvent } = useAuth();
   const router = useRouter();
   
+  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+  const bannerImage = image ? (image.startsWith('http') ? image : `${baseUrl}${image}`) : "/images/noimage.jpg";
+  
   const displayPrice = typeof price === 'number' ? formatPrice(price) : price;
   const isSaved = user?.savedEvents?.includes(id);
 
@@ -62,9 +65,13 @@ export default function EventCard({
       {/* Image */}
       <div className="relative">
         <img
-          src={image}
+          src={bannerImage}
           alt={title}
           className="h-44 w-full object-cover"
+          onError={(e: any) => {
+            e.target.onerror = null;
+            e.target.src = "/images/noimage.jpg";
+          }}
         />
 
         {/* Favorite Icon */}

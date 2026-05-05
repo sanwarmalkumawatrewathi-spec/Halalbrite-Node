@@ -7,7 +7,7 @@ import Header from '@/Components/Header'
 import dynamic from 'next/dynamic'
 import Herosections from '@/Components/Herosections'
 import { ChevronDown, ChevronUp } from "lucide-react";
-const MapComponent = dynamic(() => import('@/Components/MapComponent'), { 
+const MapComponent = dynamic(() => import('@/Components/MapComponent'), {
   ssr: false,
   loading: () => <div className="h-[500px] w-full bg-gray-100 animate-pulse rounded-2xl" />
 });
@@ -60,10 +60,10 @@ export default function Event() {
   }, [filters]);
 
   return (
-    <div className="bg-[#fef3f6] min-h-screen">
-      <Header/>
+    <div className="bg-[#fef3f6] ">
+      <Header />
 
-<section className="pt-14 pb-7 px-[40px] pt-[32px]  sm:px-0 sm:pt-0">
+      <section className="pt-14 pb-7 px-[40px] pt-[32px]  sm:px-0 sm:pt-0">
         <div className="max-w-7xl mx-auto mb-9 pt-6">
           <div
             className={`relative rounded-sm overflow-hidden transition-all duration-500 ${expanded ? "h-[500px]" : "h-[200px]"
@@ -71,7 +71,7 @@ export default function Event() {
           >
             {/* Map */}
             <div className="absolute inset-0 z-0  ">
-              <MapComponent events={events}  />
+              <MapComponent events={events} />
             </div>
 
             {/* Button */}
@@ -85,14 +85,14 @@ export default function Event() {
           </div>
         </div>
 
-</section>
+      </section>
 
-      
+
       <FilterBar filters={filters} setFilters={setFilters} />
 
       <EventCardGrid events={events} loading={loading} />
 
-      <Footer/>
+      <Footer />
     </div>
   );
 }

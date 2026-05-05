@@ -87,7 +87,7 @@ export default function FeaturedEvents({ activeCategory, selectedCity }: Props) 
               date={`${formatDate(event.startDate)} ${event.startTime || ""}`}
               location={`${event.location?.city || ""}, ${event.location?.country || "UK"}`}
               price={event.price}
-              image={event.banner?.startsWith('http') ? event.banner : `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "")}${event.banner}`}
+              image={event.banner ? (event.banner.startsWith('http') ? event.banner : `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "")}${event.banner}`) : "/images/noimage.jpg"}
               category={event.category?.name || "Event"}
             />
           ))
@@ -99,7 +99,7 @@ export default function FeaturedEvents({ activeCategory, selectedCity }: Props) 
       {/* Button */}
       <div className="flex justify-center mt-6 mb-4">
         <Link href={"/events"}>
-          <button className="bg-red-600 text-white font-semibold px-6 py-3 rounded-2xl hover:bg-red-700 transition">
+          <button className="bg-red-600 text-white font-semibold px-5 py-2 rounded-2xl hover:bg-red-700 transition">
             View All Events
           </button>
         </Link>

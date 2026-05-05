@@ -70,117 +70,118 @@ export default function EventsTab() {
   if (loading) return <div className="p-10 text-center">Loading events...</div>;
 
   return (
-    <div className="max-w-7xl mx-auto p-0">
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h2 className="font-bold text-gray-800 text-lg">Your Events</h2>
-            <p className="text-sm text-gray-500">
-              Manage and track your event listings
-            </p>
+    <div className="max-w-full mx-auto p-0 space-y-6">
+      <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white overflow-hidden w-full min-w-0">
+        <div data-slot="card-header" className="@container/card-header auto-rows-min grid-rows-[auto_auto] gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-row items-start justify-between space-y-0 pb-4">
+          <div className="space-y-1.5">
+            <h4 data-slot="card-title" className="leading-none text-red-900 font-semibold text-lg">Your Events</h4>
+            <p data-slot="card-description" className="text-muted-foreground mt-1 text-sm">Manage and track your event listings</p>
           </div>
-
-          <button 
-            onClick={() => router.push('/post-an-event')}
-            className="flex items-center gap-2 bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-red-100 hover:bg-red-700 transition"
-          >
-            <IoAdd className="text-lg" /> New Event
+          <button onClick={() => router.push('/post-an-event')} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg shadow-md">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus w-4 h-4 mr-2"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+            Create Event
           </button>
         </div>
+        <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-0">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
+            <div className="inline-block min-w-full align-middle">
+              <div className="px-4 pb-6 sm:px-6">
+                <div data-slot="table-container" className="relative w-full overflow-x-auto">
+                  <table data-slot="table" className="w-full caption-bottom text-sm min-w-[1000px]">
+                    <thead data-slot="table-header" className="[&amp;_tr]:border-b">
+                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[300px]">Event</th>
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Category</th>
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Date</th>
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[100px]">Status</th>
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[120px]">Tickets Sold</th>
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[120px]">Revenue</th>
+                        <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px] text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody data-slot="table-body" className="[&amp;_tr:last-child]:border-0">
+                      {events.length > 0 ? (
+                        events.map((e, i) => {
+                          const eventDate = new Date(e.startDate);
+                          const isPast = eventDate < new Date();
+                          const status = isPast ? 'past' : e.status;
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="min-w-[900px] w-full text-sm">
-            <thead className="text-left text-gray-400 font-bold uppercase text-[10px] tracking-wider border-b border-gray-50 bg-gray-50/50">
-              <tr>
-                <th className="py-3 px-4">Event</th>
-                <th>Category</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Tickets</th>
-                <th>Revenue</th>
-                <th className="text-right px-4">Actions</th>
-              </tr>
-            </thead>
+                          let badgeStyles = "bg-gray-100 text-gray-800 hover:bg-gray-100";
+                          if (status === 'published' || status === 'active') badgeStyles = "bg-green-100 text-green-800 hover:bg-green-100";
+                          else if (status === 'draft') badgeStyles = "bg-amber-100 text-amber-800 hover:bg-amber-100";
 
-            <tbody className="divide-y divide-gray-50">
-              {events.length > 0 ? (
-                events.map((e, i) => {
-                  const eventDate = new Date(e.startDate);
-                  const isPast = eventDate < new Date();
-                  const status = isPast ? 'past' : e.status;
-
-                  return (
-                    <tr key={i} className="hover:bg-gray-50/50 transition">
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          {e.banner && (
-                            <img src={e.banner} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-100" />
-                          )}
-                          <span className="font-bold text-gray-900">{e.title}</span>
-                        </div>
-                      </td>
-                      <td className="text-gray-500">{e.category?.name || 'General'}</td>
-                      <td className="text-gray-500">{eventDate.toLocaleDateString()}</td>
-                      <td>
-                        <span
-                          className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider ${statusStyles[status] || statusStyles.draft}`}
-                        >
-                          {status}
-                        </span>
-                      </td>
-                      <td className="font-medium text-gray-700">
-                        {e.ticketsSold} / {e.totalTickets || '∞'}
-                      </td>
-                      <td className="text-red-600 font-bold">€{(e.totalRevenue || 0).toFixed(2)}</td>
-                      <td className="py-4 px-4">
-                        <div className="flex justify-end gap-3 text-gray-400">
-                          <button
-                            onClick={() => router.push(`/event/${e.slug || e._id}`)}
-                            title="View event"
-                            className="p-2 border border-gray-100 rounded-lg hover:text-gray-900 hover:border-gray-200 transition bg-white shadow-sm"
-                          >
-                            <FaRegEye />
-                          </button>
-                          <button
-                            onClick={() => router.push(`/post-an-event?edit=${e._id}`)}
-                            title="Edit event"
-                            className="p-2 border border-gray-100 rounded-lg hover:text-blue-600 hover:border-blue-100 transition bg-white shadow-sm"
-                          >
-                            <FiEdit />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(e._id)}
-                            disabled={deletingId === e._id}
-                            title="Delete event"
-                            className="p-2 border border-gray-100 rounded-lg hover:text-red-600 hover:border-red-100 transition bg-white shadow-sm disabled:opacity-50"
-                          >
-                            <MdDeleteOutline />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                    <td colSpan={7} className="py-12 text-center">
-                        <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
-                            <MdEvent className="text-2xl" />
-                        </div>
-                        <p className="text-gray-500 font-medium">No events found.</p>
-                        <button 
-                            onClick={() => router.push('/post-an-event')}
-                            className="mt-4 text-red-600 font-bold text-sm hover:underline"
-                        >
-                            Create your first event now
-                        </button>
-                    </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                          return (
+                            <tr key={i} data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                              <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
+                                <div className="flex items-center gap-3 whitespace-nowrap">
+                                  <div className="w-10 h-10 rounded overflow-hidden shrink-0">
+                                    <img 
+                                      src={e.banner ? (e.banner.startsWith('http') ? e.banner : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '')}${e.banner}`) : "/images/noimage.jpg"} 
+                                      alt="" 
+                                      className="w-full h-full object-cover" 
+                                      onError={(e: any) => {
+                                        e.target.onerror = null;
+                                        e.target.src = "/images/noimage.jpg";
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="font-medium text-gray-900 truncate max-w-[200px]" title={e.title}>{e.title}</span>
+                                </div>
+                              </td>
+                              <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">{e.category?.name || 'General'}</td>
+                              <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">{eventDate.toLocaleDateString()}</td>
+                              <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
+                                <span data-slot="badge" className={`inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 transition-[color,box-shadow] overflow-hidden border-transparent capitalize ${badgeStyles}`}>
+                                  {status}
+                                </span>
+                              </td>
+                              <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">
+                                {e.ticketsSold} / {e.totalTickets || '∞'}
+                              </td>
+                              <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-red-700 whitespace-nowrap font-medium">
+                                €{(e.totalRevenue || 0).toFixed(2)}
+                              </td>
+                              <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-right">
+                                <div className="flex justify-end gap-2 whitespace-nowrap">
+                                  <button onClick={() => router.push(`/event/${e.slug || e._id}`)} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 rounded-md bg-transparent text-gray-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-eye w-4 h-4"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <span className="sr-only">View</span>
+                                  </button>
+                                  <button onClick={() => router.push(`/post-an-event?edit=${e._id}`)} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 rounded-md bg-transparent text-blue-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-edit w-4 h-4"><path d="M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v10"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10.4 12.6a2 2 0 1 1 3 3L8 21l-4 1 1-4Z"></path></svg>
+                                    <span className="sr-only">Edit</span>
+                                  </button>
+                                  <button onClick={() => handleDelete(e._id)} disabled={deletingId === e._id} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 rounded-md bg-transparent text-red-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash2 w-4 h-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>
+                                    <span className="sr-only">Delete</span>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={7} className="py-12 text-center border-b-0">
+                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                              <MdEvent className="text-2xl" />
+                            </div>
+                            <p className="text-gray-500 font-medium">No events found.</p>
+                            <button
+                              onClick={() => router.push('/post-an-event')}
+                              className="mt-4 text-red-600 font-bold text-sm hover:underline"
+                            >
+                              Create your first event now
+                            </button>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

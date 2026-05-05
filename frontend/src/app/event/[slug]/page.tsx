@@ -24,11 +24,11 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
         const response = await fetch(`${baseUrl}/api/events/${slug}`);
         const data = await response.json();
-        
+
         if (!response.ok || data.success === false) {
-           setEvent(null);
+          setEvent(null);
         } else {
-           setEvent(data.data || data);
+          setEvent(data.data || data);
         }
       } catch (error) {
         console.error("Failed to fetch event details:", error);
@@ -53,7 +53,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
   };
 
   if (loading) return (
-    <div className="min-h-screen bg-[#fef3f6]">
+    <div className=" bg-[#fef3f6]">
       <Header />
       <div className="flex justify-center items-center h-[60vh]">
         <div className="text-red-900 font-semibold animate-pulse text-lg">Loading Event Details...</div>
@@ -63,7 +63,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
   );
 
   if (!event) return (
-    <div className="min-h-screen bg-[#fef3f6]">
+    <div className=" bg-[#fef3f6]">
       <Header />
       <div className="flex flex-col justify-center items-center h-[60vh] space-y-4">
         <p className="text-gray-600 text-xl">Event not found</p>
@@ -74,12 +74,12 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
   );
 
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-  const bannerImage = event.banner?.startsWith('http') ? event.banner : `${baseUrl}${event.banner}`;
+  const bannerImage = event.banner ? (event.banner.startsWith('http') ? event.banner : `${baseUrl}${event.banner}`) : "/images/noimage.jpg";
 
   return (
-    <div className="bg-[#fef3f6] min-h-screen">
+    <div className="bg-[#fef3f6] ">
       <Header />
-      
+
       <section>
         {/* Back */}
         <div className="max-w-7xl mx-auto p-4">
@@ -94,6 +94,10 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
             src={bannerImage}
             alt={event.title}
             className="w-full h-full object-cover"
+            onError={(e: any) => {
+              e.target.onerror = null;
+              e.target.src = "/images/noimage.jpg";
+            }}
           />
 
           {/* Overlay */}
@@ -105,7 +109,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
               {event.category?.name || "Event"}
             </span>
 
-            <h1 className="text-3xl md:text-5xl font-bold mt-4 max-w-3xl leading-tight">
+            <h1 className="text-3xl md:text-2xl font-400 mt-4 max-w-3xl leading-tight">
               {event.title}
             </h1>
 
@@ -127,122 +131,135 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
         </div>
       </section>
 
-      {/* Organiser Section */}
-      <section className="max-w-7xl mx-auto px-6 py-6 ">
-        <div className="bg-white rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between shadow-xl border border-red-50">
-          {event.organizer ? (
-            <Link href={`/organiser/${event.organizer.slug || (typeof event.organizer === 'object' ? event.organizer._id : event.organizer)}`} className="flex items-center gap-5 hover:opacity-80 transition group">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center text-red-900 font-bold shadow-sm group-hover:scale-105 transition">
-                {event.organizerName?.substring(0, 2) || event.organizer?.username?.substring(0, 2) || "OR"}
+      {/* Organiser Section Card */}
+      <section className="max-w-7xl mx-auto px-6 mt-8 relative z-10">
+        <div className="bg-white rounded-2xl shadow-lg border-0">
+          <div className="p-3 sm:p-4 md:p-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0">
+                {event.organizer ? (
+                  <Link href={`/organiser/${event.organizer.slug || (typeof event.organizer === 'object' ? event.organizer._id : event.organizer)}`} className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0 group">
+                    <div className="relative flex-shrink-0">
+                      <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 border-red-100 shadow-lg bg-white">
+                        <div className="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
+                          <span className="text-red-700 text-base sm:text-lg md:text-xl font-bold">
+                            {event.organizerName?.substring(0, 2) || event.organizer?.username?.substring(0, 2) || "OR"}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-600 text-xs sm:text-sm">Organised by</p>
+                      <h3 className="text-red-900 text-sm sm:text-base md:text-lg font-semibold truncate group-hover:text-red-600 transition-colors">
+                        {event.organizerName || event.organizer?.username || "Organizer"}
+                      </h3>
+                      <p className="text-gray-600 text-xs sm:text-sm">890 followers</p>
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0">
+                    <div className="relative flex-shrink-0">
+                      <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 border-gray-100 shadow-lg bg-white">
+                        <div className="w-full h-full bg-gray-50 flex items-center justify-center">
+                          <span className="text-gray-400 text-base sm:text-lg md:text-xl font-bold">OR</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-600 text-xs sm:text-sm">Organised by</p>
+                      <h3 className="text-gray-900 text-sm sm:text-base md:text-lg font-semibold truncate">
+                        {event.organizerName || "Organizer"}
+                      </h3>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div>
-                <p className="text-gray-600 text-xs sm:text-sm">Organised by</p>
-                <h3 className="text-red-900 text-sm sm:text-base md:text-lg font-bold group-hover:text-red-600 transition truncate">
-                  {event.organizerName || event.organizer?.username || "Organizer"}
-                </h3>
-                <p className="text-xs text-gray-500 font-medium">View Organiser Profile →</p>
-              </div>
-            </Link>
-          ) : (
-            <div className="flex items-center gap-5">
-              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 font-bold">
-                OR
-              </div>
-              <div>
-                <p className="text-gray-600 text-xs sm:text-sm">Organised by</p>
-                <h3 className="text-gray-900 text-sm sm:text-base md:text-lg font-bold">
-                  {event.organizerName || "Organizer"}
-                </h3>
-              </div>
+
+              {event.organizer && (
+                <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto sm:flex-shrink-0">
+                  <button
+                    onClick={async () => {
+                      if (!user) {
+                        router.push('/authpage');
+                        return;
+                      }
+                      const orgId = typeof event.organizer === 'object' ? event.organizer._id : event.organizer;
+                      await toggleFollowOrganizer(orgId);
+                    }}
+                    className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium transition-all px-6 py-2 border-2 text-sm sm:text-base h-10 sm:h-12 w-full sm:w-auto ${user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer)
+                      ? "bg-red-600 text-white border-red-600 shadow-md"
+                      : "border-red-500 text-red-700 hover:bg-red-50"
+                      }`}
+                  >
+                    {user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer) ? "Following" : "Follow"}
+                  </button>
+                </div>
+              )}
             </div>
-          )}
-          {event.organizer && (
-            <button 
-              onClick={async () => {
-                if (!user) {
-                  router.push('/authpage');
-                  return;
-                }
-                const orgId = typeof event.organizer === 'object' ? event.organizer._id : event.organizer;
-                await toggleFollowOrganizer(orgId);
-              }}
-              className={`mt-4 md:mt-0 px-8 py-2.5 rounded-xl font-bold transition-all duration-300 ${
-                user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer)
-                  ? "bg-red-600 text-white shadow-md border-2 border-red-600"
-                  : "bg-white border-2 border-red-500 text-red-800 hover:bg-red-200 hover:text-red-800"
-              }`}
-            >
-              {user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer) ? "Following" : "Follow"}
-            </button>
-          )}
+          </div>
         </div>
       </section>
 
       {/* Main Content */}
       <section className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
           {/* LEFT CONTENT */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white rounded-3xl shadow-sm border border-red-50 p-8 md:p-10">
-              <h2 className="text-2xl  text-red-900 mb-4 flex items-center gap-3">
-                <span className=""></span>
-                Event Overview
-              </h2>
-
-              <div className="prose prose-red max-w-none text-gray-700 leading-relaxed space-y-4">
-                {event.description?.split('\n').map((para: string, i: number) => (
-                  <p key={i}>{para}</p>
-                ))}
+            <div className="bg-white rounded-2xl shadow-lg border-0">
+              <div className="px-6 pt-6">
+                <h2 className="text-xl font-semibold text-red-900 mb-4">Event Overview</h2>
+              </div>
+              <div className="px-6 pb-6 whitespace-pre-line text-gray-700 leading-relaxed">
+                <h3 className="text-red-900 mb-4 text-lg">Overview:</h3>
+                {event.description}
               </div>
             </div>
 
             {/* TICKETS SECTION */}
-            <div id="tickets">
+            <div id="tickets" className="px-0 pb-6">
               <TicketSelection tickets={event.ticketTypes} eventId={event._id} />
+              <p className="text-center text-gray-500 text-sm mt-4">Secure payment powered by Stripe</p>
             </div>
           </div>
 
           {/* RIGHT SIDEBAR */}
           <div className="space-y-6">
             {/* LOCATION CARD */}
-            <div className="bg-white rounded-3xl shadow-sm border border-red-50 p-6">
-              <h3 className=" text-gray-900 mb-6 flex items-center gap-2">
-                
-                
-                <span className='text-red-900'>Location</span>
-              </h3>
-
-              <div className="space-y-2 mb-6">
-                <p className=" text-gray-800 text-lg">
-                  {event.location?.venueName || "Venue Name"}
-                </p>
-                <p className="text-gray-600 leading-relaxed">
-                  {event.location?.address}<br />
-                  {event.location?.city}, {event.location?.postcode}<br />
-                  {event.location?.country || "United Kingdom"}
-                </p>
+            <div className="bg-white rounded-2xl shadow-lg border-0">
+              <div className="px-6 pt-6 pb-2">
+                <h4 className="text-lg font-semibold text-red-900 leading-none">Location</h4>
               </div>
+              <div className="px-6 pb-6 space-y-4">
+                <div>
+                  <h4 className="text-gray-900 font-medium mb-1">{event.location?.venueName || "Venue Name"}</h4>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    {event.location?.address}<br />
+                    {event.location?.city}, {event.location?.postcode}<br />
+                    {event.location?.country || "United Kingdom"}
+                  </p>
+                </div>
 
-              <a 
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.location?.venueName} ${event.location?.address} ${event.location?.city}`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 text-sm  bg-gray-50 text-gray-700 border border-gray-200 rounded-2xl px-4 py-4 hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-300 w-full justify-center"
-              >
-                <MapPin size={20} className="" />
-                View in Google Maps
-              </a>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.location?.venueName} ${event.location?.address} ${event.location?.city}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-2"
+                >
+                  <MapPin size={16} className="text-red-600" />
+                  View in Google Maps
+                </a>
+              </div>
             </div>
 
             {/* ACTION BUTTONS */}
-            <div className="bg-white rounded-3xl shadow-sm border border-red-50 p-6 space-y-4">
-              <button className="flex items-center justify-center gap-3  text-gray-700 border border-gray-200 rounded-2xl px-4 py-4 w-full hover:bg-gray-50 transition-all">
-                <Share2 size={20} className="" />
+            <div className="bg-white rounded-2xl shadow-lg border-0 p-4 space-y-3">
+              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-2">
+                <Share2 size={18} className="text-gray-600" />
                 Share Event
               </button>
 
-              <button 
+              <button
                 onClick={async () => {
                   if (!user) {
                     router.push('/authpage');
@@ -250,18 +267,14 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                   }
                   await toggleSavedEvent(event._id);
                 }}
-                className={`flex items-center justify-center gap-3  border rounded-2xl px-4 py-4 w-full transition-all ${
-                  user?.savedEvents?.includes(event._id) 
-                    ? "bg-red-50 text-red-600 border-red-200" 
-                    : "text-gray-600 border-gray-200 hover:bg-gray-50"
-                }`}
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-2"
               >
-                <Heart 
-                  size={20} 
-                  className="" 
-                  fill={user?.savedEvents?.includes(event._id) ? "currentColor" : "none"} 
+                <Heart
+                  size={18}
+                  className={user?.savedEvents?.includes(event._id) ? "text-red-600" : "text-gray-600"}
+                  fill={user?.savedEvents?.includes(event._id) ? "currentColor" : "none"}
                 />
-                {user?.savedEvents?.includes(event._id) ? "Saved to Favorites" : "Save to Favorites"}
+                {user?.savedEvents?.includes(event._id) ? "Saved Event" : "Save Event"}
               </button>
             </div>
           </div>
@@ -270,13 +283,14 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
 
       {/* Map Section */}
       <section className="max-w-7xl mx-auto px-6 mb-12">
-        <div className="bg-white rounded-3xl shadow-sm border border-red-50 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <MapPin size={24} className="text-red-600" />
-            Event Map
-          </h2>
-          <div className="rounded-2xl overflow-hidden border border-gray-100">
-            <MapComponent center={event.location?.geometry?.coordinates} />
+        <div className="bg-white rounded-2xl shadow-lg border-0" id="map-section">
+          <div className="px-6 pt-6">
+            <h4 className="text-lg font-semibold text-red-900 leading-none">Map</h4>
+          </div>
+          <div className="px-6 pb-6 mt-4">
+            <div className="h-64 rounded-xl overflow-hidden border border-gray-100">
+              <MapComponent center={event.location?.geometry?.coordinates} />
+            </div>
           </div>
         </div>
       </section>
