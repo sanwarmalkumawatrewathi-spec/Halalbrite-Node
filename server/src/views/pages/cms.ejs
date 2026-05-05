@@ -1,7 +1,6 @@
 <div class="card">
     <div class="card-header">
-        <h3>Static Pages (CMS)</h3>
-        <a href="/admin/cms/add" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add New Page</a>
+        <h3>Static Pages (SEO Management)</h3>
     </div>
     <div class="table-responsive">
         <table>
@@ -22,10 +21,7 @@
                             <td class="text-muted"><code>/<%= page.slug %></code></td>
                             <td>
                                 <div style="display: flex; gap: 8px;">
-                                    <a href="/admin/cms/edit/<%= page._id %>" class="btn btn-sm btn-ghost" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
-                                    <form action="/admin/cms/delete/<%= page._id %>" method="POST" onsubmit="return confirm('Delete page?')">
-                                        <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--danger);"><i class="fa-solid fa-trash"></i></button>
-                                    </form>
+                                    <a href="/admin/cms/edit/<%= page._id %>" class="btn btn-sm btn-ghost" title="Edit SEO"><i class="fa-solid fa-pen-to-square"></i></a>
                                 </div>
                             </td>
                         </tr>

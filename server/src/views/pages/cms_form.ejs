@@ -1,9 +1,9 @@
 <div class="card">
     <div class="card-header">
         <h3 style="font-size: 1.1rem; color: var(--dark);">
-            <%= page ? 'Edit Static Page' : 'Create New Page' %>
+            <%= page ? 'Edit SEO for Static Page' : 'SEO for Page' %>
         </h3>
-        <a href="/admin/cms" class="btn" style="background: #f3f4f6;">Back to List</a>
+        <a href="/admin/cms" class="btn btn-ghost">Back to List</a>
     </div>
     <div style="padding: 2rem;">
         <form action="/admin/cms/save" method="POST" id="cmsForm">
@@ -23,7 +23,7 @@
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem; background: #f9fafb; padding: 1.5rem; border-radius: 12px; border: 1px solid #e5e7eb;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border, rgba(255,255,255,0.1));">
                 <div>
                     <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">SEO Settings</h4>
                     <div class="form-group">
@@ -56,45 +56,26 @@
                 </div>
             </div>
 
-            <div class="form-group" style="margin-top: 1.5rem;">
-                <label>Page Content</label>
-                <textarea name="content" id="editor" class="form-control" rows="15" placeholder="Write your page content here..."><%= page ? page.content : '' %></textarea>
-            </div>
+
 
             <% if (page) { %>
-                <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; margin-bottom: 2rem; font-size: 0.8rem; color: var(--gray);">
+                <div style="padding: 1rem; border-radius: 6px; margin-bottom: 2rem; font-size: 0.8rem; color: var(--gray); border: 1px solid var(--border, rgba(255,255,255,0.1));">
                     <i class="fa-solid fa-clock-rotate-left"></i> Last updated: <%= new Date(page.updatedAt).toLocaleString() %>
                 </div>
             <% } %>
 
             <div style="text-align: right; margin-top: 2rem; border-top: 1px solid var(--light-gray); padding-top: 1.5rem;">
                 <button type="submit" class="btn btn-primary" style="padding-left: 3rem; padding-right: 3rem;">
-                    <%= page ? 'Update Static Page' : 'Publish Page' %>
+                    Update SEO Settings
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
-<script>
-    ClassicEditor
-        .create(document.querySelector('#editor'), {
-            toolbar: [
-                'heading', '|', 
-                'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|',
-                'insertTable', 'mediaEmbed', 'undo', 'redo'
-            ]
-        })
-        .catch(error => {
-            console.error(error);
-        });
-</script>
+
 
 <style>
-    .ck-editor__editable {
-        min-height: 400px;
-    }
     .form-group label {
         display: block;
         margin-bottom: 8px;
