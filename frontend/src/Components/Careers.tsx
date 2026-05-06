@@ -7,8 +7,19 @@ import {
   Briefcase, MapPin, Clock, CircleCheckBig, ArrowDown 
 } from 'lucide-react';
 
+interface Job {
+  _id: string;
+  title: string;
+  department: string;
+  location: string;
+  type: string;
+  description: string;
+  requirements: string[];
+  applicationLink?: string;
+}
+
 export default function Careers() {
-  const [jobs, setJobs] = useState([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
