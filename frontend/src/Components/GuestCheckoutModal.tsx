@@ -68,7 +68,7 @@ export default function GuestCheckoutModal({
           {/* Actions */}
           <div className="space-y-4">
             <Link
-              href="/authpage"
+              href="/login-register"
               className="w-full flex items-center justify-center gap-3 bg-red-600 text-white py-4 rounded-2xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-100 active:scale-[0.98]"
             >
               <UserCircle size={20} />

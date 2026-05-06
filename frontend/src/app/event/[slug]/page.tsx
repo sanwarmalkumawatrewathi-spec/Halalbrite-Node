@@ -180,7 +180,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                   <button
                     onClick={async () => {
                       if (!user) {
-                        router.push('/authpage');
+                        router.push('/login-register');
                         return;
                       }
                       const orgId = typeof event.organizer === 'object' ? event.organizer._id : event.organizer;
@@ -262,7 +262,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
               <button
                 onClick={async () => {
                   if (!user) {
-                    router.push('/authpage');
+                    router.push('/login-register');
                     return;
                   }
                   await toggleSavedEvent(event._id);

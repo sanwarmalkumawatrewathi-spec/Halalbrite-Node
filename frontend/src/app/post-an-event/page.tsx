@@ -15,7 +15,7 @@ function PostEventFormContent() {
 
   useEffect(() => {
       if (!user) {
-        router.push('/authpage');
+        router.push('/login-register');
       }
   }, [user, loading, isOrganizer, router]);
 

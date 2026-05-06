@@ -12,9 +12,9 @@ const MapComponent = dynamic(() => import('@/Components/MapComponent'), {
   loading: () => <div className="h-[500px] w-full bg-gray-100 animate-pulse rounded-2xl" />
 });
 import { useSearchParams } from 'next/navigation';
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 
-export default function Event() {
+function EventContent() {
   const [expanded, setExpanded] = useState(false);
 
   const searchParams = useSearchParams();
@@ -38,7 +38,6 @@ export default function Event() {
   useEffect(() => {
     if (urlEventId) {
       setSelectedEventId(urlEventId);
-      // Optional: expand map if needed, or just focus on list
     }
   }, [urlEventId]);
 
@@ -47,7 +46,6 @@ export default function Event() {
       setLoading(true);
       try {
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-        // Only include non-empty filter values in the query string
         const activeFilters = Object.fromEntries(
           Object.entries(filters).filter(([_, v]) => v !== "" && v !== null && v !== undefined)
         );
@@ -64,7 +62,6 @@ export default function Event() {
       }
     };
 
-    // Debounce search/filters
     const timer = setTimeout(() => {
       fetchEvents();
     }, 300);
@@ -72,7 +69,6 @@ export default function Event() {
     return () => clearTimeout(timer);
   }, [filters]);
 
-  // Reset selection only when active filters change (excluding initial load with urlEventId)
   useEffect(() => {
     const hasActiveFilters = Object.values(filters).some(v => v !== "");
     if (hasActiveFilters && !urlEventId) {
@@ -80,8 +76,8 @@ export default function Event() {
     }
   }, [filters, urlEventId]);
 
-  const displayedEvents = selectedEventId 
-    ? events.filter((e: any) => e._id === selectedEventId) 
+  const displayedEvents = selectedEventId
+    ? events.filter((e: any) => e._id === selectedEventId)
     : events;
 
   return (
@@ -94,15 +90,13 @@ export default function Event() {
             className={`relative rounded-sm overflow-hidden transition-all duration-500 ${expanded ? "h-[500px]" : "h-[200px]"
               }`}
           >
-            {/* Map */}
             <div className="absolute inset-0 z-0  ">
-              <MapComponent 
-                events={events} 
-                onMarkerClick={(id) => setSelectedEventId(id)} 
+              <MapComponent
+                events={events}
+                onMarkerClick={(id) => setSelectedEventId(id)}
               />
             </div>
 
-            {/* Button */}
             <button
               onClick={() => setExpanded(!expanded)}
               className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-red-600 text-white px-5 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-red-700 transition"
@@ -112,9 +106,7 @@ export default function Event() {
             </button>
           </div>
         </div>
-
       </section>
-
 
       <FilterBar filters={filters} setFilters={setFilters} />
 
@@ -123,7 +115,7 @@ export default function Event() {
           <div className="text-gray-700 font-medium italic">
             Showing selected event from map
           </div>
-          <button 
+          <button
             onClick={() => setSelectedEventId(null)}
             className="text-red-600 font-bold hover:underline"
           >
@@ -136,5 +128,13 @@ export default function Event() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function Event() {
+  return (
+    <Suspense fallback={null}>
+      <EventContent />
+    </Suspense>
   );
 }

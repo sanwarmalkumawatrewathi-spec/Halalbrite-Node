@@ -47,7 +47,7 @@ export default function EventCard({
     e.stopPropagation();
     e.preventDefault();
     if (!user) {
-      router.push('/authpage');
+      router.push('/login-register');
       return;
     }
     await toggleSavedEvent(id);
