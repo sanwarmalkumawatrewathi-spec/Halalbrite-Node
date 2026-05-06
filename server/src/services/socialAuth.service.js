@@ -14,25 +14,43 @@ class SocialAuthService {
     }
 
     /**
-     * Verify Google ID Token
+     * Verify Google Token (handles both ID Token and Access Token)
      */
-    async verifyGoogleToken(idToken) {
+    async verifyGoogleToken(token) {
         const settings = await this.getSettings();
         if (!settings.google.isActive) throw new Error('Google login is disabled');
 
-        const client = new OAuth2Client(settings.google.clientId);
-        const ticket = await client.verifyIdToken({
-            idToken,
-            audience: settings.google.clientId
-        });
+        // Check if it's likely an ID Token (JWT has 3 parts) or an Access Token (opaque ya29...)
+        const isJwt = token.split('.').length === 3;
 
-        const payload = ticket.getPayload();
-        return {
-            id: payload['sub'],
-            email: payload['email'],
-            name: payload['name'],
-            picture: payload['picture']
-        };
+        if (isJwt) {
+            const client = new OAuth2Client(settings.google.clientId);
+            const ticket = await client.verifyIdToken({
+                idToken: token,
+                audience: settings.google.clientId
+            });
+
+            const payload = ticket.getPayload();
+            return {
+                id: payload['sub'],
+                email: payload['email'],
+                name: payload['name'],
+                picture: payload['picture']
+            };
+        } else {
+            // It's an Access Token (like ya29...)
+            const response = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${token}`);
+            const payload = response.data;
+
+            if (payload.error) throw new Error(payload.error_description || 'Invalid Access Token');
+
+            return {
+                id: payload.sub,
+                email: payload.email,
+                name: payload.name,
+                picture: payload.picture
+            };
+        }
     }
 
     /**

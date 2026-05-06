@@ -231,10 +231,12 @@ const handleSocialLogin = async (res, socialData, provider) => {
 // @access  Public
 exports.googleLogin = async (req, res) => {
     try {
-        const { idToken } = req.body;
-        if (!idToken) return res.status(400).json({ message: 'Google ID Token is required' });
+        const { idToken, accessToken } = req.body;
+        const token = idToken || accessToken;
         
-        const socialData = await socialAuthService.verifyGoogleToken(idToken);
+        if (!token) return res.status(400).json({ message: 'Google Token is required' });
+        
+        const socialData = await socialAuthService.verifyGoogleToken(token);
         await handleSocialLogin(res, socialData, 'google');
     } catch (error) {
         res.status(500).json({ message: error.message });
