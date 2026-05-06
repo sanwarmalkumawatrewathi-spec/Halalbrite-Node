@@ -22,7 +22,7 @@ exports.getUserProfile = async (req, res) => {
         const user = await User.findById(req.user._id)
             .populate('roles', 'name slug')
             .select('-password');
-        
+
         res.json({
             success: true,
             data: user
@@ -41,9 +41,9 @@ exports.getUserProfile = async (req, res) => {
 exports.updateUserProfile = async (req, res) => {
     try {
         const { firstName, lastName, phone, bio } = req.body;
-        
+
         const user = await User.findById(req.user._id);
-        
+
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
@@ -55,7 +55,7 @@ exports.updateUserProfile = async (req, res) => {
         user.bio = bio !== undefined ? bio : user.bio;
 
         const updatedUser = await user.save();
-        
+
         res.json({
             success: true,
             message: 'Profile updated successfully',
@@ -91,7 +91,7 @@ exports.getUserAddresses = async (req, res) => {
 exports.addUserAddress = async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
-        
+
         // If it's the first address, make it default
         if (user.addresses.length === 0) {
             req.body.isDefault = true;
@@ -349,14 +349,14 @@ exports.upgradeToOrganizer = async (req, res) => {
     try {
         const Role = require('../models/role.model');
         const organizerRole = await Role.findOne({ slug: 'organizer' });
-        
+
         if (!organizerRole) {
             return res.status(500).json({ success: false, message: 'Organizer role not configured' });
         }
 
         const user = await User.findById(req.user._id).populate('roles');
         const alreadyOrganizer = user.roles.some(r => r.slug === 'organizer' || r.slug === 'administrator');
-        
+
         if (alreadyOrganizer) {
             return res.status(400).json({ success: false, message: 'User is already an organizer or admin' });
         }
@@ -394,7 +394,7 @@ exports.getOrganizerStats = async (req, res) => {
         const activeEventsCount = events.filter(e => e.status === 'published' && new Date(e.endDate) > new Date()).length;
 
         // Calculate total sales and revenue from paid/free bookings
-        const bookings = await Booking.find({ 
+        const bookings = await Booking.find({
             event_id: { $in: eventIds },
             payment_status: { $in: ['paid', 'free'] }
         });
@@ -430,29 +430,24 @@ exports.getOrganizerStats = async (req, res) => {
 
         // Event Distribution by Category
         const eventDistribution = await Event.aggregate([
-            { $match: { organizer: new mongoose.Types.ObjectId(req.user._id) } },
-            {
-                $group: {
-                    _id: "$category",
-                    count: { $sum: 1 }
-                }
-            },
+            { $match: { organizer: req.user._id } },
             {
                 $lookup: {
                     from: "categories",
-                    localField: "_id",
+                    localField: "category",
                     foreignField: "_id",
                     as: "categoryInfo"
                 }
             },
-            { $unwind: "$categoryInfo" },
+            { $unwind: { path: "$categoryInfo", preserveNullAndEmptyArrays: true } },
             {
-                $project: {
-                    name: "$categoryInfo.name",
-                    count: 1
+                $group: {
+                    _id: { $ifNull: ["$categoryInfo.name", "Uncategorized"] },
+                    count: { $sum: 1 }
                 }
             }
         ]);
+        console.log("[DEBUG] Event Distribution Data:", JSON.stringify(eventDistribution, null, 2));
 
         let stripeBalance = { available: 0, pending: 0 };
         if (stripeConnected) {
@@ -503,7 +498,7 @@ exports.getOrganizerEvents = async (req, res) => {
             const bookings = await Booking.find({ event_id: event._id, payment_status: { $in: ['paid', 'free'] } });
             const sold = bookings.reduce((acc, b) => acc + b.quantity, 0);
             const revenue = bookings.reduce((acc, b) => acc + b.organizer_amount, 0);
-            
+
             return {
                 ...event.toObject(),
                 ticketsSold: sold,
@@ -551,7 +546,7 @@ exports.getOrganizerCustomers = async (req, res) => {
 // @access  Private/Organizer
 exports.getOrganizerPayouts = async (req, res) => {
     try {
-        const payouts = await Payout.find({ organizerId: req.user._id })
+        const payouts = await Payout.find({ organizer_id: req.user._id })
             .sort({ createdAt: -1 });
 
         res.json({
@@ -639,6 +634,79 @@ exports.deleteOrganisation = async (req, res) => {
         res.json({
             success: true,
             message: 'Organisation deleted successfully'
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+// @desc    Message an attendee
+// @route   POST /api/dashboard/organizer/message-attendee
+// @access  Private/Organizer
+exports.messageAttendee = async (req, res) => {
+    try {
+        const { bookingId, subject, message } = req.body;
+
+        if (!bookingId || !message) {
+            return res.status(400).json({ success: false, message: 'Please provide booking ID and message' });
+        }
+
+        const booking = await Booking.findById(bookingId).populate('user_id');
+        if (!booking) {
+            return res.status(404).json({ success: false, message: 'Booking not found' });
+        }
+
+        // Verify organizer ownership
+        if (booking.organizer_id.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ success: false, message: 'Not authorized to message this attendee' });
+        }
+
+        const email = booking.customer_email || booking.user_id?.email;
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Attendee email not found' });
+        }
+
+        // Send email using emailService
+        const emailService = require('../services/email.service');
+        await emailService.sendNotificationEmail(
+            email,
+            subject || `Message from ${req.user.username} regarding your booking`,
+            subject || "Message from Organizer",
+            message,
+            booking
+        );
+
+        res.json({
+            success: true,
+            message: 'Message sent successfully'
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Suggest/Add a new category
+// @route   POST /api/dashboard/organizer/suggest-category
+// @access  Private/Organizer
+exports.suggestCategory = async (req, res) => {
+    try {
+        const { name } = req.body;
+
+        if (!name) {
+            return res.status(400).json({ success: false, message: 'Category name is required' });
+        }
+
+        // Check if exists
+        const exists = await Category.findOne({ name: { $regex: new RegExp(`^${name}$`, 'i') } });
+        if (exists) {
+            return res.status(400).json({ success: false, message: 'Category already exists' });
+        }
+
+        const category = await Category.create({ name });
+
+        res.json({
+            success: true,
+            message: 'Category added successfully',
+            data: category
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

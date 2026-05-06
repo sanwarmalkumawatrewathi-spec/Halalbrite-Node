@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { 
-    getUserProfile, 
-    updateUserProfile, 
+const {
+    getUserProfile,
+    updateUserProfile,
     getUserAddresses,
     addUserAddress,
     updateUserAddress,
     deleteUserAddress,
     setDefaultAddress,
-    getMyTickets, 
+    getMyTickets,
     getSavedItems,
     toggleSaveEvent,
     toggleFollowOrganizer,
@@ -21,7 +21,9 @@ const {
     getOrganisations,
     createOrganisation,
     updateOrganisation,
-    deleteOrganisation
+    deleteOrganisation,
+    messageAttendee,
+    suggestCategory
 } = require('../../controllers/dashboard.controller');
 const { protect, authorize } = require('../../middlewares/auth.middleware');
 
@@ -53,5 +55,7 @@ router.get('/organizer/organisations', protect, authorize('publish_events'), get
 router.post('/organizer/organisations', protect, authorize('publish_events'), createOrganisation);
 router.put('/organizer/organisations/:id', protect, authorize('publish_events'), updateOrganisation);
 router.delete('/organizer/organisations/:id', protect, authorize('publish_events'), deleteOrganisation);
+router.post('/organizer/message-attendee', protect, authorize('publish_events'), messageAttendee);
+router.post('/organizer/suggest-category', protect, authorize('publish_events'), suggestCategory);
 
 module.exports = router;

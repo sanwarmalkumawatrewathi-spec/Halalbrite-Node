@@ -7,9 +7,25 @@ import { IoWarningOutline, IoCheckmarkCircleOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/authContext";
 
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer, 
+  PieChart, 
+  Pie, 
+  Cell,
+  Legend
+} from 'recharts';
+
 interface OverviewTabProps {
   onTabChange?: (tab: string) => void;
 }
+
+const COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fee2e2', '#991b1b', '#7f1d1d'];
 
 export default function OverviewTab({ onTabChange }: OverviewTabProps) {
   const [loading, setLoading] = useState(true);
@@ -47,6 +63,33 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
     }
   };
 
+  // Format chart data to always show last 6 months
+  const revenueData = React.useMemo(() => {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const result = [];
+    const now = new Date();
+    
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const m = d.getMonth() + 1;
+      const y = d.getFullYear();
+      
+      const existing = data?.chartData?.find((item: any) => item._id.month === m && item._id.year === y);
+      
+      result.push({
+        name: months[d.getMonth()],
+        revenue: existing ? existing.totalRevenue : 0,
+        tickets: existing ? existing.ticketCount : 0
+      });
+    }
+    return result;
+  }, [data?.chartData]);
+
+  const distributionData = data?.eventDistribution?.map((item: any) => ({
+    name: item._id || 'Uncategorized',
+    value: item.count
+  })) || [];
+
   const handleManageStripe = async () => {
     try {
       let API_URL = process.env.NEXT_PUBLIC_API_URL || '';
@@ -58,7 +101,6 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
       const token = localStorage.getItem('token');
       const fullUrl = `${API_URL}/api/payments/stripe-login`;
       console.log("[DEBUG] HandleManageStripe - Target URL:", fullUrl);
-      console.log("[DEBUG] Current process.env.NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL);
 
       const response = await fetch(fullUrl, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -253,19 +295,37 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
                 <h4 data-slot="card-title" className="leading-none text-red-900 font-semibold text-lg">Revenue &amp; Sales Overview</h4>
                 <p data-slot="card-description" className="text-muted-foreground mt-1 text-sm">Last 6 months</p>
               </div>
-              <button type="button" role="combobox" className="data-[placeholder]:text-muted-foreground [&amp;_svg:not([class*='text-'])]:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 dark:hover:bg-input/50 flex items-center justify-between gap-2 rounded-md border bg-input-background px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 data-[size=default]:h-9 data-[size=sm]:h-8 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&amp;_svg]:pointer-events-none [&amp;_svg]:shrink-0 [&amp;_svg:not([class*='size-'])]:size-4 w-[150px] border-red-200 focus:ring-red-500 bg-white">
-                <span data-slot="select-value" style={{ pointerEvents: 'none' }}>6 Months</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down size-4 opacity-50"><path d="m6 9 6 6 6-6"></path></svg>
-              </button>
             </div>
           </div>
           <div data-slot="card-content" className="px-6 [&amp;:last-child]:pb-6">
-            <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-alert w-12 h-12 text-gray-400 mx-auto mb-3"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
-                <p className="text-gray-600 mb-2 font-medium">No data available</p>
-                <p className="text-sm text-gray-500">{data?.stripeConnected ? 'Start selling tickets to see analytics here' : 'Connect Stripe to view revenue analytics'}</p>
-              </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                  />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                    tickFormatter={(value) => `€${value}`}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: '#fef2f2' }}
+                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                  />
+                  <Bar 
+                    dataKey="revenue" 
+                    fill="#dc2626" 
+                    radius={[4, 4, 0, 0]} 
+                    barSize={40}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         </div>
@@ -276,13 +336,39 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
             <p data-slot="card-description" className="text-muted-foreground mt-1 text-sm">By category</p>
           </div>
           <div data-slot="card-content" className="px-6 [&amp;:last-child]:pb-6">
-            <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-alert w-12 h-12 text-gray-400 mx-auto mb-3"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
-                <p className="text-gray-600 mb-2 font-medium">No data available</p>
-                <p className="text-sm text-gray-500">{data?.stripeConnected ? 'Create more events to see category distribution' : 'Connect Stripe to view event distribution'}</p>
+            {distributionData.length > 0 ? (
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={distributionData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {distributionData.map((entry: any, index: number) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-            </div>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-circle-alert w-12 h-12 text-gray-400 mx-auto mb-3"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
+                  <p className="text-gray-600 mb-2 font-medium">No data available</p>
+                  <p className="text-sm text-gray-500">{data?.stripeConnected ? 'Create more events to see category distribution' : 'Connect Stripe to view event distribution'}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

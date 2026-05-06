@@ -10,7 +10,8 @@ const {
     appleLogin,
     updateProfile,
     becomeOrganizer,
-    updatePreferences
+    updatePreferences,
+    changePassword
 } = require('../../controllers/auth.controller');
 const { protect } = require('../../middlewares/auth.middleware');
 
@@ -23,6 +24,7 @@ router.post('/apple', appleLogin);
 router.get('/profile', protect, getProfile);
 router.post('/update-profile', protect, updateProfile);
 router.post('/become-organizer', protect, becomeOrganizer);
+router.post('/change-password', protect, changePassword);
 
 router.put('/preferences', protect, updatePreferences);
 

@@ -19,6 +19,9 @@ export default function EventsTab() {
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<any[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<any>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -43,19 +46,26 @@ export default function EventsTab() {
     }
   };
 
-  const handleDelete = async (eventId: string) => {
-    if (!confirm('Are you sure you want to delete this event? This cannot be undone.')) return;
-    setDeletingId(eventId);
+  const handleDelete = (event: any) => {
+    setEventToDelete(event);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!eventToDelete) return;
+    setDeletingId(eventToDelete._id);
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/events/${eventId}`, {
+      const response = await fetch(`${API_URL}/api/events/${eventToDelete._id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const result = await response.json();
       if (result.success || response.ok) {
-        fetchEvents();
+        setShowDeleteModal(false);
+        setEvents(prev => prev.filter(e => e._id !== eventToDelete._id));
+        setShowSuccessModal(true);
       } else {
         alert(result.message || 'Failed to delete event');
       }
@@ -64,6 +74,7 @@ export default function EventsTab() {
       alert('Network error while deleting.');
     } finally {
       setDeletingId(null);
+      setEventToDelete(null);
     }
   };
 
@@ -151,7 +162,7 @@ export default function EventsTab() {
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-edit w-4 h-4"><path d="M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v10"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10.4 12.6a2 2 0 1 1 3 3L8 21l-4 1 1-4Z"></path></svg>
                                     <span className="sr-only">Edit</span>
                                   </button>
-                                  <button onClick={() => handleDelete(e._id)} disabled={deletingId === e._id} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 rounded-md bg-transparent text-red-600">
+                                  <button onClick={() => handleDelete(e)} disabled={deletingId === e._id} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 rounded-md bg-transparent text-red-600">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash2 w-4 h-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>
                                     <span className="sr-only">Delete</span>
                                   </button>
@@ -184,6 +195,67 @@ export default function EventsTab() {
           </div>
         </div>
       </div>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl transform animate-in zoom-in-95 duration-200">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center shrink-0">
+                <MdDeleteOutline className="text-red-600 text-2xl" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">Delete Event?</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Are you sure you want to delete <span className="font-bold text-gray-900">"{eventToDelete?.title}"</span>? This action cannot be undone and all associated data will be lost.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              <button 
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deletingId !== null}
+                className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-50 transition disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDelete}
+                disabled={deletingId !== null}
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2 disabled:opacity-70"
+              >
+                {deletingId ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Deleting...
+                  </>
+                ) : (
+                  "Yes, Delete"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center transform animate-in zoom-in-95 duration-200">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check text-green-600 w-10 h-10"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Deleted!</h3>
+            <p className="text-gray-600 mb-8">The event has been permanently removed from your dashboard.</p>
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-200"
+            >
+              Great, thanks!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

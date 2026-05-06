@@ -382,3 +382,36 @@ exports.becomeOrganizer = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// @desc    Change password
+// @route   POST /api/auth/change-password
+// @access  Private
+exports.changePassword = async (req, res) => {
+    console.log('[DEBUG] Inside changePassword controller - Body:', req.body);
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // If user is social and has no password, allow setting one without current password
+        if (user.isSocialLogin && !user.password) {
+            user.password = newPassword;
+            await user.save();
+            return res.json({ message: 'Password set successfully' });
+        }
+
+        if (!(await user.comparePassword(currentPassword))) {
+            return res.status(401).json({ message: 'Incorrect current password' });
+        }
+
+        user.password = newPassword;
+        await user.save();
+
+        res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

@@ -24,7 +24,9 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 // Debug logger
 app.use((req, res, next) => {
-    console.log(`[DEBUG] ${req.method} ${req.url}`);
+    res.on('finish', () => {
+        console.log(`[DEBUG] ${req.method} ${req.originalUrl} - ${res.statusCode}`);
+    });
     next();
 });
 

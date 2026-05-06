@@ -21,8 +21,8 @@ const categorySchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Pre-save hook to generate slug if not provided
-categorySchema.pre('save', async function() {
+// Pre-validate hook to generate slug if not provided
+categorySchema.pre('validate', async function() {
     if (!this.slug && this.name) {
         this.slug = this.name
             .toLowerCase()

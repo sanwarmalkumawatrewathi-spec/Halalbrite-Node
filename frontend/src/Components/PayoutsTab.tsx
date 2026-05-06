@@ -38,8 +38,12 @@ export default function PayoutsTab() {
       if (payoutsResult.success) setPayouts(payoutsResult.data);
       if (statsResult.success) setStats(statsResult.data.stats);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch payout data:", error);
+      // If error is Failed to fetch, it might be CORS or server down
+      if (error.message === 'Failed to fetch') {
+          console.error("This is likely a CORS or Network issue. Check if backend is running on 5000.");
+      }
     } finally {
       setLoading(false);
     }
