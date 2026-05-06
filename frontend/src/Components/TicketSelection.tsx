@@ -80,14 +80,46 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
     }
     if (!eventId) return;
 
-    // Navigate to checkout page with ticket details and selected currency
+    const items = [{
+      name: ticket.name,
+      qty: quantity
+    }];
+
     const params = new URLSearchParams({
-      ticket: ticket.name,
-      qty: quantity.toString(),
+      items: JSON.stringify(items),
       currency: currentCurrency.code
     });
     window.location.href = `/checkout/${eventId}?${params.toString()}`;
   };
+
+  const handleBuyAll = () => {
+    const selectedItems = displayTickets
+      .filter(t => (qty[t._id] || 0) > 0)
+      .map(t => ({
+        name: t.name,
+        qty: qty[t._id]
+      }));
+
+    if (selectedItems.length === 0) {
+      alert("Please select at least one ticket.");
+      return;
+    }
+
+    const params = new URLSearchParams({
+      items: JSON.stringify(selectedItems),
+      currency: currentCurrency.code
+    });
+    window.location.href = `/checkout/${eventId}?${params.toString()}`;
+  };
+
+  const totalSelectedQty = Object.values(qty).reduce((a, b) => a + b, 0);
+  const selectedTicketTypes = displayTickets.filter(t => (qty[t._id] || 0) > 0);
+  
+  const overallTotal = selectedTicketTypes.reduce((acc, t) => {
+    const count = qty[t._id] || 0;
+    const feeData = calcFees(t.price);
+    return acc + (feeData.grandTotal * count);
+  }, 0);
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-red-50 p-6 md:p-8">
@@ -118,7 +150,6 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                   </p>
                 </div>
 
-                <div className="md:text-right">
                   <div className="flex flex-wrap items-baseline md:justify-end gap-2">
                     <span className=" text-xl text-gray-900">
                       {formatPrice(ticket.price)}
@@ -129,10 +160,20 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                       </span>
                     )}
                   </div>
-                  <p className="text-xs  mt-1 uppercase tracking-wider">
-                    {ticket.quantity} remaining
-                  </p>
-                </div>
+                  <div className="flex items-center md:justify-end gap-1.5 mt-1">
+                    {(ticket.quantity - count) <= 5 && (ticket.quantity - count) > 0 ? (
+                        <div className="flex items-center gap-1 text-orange-600 font-bold text-[11px] uppercase tracking-wide">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            Only {ticket.quantity - count} left
+                        </div>
+                    ) : (
+                        <p className="text-xs text-gray-400 uppercase tracking-wider">
+                            {ticket.quantity - count} Left
+                        </p>
+                    )}
+                  </div>
               </div>
 
               {/* ACTION ROW */}
@@ -150,7 +191,10 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                   </div>
                   <button
                     onClick={() => handleChange(ticket._id, "inc")}
-                    className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-600 font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all shadow-sm"
+                    disabled={count >= ticket.quantity}
+                    className={`w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-600 font-bold transition-all shadow-sm ${
+                        count >= ticket.quantity ? 'opacity-30 cursor-not-allowed' : 'hover:bg-red-50 hover:text-red-600 hover:border-red-100'
+                    }`}
                   >
                     +
                   </button>
@@ -160,8 +204,12 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                 <button
                   disabled={isProcessing}
                   onClick={() => handleBuyNow(ticket)}
-                  className={`flex-1 relative overflow-hidden py-4 rounded-2xl font-bold text-white transition-all duration-300 transform h-[40px]active:scale-95 flex items-center justify-center ${
-                    isProcessing ? "bg-gray-400" : "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-100"
+                  className={`flex-1 relative overflow-hidden py-4 rounded-2xl font-bold text-white transition-all duration-300 transform h-[40px] active:scale-95 flex items-center justify-center ${
+                    isProcessing 
+                      ? "bg-gray-400" 
+                      : (selectedTicketTypes.length > 1 
+                          ? "bg-[#c5c9d1] hover:bg-gray-400" 
+                          : (count > 0 ? "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-100" : "bg-[#f28e9d] hover:bg-red-600"))
                   }`}
                 >
                   {isProcessing ? (
@@ -191,6 +239,36 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
           );
         })}
       </div>
+
+      {/* SUMMARY BAR */}
+      {selectedTicketTypes.length > 1 && (
+        <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white border-2 border-red-500 rounded-2xl p-4 md:p-6 shadow-xl shadow-red-100 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-gray-900">
+                {selectedTicketTypes.length} Ticket Type{selectedTicketTypes.length > 1 ? 's' : ''} Selected
+              </span>
+              <span className="text-xs text-gray-500">
+                {selectedTicketTypes.map(t => `${qty[t._id]}x ${t.name}`).join(', ')}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              <div className="text-right hidden sm:block">
+                <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total + fees</span>
+                <span className="text-xl font-bold text-red-600">{formatPrice(overallTotal)}</span>
+              </div>
+              
+              <button 
+                onClick={handleBuyAll}
+                className="flex-1 md:flex-none bg-red-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200"
+              >
+                Buy All Tickets
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* FOOTER */}
       <div className="mt-8 pt-6 border-t border-gray-100 flex flex-col items-center gap-3">

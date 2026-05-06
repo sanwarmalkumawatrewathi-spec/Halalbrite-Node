@@ -17,8 +17,18 @@ function CheckoutContent() {
     const { user } = useAuth();
 
     const eventId = params.slug;
-    const ticketName = searchParams.get("ticket");
-    const quantity = parseInt(searchParams.get("qty") || "0");
+    const itemsParam = searchParams.get("items");
+    const checkoutItems = itemsParam ? JSON.parse(itemsParam) : [];
+    
+    // Fallback for single ticket legacy (though we updated TicketSelection)
+    if (checkoutItems.length === 0 && searchParams.get("ticket")) {
+        checkoutItems.push({
+            name: searchParams.get("ticket"),
+            qty: parseInt(searchParams.get("qty") || "1")
+        });
+    }
+
+    const totalQuantity = checkoutItems.reduce((acc: number, item: any) => acc + item.qty, 0);
 
     const [event, setEvent] = useState<any>(null);
     const [settings, setSettings] = useState<any>(null);
@@ -68,16 +78,16 @@ function CheckoutContent() {
     }, [user, hasAutoFilledAddress]);
 
     useEffect(() => {
-        // Initialize attendee names based on quantity
-        setAttendeeNames(Array(quantity).fill(""));
-    }, [quantity]);
+        // Initialize attendee names based on total quantity
+        setAttendeeNames(Array(totalQuantity).fill(""));
+    }, [totalQuantity]);
 
     useEffect(() => {
         // If useSameName is true, keep all names in sync with the main fullName
         if (useSameName) {
-            setAttendeeNames(Array(quantity).fill(formData.fullName));
+            setAttendeeNames(Array(totalQuantity).fill(formData.fullName));
         }
-    }, [formData.fullName, useSameName, quantity]);
+    }, [formData.fullName, useSameName, totalQuantity]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -146,8 +156,7 @@ function CheckoutContent() {
                 },
                 body: JSON.stringify({
                     eventId,
-                    ticketType: ticketName,
-                    quantity,
+                    items: checkoutItems,
                     currency: currentCurrency.code,
                     attendeeName: formData.fullName,
                     attendeeEmail: formData.email,
@@ -175,13 +184,23 @@ function CheckoutContent() {
         }
     };
 
-    if (loading) return <div className=" flex items-center justify-center">Loading...</div>;
-    if (!event || !ticketName) return <div className=" flex items-center justify-center text-red-600">Invalid Session</div>;
+    if (loading) return <div className=" flex items-center justify-center h-screen">Loading...</div>;
+    if (!event || checkoutItems.length === 0) return <div className=" flex items-center justify-center text-red-600 h-screen">Invalid Session</div>;
 
-    const selectedTicket = event.ticketTypes?.find((t: any) => t.name === ticketName);
-    const financial = calcFees(selectedTicket);
-    const ticketPrice = financial.subtotal;
-    const grandTotal = financial.total * quantity;
+    const itemsWithPricing = checkoutItems.map((item: any) => {
+        const ticket = event.ticketTypes?.find((t: any) => t.name === item.name);
+        const financial = calcFees(ticket);
+        return {
+            ...item,
+            price: ticket?.price || 0,
+            fees: financial.fees,
+            total: financial.total
+        };
+    });
+
+    const overallGrandTotal = itemsWithPricing.reduce((acc: number, item: any) => acc + (item.total * item.qty), 0);
+    const overallSubtotal = itemsWithPricing.reduce((acc: number, item: any) => acc + (item.price * item.qty), 0);
+    const overallFees = itemsWithPricing.reduce((acc: number, item: any) => acc + (item.fees * item.qty), 0);
 
     return (
         <div className="bg-[#fef3f6]  font-sans">
@@ -222,20 +241,22 @@ function CheckoutContent() {
                                 </p>
                             </div>
 
-                            {/* Ticket Item */}
-                            <div className="flex justify-between py-3 border-t border-gray-200">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-800">
-                                        {ticketName}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                        Quantity: {quantity} × {formatPrice(ticketPrice)}
+                            {/* Ticket Items */}
+                            {itemsWithPricing.map((item: any, idx: number) => (
+                                <div key={idx} className="flex justify-between py-3 border-t border-gray-200">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-800">
+                                            {item.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            Quantity: {item.qty} × {formatPrice(item.price)}
+                                        </p>
+                                    </div>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        {formatPrice(item.price * item.qty)}
                                     </p>
                                 </div>
-                                <p className="text-sm font-medium text-gray-900">
-                                    {formatPrice(ticketPrice * quantity)}
-                                </p>
-                            </div>
+                            ))}
 
                             {/* Divider */}
                             <div className="border-t border-gray-200 my-3" />
@@ -244,13 +265,13 @@ function CheckoutContent() {
                             <div className="space-y-2 text-sm text-gray-600">
                                 <div className="flex justify-between">
                                     <span>Subtotal</span>
-                                    <span>{formatPrice(ticketPrice * quantity)}</span>
+                                    <span>{formatPrice(overallSubtotal)}</span>
                                 </div>
 
                                 {event?.feePayment !== true && (
                                     <div className="flex justify-between">
                                         <span>Fees (incl. VAT)</span>
-                                        <span>{formatPrice(financial.fees * quantity)}</span>
+                                        <span>{formatPrice(overallFees)}</span>
                                     </div>
                                 )}
                             </div>
@@ -259,7 +280,7 @@ function CheckoutContent() {
                             <div className="flex justify-between items-center border-t border-gray-300 mt-4 pt-4">
                                 <span className="font-semibold text-gray-900">Total</span>
                                 <span className="text-lg font-bold text-gray-900">
-                                    {formatPrice(financial.total * quantity)}
+                                    {formatPrice(overallGrandTotal)}
                                 </span>
                             </div>
 
@@ -299,20 +320,20 @@ function CheckoutContent() {
 
                                     {/* Text */}
                                     <span className="text-sm font-medium text-gray-800">
-                                        Use my name for all 3 tickets
+                                        Use my name for all {totalQuantity} tickets
                                     </span>
 
                                 </div>
 
                                 <div className="space-y-8">
                                     {/* TOGGLE */}
-                                    {quantity > 1 && (
+                                    {totalQuantity > 1 && (
                                         <div className="bg-red-50/50 p-6 rounded-2xl border border-red-100 flex items-center gap-4 group cursor-pointer" onClick={() => setUseSameName(!useSameName)}>
                                             <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all ${useSameName ? 'bg-red-600 border-red-600' : 'border-red-200 bg-white'}`}>
                                                 {useSameName && <div className="w-3 h-1.5 border-l-2 border-b-2 border-white -rotate-45 mb-1" />}
                                             </div>
                                             <span className="font-bold text-gray-700 group-hover:text-red-600 transition-colors">
-                                                Use my name for all {quantity} tickets
+                                                Use my name for all {totalQuantity} tickets
                                             </span>
                                         </div>
                                     )}
@@ -323,7 +344,7 @@ function CheckoutContent() {
                                         <div className="space-y-2">
                                             {/* Label */}
                                             <label className="text-sm font-medium text-gray-800">
-                                                {quantity > 1 && !useSameName ? "Ticket 1 - Full Name" : "Full Name"}
+                                                {totalQuantity > 1 && !useSameName ? "Ticket 1 - Full Name" : "Full Name"}
                                             </label>
 
                                             {/* Input */}
@@ -339,13 +360,13 @@ function CheckoutContent() {
 
                                             {/* Helper Text */}
                                             <p className="text-xs text-gray-500">
-                                                This name will appear on all {quantity} tickets
+                                                This name will appear on all {totalQuantity} tickets
                                             </p>
                                         </div>
 
 
                                         {/* Additional Ticket Names (if not using same name) */}
-                                        {quantity > 1 && !useSameName && attendeeNames.slice(1).map((name, idx) => (
+                                        {totalQuantity > 1 && !useSameName && attendeeNames.slice(1).map((name, idx) => (
                                             <div key={idx} className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                                                 <label className="text-sm font-black text-gray-700 uppercase tracking-widest">
                                                     Ticket {idx + 2} - Full Name
@@ -593,7 +614,7 @@ function CheckoutContent() {
                                     ) : (
                                         <>
                                             <FiLock className="text-white" size={16} />
-                                            Complete Purchase - {formatPrice(financial.total * quantity)}
+                                            Complete Purchase - {formatPrice(overallGrandTotal)}
                                         </>
                                     )}
                                 </button>

@@ -9,8 +9,11 @@ const FAQ = require('../models/faq.model');
 const Role = require('../models/role.model');
 const Transaction = require('../models/transaction.model');
 const Payout = require('../models/payout.model');
+const EmailLog = require('../models/emailLog.model');
+const Job = require('../models/job.model');
 const jwt = require('jsonwebtoken');
 const stripeService = require('../services/stripe.service');
+const { handleTicketDelivery, verifyPendingBookings } = require('./payment.controller');
 
 // @desc    Show Admin Login Page
 // @route   GET /admin/login
@@ -408,6 +411,59 @@ exports.getInquiries = async (req, res) => {
     }
 };
 
+// @desc    Mark Inquiry as Read
+// @route   POST /admin/inquiries/read/:id
+exports.markInquiryRead = async (req, res) => {
+    try {
+        await Inquiry.findByIdAndUpdate(req.params.id, { status: 'read' });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+
+// @desc    Show Admin Profile Page
+// @route   GET /admin/profile
+exports.getAdminProfile = async (req, res) => {
+    try {
+        console.log('👤 Accessing Admin Profile Page');
+        const user = await User.findById(req.user._id);
+        res.render('pages/profile', {
+            activePage: 'profile',
+            admin: req.user,
+            user,
+            success: req.query.success || null,
+            error: req.query.error || null
+        });
+    } catch (error) {
+        console.error('❌ Error in getAdminProfile:', error);
+        res.status(500).send(error.message);
+    }
+};
+
+// @desc    Update Admin Profile
+// @route   POST /admin/profile/update
+exports.updateAdminProfile = async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
+        const user = await User.findById(req.user._id);
+
+        if (!user) return res.status(404).send('User not found');
+
+        user.username = username;
+        user.email = email;
+
+        if (password && password.trim() !== '') {
+            user.password = password;
+        }
+
+        await user.save();
+        res.redirect('/admin/profile?success=Profile updated successfully');
+    } catch (error) {
+        res.redirect(`/admin/profile?error=${error.message}`);
+    }
+};
+
 // @desc    FAQ Management
 // @route   GET /admin/faqs
 exports.getFAQs = async (req, res) => {
@@ -426,11 +482,15 @@ exports.getFAQs = async (req, res) => {
 // @desc    Orders & Payments
 // @route   GET /admin/orders
 exports.getOrders = async (req, res) => {
+    console.log('📋 Admin: Fetching all orders...');
     try {
         const orders = await Booking.find()
             .populate('user_id', 'username email')
             .populate('event_id', 'title')
             .sort({ createdAt: -1 });
+
+        // Auto-verify any pending orders found in the list
+        await verifyPendingBookings(orders);
         res.render('pages/orders', {
             activePage: 'orders',
             admin: req.user,
@@ -445,11 +505,27 @@ exports.getOrders = async (req, res) => {
 // @route   GET /admin/orders/view/:id
 exports.getOrderDetail = async (req, res) => {
     try {
-        const order = await Booking.findById(req.params.id)
+        let order = await Booking.findById(req.params.id)
             .populate('user_id', 'username email')
             .populate('event_id', 'title');
         
         if (!order) return res.status(404).send('Order not found');
+
+        // On-the-fly verification for pending order
+        if (order.payment_status === 'pending' && order.stripe_session_id) {
+            try {
+                const stripeInstance = await stripeService.getStripeInstance();
+                const session = await stripeInstance.checkout.sessions.retrieve(order.stripe_session_id);
+                if (session.payment_status === 'paid') {
+                    order.payment_status = 'paid';
+                    order.stripe_payment_intent_id = session.payment_intent;
+                    await order.save();
+                    await handleTicketDelivery(order);
+                    // Reload
+                    order = await Booking.findById(order._id).populate('user_id', 'username email').populate('event_id', 'title');
+                }
+            } catch (err) { console.error('Admin verification error:', err.message); }
+        }
 
         res.render('pages/order_detail', {
             activePage: 'orders',
@@ -1003,5 +1079,132 @@ exports.disconnectStripe = async (req, res) => {
         res.redirect('/admin/stripe/dashboard?success=Stripe account disconnected successfully');
     } catch (error) {
         res.redirect(`/admin/stripe/dashboard?error=${encodeURIComponent(error.message)}`);
+    }
+};
+// @desc    Email Logs
+// @route   GET /admin/email-logs
+exports.getEmailLogs = async (req, res) => {
+    try {
+        const logs = await EmailLog.find()
+            .populate('booking_id', 'booking_reference customer_name')
+            .sort({ createdAt: -1 })
+            .limit(100);
+
+        res.render('pages/emailLogs', {
+            activePage: 'email-logs',
+            admin: req.user,
+            logs
+        });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+// @desc    Mark Order as Paid Manually (triggers delivery and inventory deduction)
+// @route   POST /admin/orders/mark-paid/:id
+exports.markOrderPaid = async (req, res) => {
+    try {
+        const booking = await Booking.findById(req.params.id);
+        if (!booking) return res.status(404).send('Booking not found');
+        
+        if (booking.payment_status === 'paid') {
+            return res.redirect(`/admin/orders/view/${booking._id}?error=Already paid`);
+        }
+
+        // Finalize Booking
+        booking.payment_status = 'paid';
+        await booking.save();
+
+        // Trigger Delivery & Inventory Deduction
+        await handleTicketDelivery(booking);
+
+        res.redirect(`/admin/orders/view/${booking._id}?success=Order marked as paid and tickets sent`);
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
+// @desc    Jobs Management
+// @route   GET /admin/jobs
+exports.getJobs = async (req, res) => {
+    try {
+        const jobs = await Job.find().sort({ createdAt: -1 });
+        res.render('pages/jobs', {
+            activePage: 'jobs',
+            jobs,
+            admin: req.user
+        });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
+// @desc    Add Job Page
+// @route   GET /admin/jobs/add
+exports.getAddJob = (req, res) => {
+    res.render('pages/job_form', {
+        activePage: 'jobs',
+        job: null,
+        admin: req.user
+    });
+};
+
+// @desc    Edit Job Page
+// @route   GET /admin/jobs/:id/edit
+exports.getEditJob = async (req, res) => {
+    try {
+        const job = await Job.findById(req.params.id);
+        if (!job) return res.redirect('/admin/jobs');
+        res.render('pages/job_form', {
+            activePage: 'jobs',
+            job,
+            admin: req.user
+        });
+    } catch (error) {
+        res.redirect('/admin/jobs');
+    }
+};
+
+// @desc    Handle Create/Update Job
+// @route   POST /admin/jobs/save
+exports.saveJob = async (req, res) => {
+    try {
+        const { id, title, department, location, type, status, applicationLink, description, requirements } = req.body;
+        
+        // Convert requirements from string to array if it's a newline separated string
+        const requirementsArray = typeof requirements === 'string' 
+            ? requirements.split('\n').map(r => r.trim()).filter(r => r !== '')
+            : requirements;
+
+        const jobData = {
+            title,
+            department,
+            location,
+            type,
+            status,
+            applicationLink,
+            description,
+            requirements: requirementsArray
+        };
+
+        if (id) {
+            await Job.findByIdAndUpdate(id, jobData);
+        } else {
+            await Job.create(jobData);
+        }
+
+        res.redirect('/admin/jobs?success=Job saved successfully');
+    } catch (error) {
+        res.redirect('/admin/jobs?error=' + encodeURIComponent(error.message));
+    }
+};
+
+// @desc    Delete Job
+// @route   POST /admin/jobs/:id/delete
+exports.deleteJobView = async (req, res) => {
+    try {
+        await Job.findByIdAndDelete(req.params.id);
+        res.redirect('/admin/jobs?success=Job deleted successfully');
+    } catch (error) {
+        res.redirect('/admin/jobs?error=' + encodeURIComponent(error.message));
     }
 };

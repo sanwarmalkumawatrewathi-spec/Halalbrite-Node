@@ -1,6 +1,73 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 
 export default function HowItWorks() {
+  const [ticketPrice, setTicketPrice] = useState(25);
+  const [fees, setFees] = useState({
+    feePercentage: 3,
+    fixedFee: 0.30,
+    vatRate: 23,
+    stripeFeePercentage: 3,
+    fixedStripeFee: 0.30,
+    currency: '€'
+  });
+
+  useEffect(() => {
+    const fetchFees = async () => {
+      try {
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+        const response = await fetch(`${baseUrl}/api/admin/settings/fees`);
+        const result = await response.json();
+        if (result.success) {
+          // Map currency code to symbol for display
+          const currencySymbols: { [key: string]: string } = {
+            'EUR': '€',
+            'GBP': '£',
+            'USD': '$',
+            'AUD': 'A$',
+          };
+          
+          setFees({
+            ...result.data,
+            currency: currencySymbols[result.data.currency] || result.data.currency
+          });
+        }
+      } catch (error) {
+        console.error("Failed to fetch fee settings:", error);
+      }
+    };
+    fetchFees();
+  }, []);
+
+  const calculateFees = () => {
+    const price = Number(ticketPrice);
+    
+    // Halalbrite Fee = (Price * Percentage) + Fixed
+    const hbFee = (price * (fees.feePercentage / 100)) + fees.fixedFee;
+    
+    // VAT on Halalbrite Fee
+    const vat = hbFee * (fees.vatRate / 100);
+    
+    // Stripe Fee = (Price * StripePercentage) + StripeFixed
+    const stripeFee = (price * (fees.stripeFeePercentage / 100)) + fees.fixedStripeFee;
+    
+    const totalFees = hbFee + vat + stripeFee;
+    const attendeePays = price + totalFees;
+    const organizerReceives = price;
+
+    return {
+      hbFee: hbFee.toFixed(2),
+      vat: vat.toFixed(2),
+      stripeFee: stripeFee.toFixed(2),
+      totalFees: totalFees.toFixed(2),
+      attendeePays: attendeePays.toFixed(2),
+      organizerReceives: organizerReceives.toFixed(2)
+    };
+  };
+
+  const results = calculateFees();
+
   return (
     <main className="flex-1 w-full bg-gray-50 pb-20">
       <div
@@ -123,7 +190,7 @@ export default function HowItWorks() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                     fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="lucide lucide-ticket w-7 h-7 sm:w-8 sm:h-8 text-red-600">
+                    className="lucide lucide-ticket w-7 h-7 sm:w-8 h-8 text-red-600">
                     <path
                       d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
                     <path d="M13 5v2" />
@@ -346,7 +413,7 @@ export default function HowItWorks() {
                     </svg></div>
                   <h4 className="text-gray-900 mb-2">Analytics</h4>
                   <p className="text-gray-600 text-sm">Track ticket sales, revenue, and attendance in
-                    real-time</p>
+                  real-time</p>
                 </div>
                 <div className="text-center">
                   <div
@@ -431,7 +498,7 @@ export default function HowItWorks() {
                   <div className="bg-green-50 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-3"><span
                       className="text-gray-700">Free Events</span><span
-                        className="bg-green-600 text-white px-4 py-1 rounded-full">€0.00</span>
+                        className="bg-green-600 text-white px-4 py-1 rounded-full">{fees.currency}0.00</span>
                     </div>
                     <p className="text-gray-600 text-sm">No platform fees for free events. Host
                       community events at no cost!</p>
@@ -441,9 +508,9 @@ export default function HowItWorks() {
                       className="text-gray-700">Paid Events</span>
                       <div className="flex flex-col items-end gap-1"><span
                         className="bg-red-500 text-white px-4 py-1 rounded-full text-sm">Halalbrite:
-                        3% + €0.30</span><span
+                        {fees.feePercentage}% + {fees.currency}{fees.fixedFee.toFixed(2)}</span><span
                           className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm">Stripe:
-                          3% + €0.30</span></div>
+                          {fees.stripeFeePercentage}% + {fees.currency}{fees.fixedStripeFee.toFixed(2)}</span></div>
                     </div>
                     <p className="text-gray-600 text-sm">Per ticket sold. Includes payment processing
                       fees.</p>
@@ -453,36 +520,37 @@ export default function HowItWorks() {
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-2"><label
                         className="text-gray-700 text-sm">Ticket Price</label><span
-                          className="bg-gray-100 px-3 py-1 rounded-lg text-gray-900">€25.00</span>
+                          className="bg-gray-100 px-3 py-1 rounded-lg text-gray-900">{fees.currency}{Number(ticketPrice).toFixed(2)}</span>
                       </div><input type="range" min="1" max="2000" step="1"
                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-500"
-                        defaultValue="25" />
+                        value={ticketPrice}
+                        onChange={(e) => setTicketPrice(Number(e.target.value))} />
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>€1</span><span>€2000</span></div>
+                        <span>{fees.currency}1</span><span>{fees.currency}2000</span></div>
                     </div>
                     <div className="bg-white rounded-xl p-5 border-2 border-gray-200 space-y-3">
                       <div className="flex justify-between text-sm"><span
                         className="text-gray-600">Ticket Price</span><span
-                          className="text-gray-900">€25.00</span></div>
+                          className="text-gray-900">{fees.currency}{Number(ticketPrice).toFixed(2)}</span></div>
                       <div className="flex justify-between text-sm"><span
                         className="text-gray-600">Halalbrite Fee</span><span
-                          className="text-red-600">€1.05</span></div>
+                          className="text-red-600">{fees.currency}{results.hbFee}</span></div>
                       <div className="flex justify-between text-sm"><span
-                        className="text-gray-600">VAT (23%)</span><span
-                          className="text-red-600">€0.24</span></div>
+                        className="text-gray-600">VAT ({fees.vatRate}%)</span><span
+                          className="text-red-600">{fees.currency}{results.vat}</span></div>
                       <div className="flex justify-between text-sm"><span
                         className="text-gray-600">Stripe Fee</span><span
-                          className="text-blue-600">€1.03</span></div>
+                          className="text-blue-600">{fees.currency}{results.stripeFee}</span></div>
                       <div className="flex justify-between text-sm border-t pt-3"><span
                         className="text-gray-600">Total Fees</span><span
-                          className="text-gray-900">€2.32</span></div>
+                          className="text-gray-900">{fees.currency}{results.totalFees}</span></div>
                       <div className="border-t pt-3 space-y-2">
                         <div className="flex justify-between"><span
                           className="text-gray-900">Attendee Pays</span><span
-                            className="text-green-600">€27.32</span></div>
+                            className="text-green-600">{fees.currency}{results.attendeePays}</span></div>
                         <div className="flex justify-between"><span
                           className="text-gray-900">Organizer Receives</span><span
-                            className="text-green-600">€25.00</span></div>
+                            className="text-green-600">{fees.currency}{results.organizerReceives}</span></div>
                       </div>
                     </div>
                   </div>
@@ -582,8 +650,8 @@ export default function HowItWorks() {
                         </svg></div>
                       <div>
                         <h4 className="text-gray-900 mb-1">Stripe Processing Fees</h4>
-                        <p className="text-gray-600 text-sm">Standard rate of 3% + €0.30 per
-                          transaction applies. <a href="https://stripe.com/ie/connect/pricing"
+                        <p className="text-gray-600 text-sm">Standard rate applies per
+                          transaction. <a href="https://stripe.com/ie/connect/pricing"
                             target="_blank" rel="noopener noreferrer"
                             className="text-red-600 hover:text-red-700 underline">View detailed
                             pricing</a></p>
@@ -612,7 +680,7 @@ export default function HowItWorks() {
                     className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                     <span className="text-red-600">2</span></div>
                   <h4 className="text-gray-900 mb-2">Platform Fee Deducted</h4>
-                  <p className="text-gray-600 text-sm">HalalBrite's platform fee (3% + €0.30) is
+                  <p className="text-gray-600 text-sm">HalalBrite's platform fee is
                     automatically calculated</p>
                 </div>
                 <div className="text-center">

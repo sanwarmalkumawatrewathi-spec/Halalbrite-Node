@@ -28,11 +28,18 @@ const bookingSchema = new mongoose.Schema({
     event_venue: String,
     event_location: String,
 
+    items: [{
+        ticket_id: String,
+        ticket_name: String,
+        quantity: Number,
+        price: Number,
+        fees: Number,
+        total: Number
+    }],
     ticket_id: String,
     ticket_name: String,
     quantity: {
         type: Number,
-        required: true,
         default: 1
     },
     customer_name: String,

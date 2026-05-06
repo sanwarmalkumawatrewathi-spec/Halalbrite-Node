@@ -82,6 +82,16 @@
                 <i class="fa-solid fa-envelope"></i>
                 <span>Inquiries</span>
             </a>
+            <a href="/admin/jobs" class="nav-item <%= activePage === 'jobs' ? 'active' : '' %>"
+                title="Careers">
+                <i class="fa-solid fa-briefcase"></i>
+                <span>Careers</span>
+            </a>
+            <a href="/admin/email-logs" class="nav-item <%= activePage === 'email-logs' ? 'active' : '' %>"
+                title="Email Logs">
+                <i class="fa-solid fa-list-check"></i>
+                <span>Email Logs</span>
+            </a>
             <a href="/admin/settings" class="nav-item <%= activePage === 'settings' ? 'active' : '' %>"
                 title="App Settings">
                 <i class="fa-solid fa-gears"></i>
@@ -139,7 +149,7 @@
                     <i class="fa-solid fa-moon" id="darkModeIcon"></i>
                 </button>
 
-                <div class="user-avatar">
+                <div class="user-avatar" onclick="window.location.href='/admin/profile'" style="cursor: pointer;" title="Edit Profile">
                     <%= admin.username.charAt(0).toUpperCase() %>
                 </div>
             </div>

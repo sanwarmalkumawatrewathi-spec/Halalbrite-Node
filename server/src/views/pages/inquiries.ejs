@@ -18,25 +18,30 @@
                     <tr><td colspan="5" class="text-center text-muted" style="padding: 3rem;">No inquiries found.</td></tr>
                 <% } else { %>
                     <% inquiries.forEach(inq => { %>
-                        <tr>
+                        <tr id="inquiry-row-<%= inq._id %>">
                             <td>
                                 <div class="customer-info">
-                                    <span class="customer-name"><%= inq.name || inq.fullName %></span><br>
-                                    <span class="customer-email"><%= inq.email %></span>
+                                    <span class="customer-name"><%= inq.fullName || 'No Name' %></span><br>
+                                    <span class="customer-email"><%= inq.email || 'No Email' %></span>
                                 </div>
                             </td>
                             <td>
-                                <span class="event-title"><%= inq.subject %></span>
+                                <span class="event-title"><%= inq.subject || 'No Subject' %></span>
                             </td>
                             <td>
-                                <span class="badge <%= inq.status === 'new' ? 'badge-warning' : 'badge-success' %>">
-                                    <%= inq.status.toUpperCase() %>
+                                <span id="badge-<%= inq._id %>" class="badge <%= inq.status === 'new' ? 'badge-warning' : 'badge-success' %>">
+                                    <%= (inq.status || 'new').toUpperCase() %>
                                 </span>
                             </td>
-                            <td class="text-muted"><%= new Date(inq.createdAt).toLocaleDateString() %></td>
+                            <td class="text-muted"><%= inq.createdAt ? new Date(inq.createdAt).toLocaleDateString() : 'N/A' %></td>
                             <td>
                                 <div style="display: flex; gap: 8px;">
-                                    <button class="btn btn-sm btn-ghost" title="View Message"><i class="fa-solid fa-envelope-open"></i></button>
+                                    <!-- Hidden message content to avoid JS character escaping issues -->
+                                    <div id="msg-<%= inq._id %>" style="display:none;"><%= inq.message %></div>
+                                    <button class="btn btn-sm btn-ghost" title="View Message" 
+                                        onclick="viewInquiry('<%= inq._id %>', '<%= (inq.fullName || "").replace(/'/g, "\\'") %>', '<%= (inq.email || "").replace(/'/g, "\\'") %>', '<%= (inq.subject || "").replace(/'/g, "\\'") %>')">
+                                        <i class="fa-solid fa-envelope-open"></i>
+                                    </button>
                                     <form action="/admin/inquiries/delete/<%= inq._id %>" method="POST" onsubmit="return confirm('Delete inquiry?')">
                                         <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--danger);"><i class="fa-solid fa-trash"></i></button>
                                     </form>
@@ -49,3 +54,71 @@
         </table>
     </div>
 </div>
+
+<!-- Inquiry Modal -->
+<div id="inquiryModal" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="modal-content" style="background: white; padding: 2rem; border-radius: 12px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);">
+        <button onclick="closeModal()" style="position: absolute; top: 1rem; right: 1rem; border: none; background: none; font-size: 1.5rem; cursor: pointer; color: #666;">&times;</button>
+        
+        <h3 id="modalSubject" style="margin-bottom: 0.5rem; color: var(--dark);"></h3>
+        <div style="margin-bottom: 1.5rem; font-size: 0.875rem; color: #666;">
+            From: <strong id="modalName"></strong> (<span id="modalEmail"></span>)
+        </div>
+        
+        <hr style="border: none; border-top: 1px solid #eee; margin-bottom: 1.5rem;">
+        
+        <div id="modalMessage" style="white-space: pre-wrap; line-height: 1.6; color: #333; min-height: 100px;"></div>
+        
+        <div style="margin-top: 2rem; text-align: right;">
+            <button onclick="closeModal()" class="btn btn-primary">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function viewInquiry(id, name, email, subject) {
+        document.getElementById('modalName').textContent = name;
+        document.getElementById('modalEmail').textContent = email;
+        document.getElementById('modalSubject').textContent = subject;
+        
+        // Get message from hidden div to handle special characters correctly
+        const msgDiv = document.getElementById('msg-' + id);
+        const message = msgDiv ? msgDiv.textContent : 'No message content.';
+        document.getElementById('modalMessage').textContent = message;
+        
+        const modal = document.getElementById('inquiryModal');
+        modal.style.display = 'flex';
+
+        // Mark as read in backend
+        const badge = document.getElementById('badge-' + id);
+        if (badge && badge.classList.contains('badge-warning')) {
+            fetch('/admin/inquiries/read/' + id, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        badge.classList.remove('badge-warning');
+                        badge.classList.add('badge-success');
+                        badge.textContent = 'READ';
+                    }
+                });
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('inquiryModal').style.display = 'none';
+    }
+
+    // Close on click outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('inquiryModal');
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+
+<style>
+    .modal-backdrop {
+        backdrop-filter: blur(4px);
+    }
+</style>

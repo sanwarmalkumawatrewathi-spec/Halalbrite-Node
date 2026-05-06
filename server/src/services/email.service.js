@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer');
 const AppSetting = require('../models/appSetting.model');
+const EmailLog = require('../models/emailLog.model');
 
 class EmailService {
     async getTransporter() {
@@ -29,8 +30,9 @@ class EmailService {
         });
     }
 
-    async sendTicketEmail(booking, pdfBuffer) {
+    async sendTicketEmail(booking, pdfBuffer, recipientEmail, recipientRole = 'attendee') {
         try {
+            const recipient = recipientEmail || booking.customer_email;
             const settings = await AppSetting.findOne();
             const fromEmail = settings?.smtp?.fromEmail || process.env.EMAIL_FROM || 'noreply@halalbrite.com';
             const fromName = settings?.smtp?.fromName || 'HalalBrite';
@@ -97,10 +99,13 @@ class EmailService {
                     </div>
 
                     <div class="content">
-                        <div class="greeting">Dear ${booking.customer_name},</div>
+                        <div class="greeting">
+                            ${recipientRole === 'organizer' ? 'Hello Organizer,' : (recipientRole === 'admin' ? 'Hello Admin,' : `Dear ${booking.customer_name},`)}
+                        </div>
                         <p class="intro">
-                            Thank you for booking with HalalBrite! We're excited to confirm your attendance at <span class="event-name-link">${booking.event_name}</span>.<br><br>
-                            Your tickets are attached to this email as PDF files. Please download and keep them safe, or show them on your mobile device at the event entrance.
+                            ${recipientRole === 'organizer' ? `A new ticket has been sold for your event: <b>${booking.event_name}</b>.` : (recipientRole === 'admin' ? `A new ticket has been sold on the platform for the event: <b>${booking.event_name}</b>.` : `Thank you for booking with HalalBrite! We're excited to confirm your attendance at <span class="event-name-link">${booking.event_name}</span>.`)}
+                            <br><br>
+                            ${recipientRole === 'attendee' ? 'Your tickets are attached to this email as PDF files. Please download and keep them safe, or show them on your mobile device at the event entrance.' : 'The booking details and tickets are attached below for your records.'}
                         </p>
 
                         <div class="ref-box">
@@ -155,8 +160,8 @@ class EmailService {
 
             const mailOptions = {
                 from: `"${fromName}" <${fromEmail}>`,
-                to: booking.customer_email,
-                subject: `Booking Confirmed: ${booking.event_name} - ${booking.booking_reference}`,
+                to: recipient,
+                subject: recipientRole === 'attendee' ? `Your Tickets for ${booking.event_name}` : `New Booking Notification: ${booking.event_name}`,
                 html: htmlContent,
                 attachments: [
                     {
@@ -169,9 +174,33 @@ class EmailService {
 
             const info = await transporter.sendMail(mailOptions);
             console.log('✅ Ticket Email Sent: %s', info.messageId);
+
+            // Log Success
+            await EmailLog.create({
+                booking_id: booking._id,
+                recipient: recipient,
+                role: recipientRole,
+                subject: mailOptions.subject,
+                status: 'sent',
+                messageId: info.messageId
+            });
+
             return info;
         } catch (error) {
             console.error('❌ Email Sending Error:', error);
+            
+            // Log Failure
+            try {
+                await EmailLog.create({
+                    booking_id: booking?._id,
+                    recipient: recipientEmail || booking?.customer_email || 'unknown',
+                    role: recipientRole,
+                    subject: `Ticket Delivery for ${booking?.event_name || 'unknown'}`,
+                    status: 'failed',
+                    error: error.message
+                });
+            } catch (logErr) { console.error('Failed to log email error:', logErr); }
+
             throw error;
         }
     }
@@ -207,6 +236,100 @@ class EmailService {
             });
         } catch (error) {
             console.error('❌ Notification Email Error:', error);
+        }
+    }
+
+    async sendInquiryEmail(inquiry) {
+        try {
+            const settings = await AppSetting.findOne();
+            const fromEmail = settings?.smtp?.fromEmail || process.env.EMAIL_FROM || 'noreply@halalbrite.com';
+            const fromName = settings?.smtp?.fromName || 'HalalBrite';
+            const adminEmail = process.env.ADMIN_EMAIL || fromEmail;
+
+            const transporter = await this.getTransporter();
+
+            // 1. Send Notification to Admin
+            const adminHtml = `
+                <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #dc3545; border-bottom: 2px solid #dc3545; padding-bottom: 10px;">New Contact Inquiry</h2>
+                    <p>You have received a new message from the contact form:</p>
+                    <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <p><strong>Name:</strong> ${inquiry.fullName}</p>
+                        <p><strong>Email:</strong> ${inquiry.email}</p>
+                        <p><strong>Subject:</strong> ${inquiry.subject}</p>
+                        <p><strong>Message:</strong></p>
+                        <p style="white-space: pre-wrap;">${inquiry.message}</p>
+                    </div>
+                    <p style="font-size: 12px; color: #888;">Submitted on: ${new Date(inquiry.createdAt).toLocaleString()}</p>
+                </div>
+            `;
+
+            await transporter.sendMail({
+                from: `"${fromName}" <${fromEmail}>`,
+                to: adminEmail,
+                subject: `New Inquiry: ${inquiry.subject}`,
+                html: adminHtml
+            });
+
+            // 2. Send Thank You to Visitor
+            const visitorHtml = `
+                <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h1 style="color: #dc3545; margin: 0;">HalalBrite</h1>
+                    </div>
+                    <h2 style="color: #333;">Thank You for Contacting Us!</h2>
+                    <p>Dear ${inquiry.fullName},</p>
+                    <p>We have received your inquiry regarding "<strong>${inquiry.subject}</strong>". Our team will review your message and get back to you as soon as possible.</p>
+                    <div style="background: #fff5f6; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545;">
+                        <p style="margin: 0; font-style: italic;">"We aim to respond to all inquiries within 24-48 business hours."</p>
+                    </div>
+                    <p>Best Regards,<br>The HalalBrite Team</p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 11px; color: #999; text-align: center;">&copy; 2026 HalalBrite. All rights reserved.</p>
+                </div>
+            `;
+
+            const infoUser = await transporter.sendMail({
+                from: `"${fromName}" <${fromEmail}>`,
+                to: inquiry.email,
+                subject: `Thank you for contacting HalalBrite`,
+                html: visitorHtml
+            });
+
+            console.log('✅ Inquiry Emails Sent successfully');
+
+            // Log Success for Admin
+            await EmailLog.create({
+                recipient: adminEmail,
+                role: 'admin',
+                subject: `New Inquiry: ${inquiry.subject}`,
+                status: 'sent',
+                messageId: infoAdmin.messageId
+            });
+
+            // Log Success for User
+            await EmailLog.create({
+                recipient: inquiry.email,
+                role: 'attendee',
+                subject: 'We received your inquiry',
+                status: 'sent',
+                messageId: infoUser.messageId
+            });
+
+            return true;
+        } catch (error) {
+            console.error('❌ Inquiry Email Error:', error);
+
+            // Log Failure
+            await EmailLog.create({
+                recipient: 'admin/user',
+                role: 'inquiry',
+                subject: 'Inquiry Delivery Failed',
+                status: 'failed',
+                error: error.message
+            });
+
+            return false;
         }
     }
 }

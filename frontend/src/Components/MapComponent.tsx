@@ -24,9 +24,10 @@ type MapEvent = {
 type MapComponentProps = {
   center?: [number, number]; // [lat, lng] or [lng, lat] depending on usage
   events?: MapEvent[];
+  onMarkerClick?: (eventId: string) => void;
 };
 
-export default function MapComponent({ center, events }: MapComponentProps) {
+export default function MapComponent({ center, events, onMarkerClick }: MapComponentProps) {
   // Determine map center
   let mapCenter: [number, number] = [54.5, -2]; // Default UK center
   let zoom = 6;
@@ -86,13 +87,20 @@ export default function MapComponent({ center, events }: MapComponentProps) {
 
           const thumbUrl = event.thumbnail
             ? (event.thumbnail.startsWith('http') ? event.thumbnail : `${baseUrl}${event.thumbnail}`)
-            : null;
+            : "/images/noimage.jpg";
+
+          const bannerUrl = event.banner
+            ? (event.banner.startsWith('http') ? event.banner : `${baseUrl}${event.banner}`)
+            : "/images/noimage.jpg";
 
           return (
             <CircleMarkerAny
               key={event._id}
               center={position}
               radius={10}
+              eventHandlers={{
+                click: () => onMarkerClick && onMarkerClick(event._id)
+              }}
               pathOptions={{
                 color: "#991b1b",
                 fillColor: "#dc2626",
@@ -102,13 +110,11 @@ export default function MapComponent({ center, events }: MapComponentProps) {
             >
               <TooltipAny direction="top" offset={[0, -10]} opacity={1}>
                 <div className="flex items-center gap-3 p-1 min-w-[150px]">
-                  {thumbUrl && (
-                    <img
-                      src={thumbUrl}
-                      alt=""
-                      className="w-10 h-10 rounded object-cover border border-gray-100"
-                    />
-                  )}
+                  <img
+                    src={thumbUrl}
+                    alt=""
+                    className="w-10 h-10 rounded object-cover border border-gray-100"
+                  />
                   <div>
                     <div className="font-bold text-red-900 leading-tight mb-0.5">{event.title}</div>
                     <div className="text-[10px] text-gray-600">{event.location?.venueName || event.location?.city}</div>
@@ -118,13 +124,11 @@ export default function MapComponent({ center, events }: MapComponentProps) {
 
               <PopupAny>
                 <div className="w-48 p-1">
-                  {event.banner && (
-                    <img
-                      src={event.banner.startsWith('http') ? event.banner : `${baseUrl}${event.banner}`}
-                      alt={event.title}
-                      className="w-full h-24 object-cover rounded-lg mb-2"
-                    />
-                  )}
+                  <img
+                    src={bannerUrl}
+                    alt={event.title}
+                    className="w-full h-24 object-cover rounded-lg mb-2"
+                  />
                   <h3 className="font-bold text-red-900 text-sm leading-tight mb-1">{event.title}</h3>
                   <p className="text-xs text-gray-600 mb-2">{event.location?.city}</p>
                   <Link

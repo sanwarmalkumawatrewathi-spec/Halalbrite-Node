@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import { 
   Heart, Users, Zap, TrendingUp, 
   DollarSign, Laptop, Calendar, GraduationCap, Shield, Coffee,
@@ -6,6 +8,27 @@ import {
 } from 'lucide-react';
 
 export default function Careers() {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+        const response = await fetch(`${baseUrl}/api/jobs`);
+        const result = await response.json();
+        if (result.success) {
+          setJobs(result.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch jobs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, []);
+
   return (
     <main className="flex-1 w-full bg-gray-50 pb-20">
       {/* Hero Section */}
@@ -78,7 +101,7 @@ export default function Careers() {
           {/* Benefits & Perks Section */}
           <section className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-12 shadow-sm border border-gray-100">
             <div className="text-center mb-8 sm:mb-10 md:mb-12 px-4">
-              <h2 className="mb-3 sm:mb-4 text-gray-900 text-xl sm:text-2xl md:text-3xl font-semibold">Benefits &amp; Perks</h2>
+              <h2 className="mb-3 sm:mb-4 text-gray-900 text-xl sm:text-2xl md:text-3xl font-semibold">Benefits & Perks</h2>
               <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">We invest in our team's wellbeing and growth</p>
             </div>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 md:gap-8">
@@ -150,271 +173,67 @@ export default function Careers() {
           <section id="open-positions">
             <div className="text-center mb-8 sm:mb-10 md:mb-12 px-4">
               <h2 className="mb-3 sm:mb-4 text-gray-900 text-xl sm:text-2xl md:text-3xl font-semibold">Open Positions</h2>
-              <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">5 opportunities to make an impact</p>
+              <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+                {loading ? 'Searching for opportunities...' : `${jobs.length} opportunities to make an impact`}
+              </p>
             </div>
             
             <div className="space-y-4 sm:space-y-6">
-              
-              {/* Job 1 */}
-              <div className="bg-white text-gray-900 flex flex-col gap-6 border p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl border-gray-200 hover:shadow-lg transition-shadow">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="mb-2 text-gray-900 font-semibold text-base sm:text-lg md:text-xl">Senior Full Stack Developer</h3>
-                    <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Engineering</span>
+              {loading ? (
+                <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+                  <div className="animate-spin inline-block w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full mb-4"></div>
+                  <p className="text-gray-500">Loading career opportunities...</p>
+                </div>
+              ) : jobs.length === 0 ? (
+                <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-300">
+                  <Briefcase className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 font-medium">No open positions at the moment.</p>
+                  <p className="text-gray-400 text-sm">Check back later or send us your CV!</p>
+                </div>
+              ) : (
+                jobs.map((job) => (
+                  <div key={job._id} className="bg-white text-gray-900 flex flex-col gap-6 border p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl border-gray-200 hover:shadow-lg transition-shadow">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="mb-2 text-gray-900 font-semibold text-base sm:text-lg md:text-xl">{job.title}</h3>
+                        <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                            <span className="truncate">{job.department}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                            <span className="truncate">{job.location}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                            <span className="truncate">{job.type}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Remote (Europe)</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Full-time</span>
-                      </div>
+                      <a 
+                        href={job.applicationLink || '#'} 
+                        target={job.applicationLink ? "_blank" : "_self"}
+                        className="inline-flex items-center justify-center gap-2 font-medium transition-all focus-visible:ring-ring/50 focus-visible:ring-[3px] h-9 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg sm:rounded-xl whitespace-nowrap w-full md:w-auto text-sm sm:text-base"
+                      >
+                        Apply Now
+                      </a>
+                    </div>
+                    <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">{job.description}</p>
+                    <div>
+                      <h4 className="mb-2 sm:mb-3 text-gray-900 font-medium text-sm sm:text-base md:text-lg">Requirements:</h4>
+                      <ul className="space-y-1.5 sm:space-y-2">
+                        {job.requirements && job.requirements.map((req, idx) => (
+                          <li key={idx} className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
+                            <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                            <span>{req}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </div>
-                  <button className="inline-flex items-center justify-center gap-2 font-medium transition-all focus-visible:ring-ring/50 focus-visible:ring-[3px] h-9 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg sm:rounded-xl whitespace-nowrap w-full md:w-auto text-sm sm:text-base">
-                    Apply Now
-                  </button>
-                </div>
-                <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Join our engineering team to build scalable features for our halal events platform. Work with React, Node.js, and modern cloud technologies.</p>
-                <div>
-                  <h4 className="mb-2 sm:mb-3 text-gray-900 font-medium text-sm sm:text-base md:text-lg">Requirements:</h4>
-                  <ul className="space-y-1.5 sm:space-y-2">
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>5+ years of full-stack development experience</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Strong proficiency in React, TypeScript, and Node.js</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Experience with Stripe integration and payment systems</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Knowledge of cloud platforms (AWS/GCP)</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Excellent problem-solving and communication skills</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Job 2 */}
-              <div className="bg-white text-gray-900 flex flex-col gap-6 border p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl border-gray-200 hover:shadow-lg transition-shadow">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="mb-2 text-gray-900 font-semibold text-base sm:text-lg md:text-xl">Product Designer (UI/UX)</h3>
-                    <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Design</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Remote (Europe)</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Full-time</span>
-                      </div>
-                    </div>
-                  </div>
-                  <button className="inline-flex items-center justify-center gap-2 font-medium transition-all focus-visible:ring-ring/50 focus-visible:ring-[3px] h-9 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg sm:rounded-xl whitespace-nowrap w-full md:w-auto text-sm sm:text-base">
-                    Apply Now
-                  </button>
-                </div>
-                <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Shape the future of halal event discovery and ticketing. Create beautiful, user-friendly experiences that delight our community.</p>
-                <div>
-                  <h4 className="mb-2 sm:mb-3 text-gray-900 font-medium text-sm sm:text-base md:text-lg">Requirements:</h4>
-                  <ul className="space-y-1.5 sm:space-y-2">
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>3+ years of product design experience</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Strong portfolio demonstrating mobile and web design</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Proficiency in Figma and design systems</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Experience with user research and testing</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Understanding of accessibility standards</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Job 3 */}
-              <div className="bg-white text-gray-900 flex flex-col gap-6 border p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl border-gray-200 hover:shadow-lg transition-shadow">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="mb-2 text-gray-900 font-semibold text-base sm:text-lg md:text-xl">Marketing Manager</h3>
-                    <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Marketing</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">London, UK</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Full-time</span>
-                      </div>
-                    </div>
-                  </div>
-                  <button className="inline-flex items-center justify-center gap-2 font-medium transition-all focus-visible:ring-ring/50 focus-visible:ring-[3px] h-9 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg sm:rounded-xl whitespace-nowrap w-full md:w-auto text-sm sm:text-base">
-                    Apply Now
-                  </button>
-                </div>
-                <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Lead our marketing efforts to grow HalalBrite across the UK and Europe. Drive user acquisition and brand awareness in the halal community.</p>
-                <div>
-                  <h4 className="mb-2 sm:mb-3 text-gray-900 font-medium text-sm sm:text-base md:text-lg">Requirements:</h4>
-                  <ul className="space-y-1.5 sm:space-y-2">
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>4+ years of marketing experience, preferably in tech</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Proven track record in digital marketing and growth</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Strong understanding of the halal/Muslim community</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Experience with social media and content marketing</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Data-driven approach to campaign optimization</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Job 4 */}
-              <div className="bg-white text-gray-900 flex flex-col gap-6 border p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl border-gray-200 hover:shadow-lg transition-shadow">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="mb-2 text-gray-900 font-semibold text-base sm:text-lg md:text-xl">Customer Success Specialist</h3>
-                    <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Customer Success</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Remote (UK)</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Full-time</span>
-                      </div>
-                    </div>
-                  </div>
-                  <button className="inline-flex items-center justify-center gap-2 font-medium transition-all focus-visible:ring-ring/50 focus-visible:ring-[3px] h-9 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg sm:rounded-xl whitespace-nowrap w-full md:w-auto text-sm sm:text-base">
-                    Apply Now
-                  </button>
-                </div>
-                <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Be the voice of our event organisers. Help them succeed on our platform and ensure they have an exceptional experience.</p>
-                <div>
-                  <h4 className="mb-2 sm:mb-3 text-gray-900 font-medium text-sm sm:text-base md:text-lg">Requirements:</h4>
-                  <ul className="space-y-1.5 sm:space-y-2">
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>2+ years in customer success or account management</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Excellent communication and relationship-building skills</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Empathy and patience when solving customer issues</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Familiarity with SaaS platforms</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Ability to work independently in a remote environment</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Job 5 */}
-              <div className="bg-white text-gray-900 flex flex-col gap-6 border p-4 sm:p-6 md:p-8 rounded-xl sm:rounded-2xl border-gray-200 hover:shadow-lg transition-shadow">
-                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="mb-2 text-gray-900 font-semibold text-base sm:text-lg md:text-xl">Business Development Intern</h3>
-                    <div className="flex flex-wrap gap-3 sm:gap-4 text-xs sm:text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <Briefcase className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Business Development</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">London, UK</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span className="truncate">Internship (6 months)</span>
-                      </div>
-                    </div>
-                  </div>
-                  <button className="inline-flex items-center justify-center gap-2 font-medium transition-all focus-visible:ring-ring/50 focus-visible:ring-[3px] h-9 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg sm:rounded-xl whitespace-nowrap w-full md:w-auto text-sm sm:text-base">
-                    Apply Now
-                  </button>
-                </div>
-                <p className="text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">Help us expand our partnerships with event organisers, venues, and community organizations. Great opportunity to learn about the events industry.</p>
-                <div>
-                  <h4 className="mb-2 sm:mb-3 text-gray-900 font-medium text-sm sm:text-base md:text-lg">Requirements:</h4>
-                  <ul className="space-y-1.5 sm:space-y-2">
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Currently pursuing or recently completed a business degree</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Strong interest in the events or tech industry</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Excellent communication and organizational skills</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Self-motivated and eager to learn</span>
-                    </li>
-                    <li className="flex items-start gap-2 text-gray-600 text-xs sm:text-sm md:text-base">
-                      <CircleCheckBig className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <span>Familiarity with the Muslim community (preferred)</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
+                ))
+              )}
             </div>
           </section>
 

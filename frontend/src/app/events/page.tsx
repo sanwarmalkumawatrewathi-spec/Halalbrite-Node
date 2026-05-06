@@ -11,13 +11,18 @@ const MapComponent = dynamic(() => import('@/Components/MapComponent'), {
   ssr: false,
   loading: () => <div className="h-[500px] w-full bg-gray-100 animate-pulse rounded-2xl" />
 });
-import React, { useState } from 'react'
+import { useSearchParams } from 'next/navigation';
+import React, { useState, useEffect } from 'react'
 
 export default function Event() {
   const [expanded, setExpanded] = useState(false);
 
+  const searchParams = useSearchParams();
+  const urlEventId = searchParams.get('eventId');
+
   const [events, setEvents] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(urlEventId);
   const [filters, setFilters] = React.useState({
     search: "",
     category: "",
@@ -28,6 +33,14 @@ export default function Event() {
     minPrice: "",
     maxPrice: ""
   });
+
+  // Effect to handle URL-based selection
+  useEffect(() => {
+    if (urlEventId) {
+      setSelectedEventId(urlEventId);
+      // Optional: expand map if needed, or just focus on list
+    }
+  }, [urlEventId]);
 
   React.useEffect(() => {
     const fetchEvents = async () => {
@@ -59,6 +72,18 @@ export default function Event() {
     return () => clearTimeout(timer);
   }, [filters]);
 
+  // Reset selection only when active filters change (excluding initial load with urlEventId)
+  useEffect(() => {
+    const hasActiveFilters = Object.values(filters).some(v => v !== "");
+    if (hasActiveFilters && !urlEventId) {
+      setSelectedEventId(null);
+    }
+  }, [filters, urlEventId]);
+
+  const displayedEvents = selectedEventId 
+    ? events.filter((e: any) => e._id === selectedEventId) 
+    : events;
+
   return (
     <div className="bg-[#fef3f6] ">
       <Header />
@@ -71,7 +96,10 @@ export default function Event() {
           >
             {/* Map */}
             <div className="absolute inset-0 z-0  ">
-              <MapComponent events={events} />
+              <MapComponent 
+                events={events} 
+                onMarkerClick={(id) => setSelectedEventId(id)} 
+              />
             </div>
 
             {/* Button */}
@@ -90,7 +118,21 @@ export default function Event() {
 
       <FilterBar filters={filters} setFilters={setFilters} />
 
-      <EventCardGrid events={events} loading={loading} />
+      {selectedEventId && (
+        <div className="max-w-7xl mx-auto px-6 mb-6 flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-red-50">
+          <div className="text-gray-700 font-medium italic">
+            Showing selected event from map
+          </div>
+          <button 
+            onClick={() => setSelectedEventId(null)}
+            className="text-red-600 font-bold hover:underline"
+          >
+            Show All Events
+          </button>
+        </div>
+      )}
+
+      <EventCardGrid events={displayedEvents} loading={loading} />
 
       <Footer />
     </div>

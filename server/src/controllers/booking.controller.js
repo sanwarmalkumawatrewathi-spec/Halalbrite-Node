@@ -1,13 +1,18 @@
 const Booking = require('../models/booking.model');
+const stripeService = require('../services/stripe.service');
+const { handleTicketDelivery, verifyPendingBookings } = require('./payment.controller');
 
 // @desc    Get user's tickets (bookings)
 // @route   GET /api/bookings/my-tickets
 // @access  Private
 exports.getMyTickets = async (req, res) => {
     try {
-        const bookings = await Booking.find({ user_id: req.user._id })
-            .sort({ created_at: -1 });
+        let bookings = await Booking.find({ user_id: req.user._id })
+            .sort({ createdAt: -1 }); // Use createdAt as per typically modern schemas
         
+        // Auto-verify any pending bookings in the list
+        await verifyPendingBookings(bookings);
+
         res.json(bookings);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -19,10 +24,27 @@ exports.getMyTickets = async (req, res) => {
 // @access  Private
 exports.getBookingById = async (req, res) => {
     try {
-        const booking = await Booking.findById(req.params.id);
+        let booking = await Booking.findById(req.params.id);
         
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // On-the-fly verification for pending bookings
+        if (booking.payment_status === 'pending' && booking.stripe_session_id) {
+            try {
+                const stripeInstance = await stripeService.getStripeInstance();
+                const session = await stripeInstance.checkout.sessions.retrieve(booking.stripe_session_id);
+                
+                if (session.payment_status === 'paid') {
+                    booking.payment_status = 'paid';
+                    booking.stripe_payment_intent_id = session.payment_intent;
+                    await booking.save();
+                    await handleTicketDelivery(booking);
+                    // Reload to get populated fields if any (though here we just saved)
+                    booking = await Booking.findById(booking._id);
+                }
+            } catch (err) { console.error('Verification error in getBookingById:', err.message); }
         }
 
         // Ensure user owns this booking (if not guest)
@@ -35,3 +57,4 @@ exports.getBookingById = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+

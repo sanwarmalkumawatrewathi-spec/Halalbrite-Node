@@ -35,7 +35,17 @@ const {
     syncStripePayouts,
     getStripeLoginLink,
     disconnectStripe,
-    syncCurrencyRates
+    syncCurrencyRates,
+    getAdminProfile,
+    updateAdminProfile,
+    markInquiryRead,
+    getEmailLogs,
+    markOrderPaid,
+    getJobs,
+    getAddJob,
+    getEditJob,
+    saveJob,
+    deleteJobView
 } = require('../../controllers/adminView.controller');
 const { uploadSingle, handleUpload } = require('../../controllers/upload.controller');
 const { protectAdminView, redirectIfLoggedIn } = require('../../middlewares/admin.middleware');
@@ -58,6 +68,10 @@ router.get('/ping', (req, res) => res.send('Admin Router is Reachable'));
 
 // Protected Admin View Routes
 router.use(protectAdminView);
+
+// Admin Profile
+router.get('/profile', protectAdminView, getAdminProfile);
+router.post('/profile/update', protectAdminView, updateAdminProfile);
 
 // Stripe Connect Management (Moved to top of protected section)
 router.get('/stripe', getStripeDashboard);
@@ -83,6 +97,7 @@ router.get('/inquiries', protectAdminView, getInquiries);
 router.get('/faqs', protectAdminView, getFAQs);
 router.get('/orders', protectAdminView, getOrders);
 router.get('/orders/view/:id', protectAdminView, getOrderDetail);
+router.post('/orders/mark-paid/:id', protectAdminView, markOrderPaid);
 
 // User Management
 router.get('/users', protectAdminView, getUsers);
@@ -110,6 +125,20 @@ router.post('/cms/save', protectAdminView, saveCMS);
 router.get('/categories/add', protectAdminView, getCategoryForm);
 router.get('/categories/edit/:id', protectAdminView, getCategoryForm);
 router.post('/categories/save', protectAdminView, saveCategory);
+
+
+// Inquiry status
+router.post('/inquiries/read/:id', protectAdminView, markInquiryRead);
+
+// Email Logs
+router.get('/email-logs', protectAdminView, getEmailLogs);
+
+// Job Management
+router.get('/jobs', protectAdminView, getJobs);
+router.get('/jobs/add', protectAdminView, getAddJob);
+router.get('/jobs/edit/:id', protectAdminView, getEditJob);
+router.post('/jobs/save', protectAdminView, saveJob);
+router.post('/jobs/delete/:id', protectAdminView, deleteJobView);
 
 // Generic Delete
 router.post('/:resource/delete/:id', protectAdminView, handleDelete);

@@ -17,9 +17,23 @@ function SuccessContent() {
         const fetchBooking = async () => {
             try {
                 const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-                // Fetch booking details (Public access for this page usually allowed if ID is complex)
+                // 1. Fetch booking details
                 const res = await fetch(`${baseUrl}/api/bookings/${bookingId}`);
-                const data = await res.json();
+                let data = await res.json();
+                
+                // 2. If booking is still pending, trigger a verification with Stripe via our new endpoint
+                if (data && data.payment_status === 'pending') {
+                    console.log("Booking is pending, verifying status with Stripe...");
+                    const verifyRes = await fetch(`${baseUrl}/api/payments/booking/${bookingId}/verify`, { method: 'POST' });
+                    const verifyData = await verifyRes.json();
+                    
+                    if (verifyData.success && verifyData.status === 'paid') {
+                        // Re-fetch or update local state to reflect 'paid' status
+                        const updatedRes = await fetch(`${baseUrl}/api/bookings/${bookingId}`);
+                        data = await updatedRes.json();
+                    }
+                }
+
                 setBooking(data);
             } catch (error) {
                 console.error("Fetch booking error:", error);

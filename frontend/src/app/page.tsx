@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import CategoryTabs from '@/Components/CategoryTabs'
 import FeaturedEvents from '@/Components/FeaturedEvents'
 import Footer from '@/Components/Footer'
@@ -40,6 +41,8 @@ export default function Page() {
       event.category?.name?.toLowerCase() === activeCategory?.toLowerCase();
   });
 
+  const router = useRouter();
+
   return (
     <div className="bg-[#fef3f6]">
       <Header />
@@ -59,7 +62,10 @@ export default function Page() {
           {activeCategory !== 'All' && ` - ${activeCategory}`}
         </h2>
         <p className="text-gray-600 mb-6 d-none">Explore events happening near you</p>
-        <MapComponent events={mapEvents} />
+        <MapComponent 
+          events={mapEvents} 
+          onMarkerClick={(id) => router.push(`/events?eventId=${id}`)}
+        />
       </div>
 
       <Footer />

@@ -1,4 +1,6 @@
 const Inquiry = require('../models/inquiry.model');
+const emailService = require('../services/email.service');
+
 
 // @desc    Submit a contact form inquiry
 // @route   POST /api/inquiries
@@ -13,6 +15,9 @@ exports.submitInquiry = async (req, res) => {
             subject,
             message
         });
+
+        // Send confirmation emails
+        emailService.sendInquiryEmail(inquiry).catch(err => console.error('Email error:', err));
 
         res.status(201).json({
             message: 'Your message has been sent successfully. We will get back to you soon!',

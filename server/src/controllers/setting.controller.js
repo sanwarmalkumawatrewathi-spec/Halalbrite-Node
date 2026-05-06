@@ -162,3 +162,26 @@ exports.getPublicSocialSettings = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+// @desc    Get public fee settings for frontend calculator
+// @route   GET /api/admin/settings/fees
+// @access  Public
+exports.getPublicFeeSettings = async (req, res) => {
+    try {
+        const settings = await AppSetting.findOne();
+        if (!settings) return res.status(404).json({ message: 'Settings not found' });
+        
+        res.json({
+            success: true,
+            data: {
+                feePercentage: settings.platform.feePercentage || 0,
+                fixedFee: settings.platform.fixedFee || 0,
+                vatRate: settings.platform.vatRate || 0,
+                stripeFeePercentage: settings.platform.stripeFeePercentage || 0,
+                fixedStripeFee: settings.platform.fixedStripeFee || 0,
+                currency: settings.platform.currency || 'EUR'
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

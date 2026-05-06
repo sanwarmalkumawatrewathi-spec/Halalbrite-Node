@@ -244,11 +244,23 @@ async function handlePaymentIntentSucceeded(paymentIntent) {
         }
     }
 
-    // 3. Update Event context (attendees and capacity)
-    await Event.findByIdAndUpdate(booking.event_id._id, {
+    // 3. Update Event context (attendees, capacity and individual ticket stock)
+    const eventUpdate = {
         $push: { attendees: booking.user_id },
         $inc: { capacity: -booking.quantity }
-    });
+    };
+
+    // Deduct stock for each ticket type in the booking
+    if (booking.items && booking.items.length > 0) {
+        for (const item of booking.items) {
+            await Event.updateOne(
+                { _id: booking.event_id._id, "ticketTypes.name": item.ticket_name },
+                { $inc: { "ticketTypes.$.quantity": -item.quantity } }
+            );
+        }
+    }
+
+    await Event.findByIdAndUpdate(booking.event_id._id, eventUpdate);
 
     // 4. Create Transaction Record (Split Ledger)
     await Transaction.create({
@@ -280,45 +292,76 @@ async function handlePaymentIntentSucceeded(paymentIntent) {
 exports.createCheckoutSession = async (req, res) => {
     try {
         const {
-            eventId, ticketType, quantity,
+            eventId, items, // items: [{ name: string, qty: number }]
             attendeeName, attendeeEmail, customerPhone,
             addressLine1, addressLine2, city, postcode, country,
             isGuest
         } = req.body;
+
+        const ticketItems = items || [];
+        if (ticketItems.length === 0 && req.body.ticketType) {
+            ticketItems.push({ name: req.body.ticketType, qty: req.body.quantity });
+        }
 
         // 1. Fetch Event & Validate
         const event = await Event.findById(eventId).populate('organizer');
         if (!event) return res.status(404).json({ message: 'Event not found' });
         if (event.status !== 'published') return res.status(400).json({ message: 'Event is not active' });
 
-        // 2. Fetch Selected Ticket
-        const selectedTicket = event.ticketTypes.find(t => t.name === ticketType);
-        if (!selectedTicket) return res.status(404).json({ message: 'Ticket type not found' });
-        if (selectedTicket.quantity < quantity) return res.status(400).json({ message: 'Not enough tickets available' });
 
         // 3. Fetch System Settings
         const settings = await AppSetting.findOne();
         if (!settings) return res.status(500).json({ message: 'System settings not configured' });
 
-        // 4. Financial Calculations
-        const subtotal = selectedTicket.price * quantity;
+        // 3. Financial Calculations
+        let totalSubtotalBase = 0;
+        let totalPlatformFeeBase = 0;
+        let totalVatFeeBase = 0;
+        let totalStripeFeeBase = 0;
+        let totalQuantity = 0;
+        const bookingItems = [];
+        const stripeLineItems = [];
 
-        // Calculate fees fresh to ensure they match frontend and latest settings
-        const feePercentage = settings.platform.feePercentage || 0;
-        const fixedFee = settings.platform.fixedFee || 0;
-        const vatRate = settings.platform.vatRate || 0;
-        const stripePercentage = settings.platform.stripeFeePercentage || 3;
-        const fixedStripe = settings.platform.fixedStripeFee || 0.3;
 
-        const platformUnit = selectedTicket.price * (feePercentage / 100) + fixedFee;
-        const vatUnit = platformUnit * (vatRate / 100);
-        const stripeUnit = selectedTicket.price * (stripePercentage / 100) + fixedStripe;
-        const totalFeesBase = (platformUnit + vatUnit + stripeUnit) * quantity;
+        const feePercentage = settings?.platform?.feePercentage || 0;
+        const fixedFee = settings?.platform?.fixedFee || 0;
+        const vatRate = settings?.platform?.vatRate || 0;
+        const stripePercentage = settings?.platform?.stripeFeePercentage || 3;
+        const fixedStripe = settings?.platform?.fixedStripeFee || 0.3;
+
+        for (const item of ticketItems) {
+            const ticket = event.ticketTypes.find(t => t.name === item.name);
+            if (!ticket) continue;
+            if (ticket.quantity < item.qty) return res.status(400).json({ message: `Not enough tickets available for ${item.name}` });
+
+            const itemSubtotal = ticket.price * item.qty;
+            const platformUnit = ticket.price * (feePercentage / 100) + fixedFee;
+            const vatUnit = platformUnit * (vatRate / 100);
+            const stripeUnit = ticket.price * (stripePercentage / 100) + fixedStripe;
+            
+            const itemFeesBase = platformUnit + vatUnit + stripeUnit;
+            const itemTotalBase = event.feePayment === true ? ticket.price : ticket.price + itemFeesBase;
+
+            totalSubtotalBase += itemSubtotal;
+            totalPlatformFeeBase += platformUnit * item.qty;
+            totalVatFeeBase += vatUnit * item.qty;
+            totalQuantity += item.qty;
+
+            bookingItems.push({
+                ticket_id: ticket._id,
+                ticket_name: ticket.name,
+                quantity: item.qty,
+                price: ticket.price,
+                fees: itemFeesBase,
+                total: itemTotalBase
+            });
+        }
+
+        if (bookingItems.length === 0) return res.status(400).json({ message: 'No valid tickets selected' });
 
         // 5. Currency & Rates
         await stripeService.ensureFreshRates();
         const freshSettings = await AppSetting.findOne();
-
         const requestedCurrency = (req.body.currency || req.cookies.selected_currency || freshSettings.platform.currency || 'EUR').toUpperCase();
         const baseCurrency = (freshSettings.platform.currency || 'EUR').toUpperCase();
 
@@ -328,20 +371,15 @@ exports.createCheckoutSession = async (req, res) => {
             if (currencyData) exchangeRate = currencyData.rate;
         }
 
-        // 6. Convert
-        const finalTotalBase = event.feePayment === true ? subtotal : subtotal + totalFeesBase;
-        const organizerEarningsBase = event.feePayment === true ? subtotal - totalFeesBase : subtotal;
-
-        const platformFeeBase = platformUnit * quantity;
-        const vatFeeBase = vatUnit * quantity;
+        const totalFeesBase = totalPlatformFeeBase + totalVatFeeBase + (totalSubtotalBase * (stripePercentage / 100) + fixedStripe * totalQuantity);
+        const finalTotalBase = event.feePayment === true ? totalSubtotalBase : totalSubtotalBase + totalPlatformFeeBase + totalVatFeeBase + (totalSubtotalBase * (stripePercentage / 100) + fixedStripe * totalQuantity);
+        const organizerEarningsBase = event.feePayment === true ? totalSubtotalBase - totalFeesBase : totalSubtotalBase;
 
         const finalTotal = parseFloat((finalTotalBase * exchangeRate).toFixed(2));
         const organizerEarnings = parseFloat((organizerEarningsBase * exchangeRate).toFixed(2));
-        const platformFee = parseFloat((platformFeeBase * exchangeRate).toFixed(2));
-        const vatFee = parseFloat((vatFeeBase * exchangeRate).toFixed(2));
-
-        const stripeFeeBase = (finalTotalBase * (freshSettings.platform.stripeFeePercentage / 100)) + freshSettings.platform.fixedStripeFee;
-        const stripeFee = parseFloat((stripeFeeBase * exchangeRate).toFixed(2));
+        const platformFee = parseFloat((totalPlatformFeeBase * exchangeRate).toFixed(2));
+        const vatFee = parseFloat((totalVatFeeBase * exchangeRate).toFixed(2));
+        const stripeFee = parseFloat(((finalTotalBase - totalSubtotalBase - totalPlatformFeeBase - totalVatFeeBase) * exchangeRate).toFixed(2));
 
         // 7. Booking
         const booking = await Booking.create({
@@ -355,12 +393,13 @@ exports.createCheckoutSession = async (req, res) => {
             event_time: event.startTime,
             event_venue: event.location?.venueName || '',
             event_location: event.location?.address || '',
-            ticket_name: selectedTicket.name,
-            quantity,
+            items: bookingItems,
+            ticket_name: bookingItems.map(i => `${i.quantity}x ${i.ticket_name}`).join(', '),
+            quantity: totalQuantity,
             customer_name: attendeeName || (req.user ? req.user.username : 'Guest'),
             customer_email: attendeeEmail || (req.user ? req.user.email : ''),
             customer_phone: customerPhone,
-            attendee_names: [attendeeName || (req.user ? req.user.username : 'Guest')],
+            attendee_names: req.body.attendees || [attendeeName || (req.user ? req.user.username : 'Guest')],
             address_line1: addressLine1,
             address_line2: addressLine2,
             city: city,
@@ -399,18 +438,25 @@ exports.createCheckoutSession = async (req, res) => {
         }
 
         // 9. Stripe Session
-        const unitPriceIncludingFees = parseFloat((finalTotal / quantity).toFixed(2));
+        const lineItems = bookingItems.map(item => ({
+            price_data: {
+                currency: requestedCurrency.toLowerCase(),
+                product_data: {
+                    name: item.ticket_name,
+                    description: `${event.title} - ${item.ticket_name}`,
+                    images: event.banner ? [event.banner.startsWith('http') ? event.banner : `${process.env.BACKEND_URL || 'http://localhost:5000'}${event.banner}`] : []
+                },
+                unit_amount: Math.round((item.total * exchangeRate) * 100)
+            },
+            quantity: item.quantity
+        }));
 
-        const session = await stripeService.createCheckoutSession({
+        const session = await stripeService.createCheckoutSessionMulti({
             bookingId: booking._id.toString(),
             eventId: eventId.toString(),
-            ticketName: selectedTicket.name,
             eventName: event.title,
-            amount: unitPriceIncludingFees, 
-            quantity: quantity,
-            currency: requestedCurrency,
-            customerEmail: attendeeEmail || (req.user ? req.user.email : ''),
-            eventBanner: event.banner ? (event.banner.startsWith('http') ? event.banner : `${process.env.BACKEND_URL || 'http://localhost:5000'}${event.banner}`) : null
+            lineItems: lineItems,
+            customerEmail: attendeeEmail || (req.user ? req.user.email : '')
         }, req.get('origin'));
 
         booking.stripe_session_id = session.id;
@@ -430,47 +476,44 @@ exports.createCheckoutSession = async (req, res) => {
 };
 
 // Helper: Process Ticket Delivery (PDF + Email)
-async function handleTicketDelivery(booking) {
-    console.log(`📦 Generating PDF and Sending Email for Booking: ${booking.booking_reference}`);
+exports.handleTicketDelivery = async function (booking) {
+    console.log(`📦 Processing delivery for booking: ${booking.booking_reference}`);
     
     try {
+        // 1. Deduct Inventory (IMPORTANT: Do this first or ensure it happens)
+        const event = await Event.findById(booking.event_id);
+        if (event) {
+            for (const item of booking.items) {
+                // Find the specific ticket type and decrement quantity
+                await Event.updateOne(
+                    { _id: event._id, "ticketTypes._id": item.ticket_id },
+                    { $inc: { "ticketTypes.$.quantity": -item.quantity } }
+                );
+                console.log(`📉 Deducted ${item.quantity} from ticket: ${item.ticket_name}`);
+            }
+        }
+
+        // 2. Generate PDF
         const pdfBuffer = await pdfService.generateTicketPdf(booking);
         
-        // 1. Send Tickets to Customer
-        await emailService.sendTicketEmail(booking, pdfBuffer);
+        // 3. Send Tickets to Customer (Attendee)
+        await emailService.sendTicketEmail(booking, pdfBuffer, booking.customer_email, 'attendee');
         
-        // 2. Fetch Organizer and Platform info for notifications
-        const [event, settings] = await Promise.all([
-            Event.findById(booking.event_id).populate('organizer'),
-            AppSetting.findOne()
-        ]);
-
-        const organizerEmail = event?.organizer?.email;
-        const platformEmail = settings?.contactInfo?.contactEmail || settings?.smtp?.fromEmail;
-
-        // 3. Notify Organizer
-        if (organizerEmail) {
-            await emailService.sendNotificationEmail(
-                organizerEmail,
-                `New Ticket Booking: ${booking.event_name}`,
-                'New Ticket Sold!',
-                `Congratulations! A new ticket has been sold for your event "${booking.event_name}".`,
-                booking
-            );
+        // 4. Send Notification to Organizer
+        const organizer = await User.findById(booking.organizer_id);
+        if (organizer && organizer.email) {
+            await emailService.sendTicketEmail(booking, pdfBuffer, organizer.email, 'organizer');
         }
 
-        // 4. Notify Platform Admin
-        if (platformEmail) {
-            await emailService.sendNotificationEmail(
-                platformEmail,
-                `New Platform Booking: ${booking.booking_reference}`,
-                'New Booking on HalalBrite',
-                `A new booking has been completed on the platform for "${booking.event_name}".`,
-                booking
-            );
+        // 5. Send Notification to Platform Admin
+        const adminUser = await User.findOne({ role: 'admin' });
+        const adminEmail = adminUser?.email || process.env.ADMIN_EMAIL;
+        
+        if (adminEmail) {
+            await emailService.sendTicketEmail(booking, pdfBuffer, adminEmail, 'admin');
         }
 
-        console.log(`✅ Ticket Delivery & Notifications Complete for ${booking.booking_reference}`);
+        console.log(`✅ Ticket Delivery & Inventory Update Complete for ${booking.booking_reference}`);
     } catch (error) {
         console.error('❌ Ticket Delivery Error:', error);
     }
@@ -526,5 +569,73 @@ exports.resendTicketEmail = async (req, res) => {
         res.json({ success: true, message: 'Email resent successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+}
+// @desc    Verify Payment Status (Fallback for Webhooks)
+// @route   POST /api/payments/booking/:id/verify
+exports.verifyBookingPayment = async (req, res) => {
+    console.log(`🔍 Verifying payment for booking: ${req.params.id}`);
+    try {
+        const booking = await Booking.findById(req.params.id);
+        if (!booking) {
+            console.log("❌ Booking not found");
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // If already paid, just return success
+        if (booking.payment_status === 'paid') {
+            console.log("✅ Booking already marked as paid");
+            return res.json({ success: true, status: 'paid' });
+        }
+
+        // If it's a paid booking and has a session ID
+        if (booking.amount_total > 0 && booking.stripe_session_id) {
+            console.log(`📡 Checking Stripe Session: ${booking.stripe_session_id}`);
+            const stripeInstance = await stripeService.getStripeInstance();
+            const session = await stripeInstance.checkout.sessions.retrieve(booking.stripe_session_id);
+
+            console.log(`💳 Stripe Session Status: ${session.payment_status}`);
+            if (session.payment_status === 'paid') {
+                // Finalize Booking
+                booking.payment_status = 'paid';
+                booking.stripe_payment_intent_id = session.payment_intent;
+                await booking.save();
+
+                // Trigger Delivery (Deducts inventory and sends emails)
+                await exports.handleTicketDelivery(booking);
+                
+                console.log("✅ Booking finalized via fallback verification");
+                return res.json({ success: true, status: 'paid' });
+            }
+        }
+
+        console.log(`⚠️ Booking remains ${booking.payment_status}`);
+        res.json({ success: false, status: booking.payment_status });
+    } catch (error) {
+        console.error('❌ Verify Payment Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+}
+// Helper: Batch verify bookings
+exports.verifyPendingBookings = async function (bookings) {
+    const pending = bookings.filter(b => b.payment_status === 'pending' && b.stripe_session_id);
+    if (pending.length === 0) return;
+
+    console.log(`🔍 Auto-verifying ${pending.length} pending bookings...`);
+    const stripeInstance = await stripeService.getStripeInstance();
+
+    for (const booking of pending) {
+        try {
+            const session = await stripeInstance.checkout.sessions.retrieve(booking.stripe_session_id);
+            if (session.payment_status === 'paid') {
+                booking.payment_status = 'paid';
+                booking.stripe_payment_intent_id = session.payment_intent;
+                await booking.save();
+                await exports.handleTicketDelivery(booking);
+                console.log(`✅ Auto-finalized booking: ${booking.booking_reference}`);
+            }
+        } catch (err) {
+            console.error(`Failed to auto-verify booking ${booking._id}:`, err.message);
+        }
     }
 }

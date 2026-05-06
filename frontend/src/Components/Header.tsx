@@ -28,9 +28,13 @@ export default function Header() {
         <Link href="/">
           <div className="w-16 sm:w-20 h-12 sm:h-16 flex items-center cursor-pointer">
             <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+
               <text x="60" y="65" textAnchor="middle" fill="#DC2626" fontSize="70" fontFamily="cursive, 'Apple Chancery', 'Comic Sans MS', fantasy" fontWeight="700" strokeWidth="2" stroke="#DC2626" paintOrder="stroke">H</text>
+
               <circle cx="60" cy="42" r="4" fill="#EF4444" />
+
               <text x="60" y="105" textAnchor="middle" fill="#DC2626" fontSize="22" fontFamily="'Trebuchet MS', 'Arial Rounded MT Bold', Verdana, sans-serif" fontWeight="900">HalalBrite</text>
+
             </svg>
           </div>
         </Link>

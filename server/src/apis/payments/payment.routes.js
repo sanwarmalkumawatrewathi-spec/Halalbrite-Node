@@ -32,9 +32,10 @@ router.post('/checkout', (req, res, next) => {
 }, createCheckoutSession);
 
 // Ticket Management (Publicly accessible with booking ID for now, can be hardened later)
-const { downloadTicket, resendTicketEmail } = require('../../controllers/payment.controller');
+const { downloadTicket, resendTicketEmail, verifyBookingPayment } = require('../../controllers/payment.controller');
 router.get('/booking/:id/download', downloadTicket);
 router.post('/booking/:id/resend-email', resendTicketEmail);
+router.post('/booking/:id/verify', verifyBookingPayment);
 
 // Webhook (Handles raw body for signature verification)
 router.post('/webhook', express.raw({ type: 'application/json' }), handleWebhook);

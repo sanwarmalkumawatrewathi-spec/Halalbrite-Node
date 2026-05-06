@@ -19,6 +19,8 @@ class StripeService {
             ? settings.stripe.testSecretKey
             : settings.stripe.liveSecretKey;
 
+        console.log(`🔌 Stripe Init: Mode=${settings.stripe.isTestMode ? 'Test' : 'Live'}, KeyFound=${!!secretKey}`);
+
         if (!secretKey) throw new Error('Stripe Secret Key not found in settings');
 
         return stripe(secretKey, {
@@ -319,6 +321,35 @@ class StripeService {
         } catch (error) {
             console.error('❌ Auto-sync Currency Error:', error.message);
         }
+    }
+
+    /**
+     * Create a Stripe Checkout Session for a ticket purchase (Multi-Item).
+     */
+    async createCheckoutSessionMulti(params, dynamicBaseUrl = null) {
+        const stripeInstance = await this.getStripeInstance();
+        const baseUrl = dynamicBaseUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+
+        const sessionData = {
+            payment_method_types: ['card'],
+            line_items: params.lineItems,
+            mode: 'payment',
+            success_url: `${baseUrl}/checkout/success?status=success&bookingId=${params.bookingId}`,
+            cancel_url: `${baseUrl}/checkout/${params.eventId}?status=cancelled`,
+            customer_email: params.customerEmail,
+            metadata: {
+                bookingId: params.bookingId,
+                eventId: params.eventId
+            },
+            payment_intent_data: {
+                metadata: {
+                    bookingId: params.bookingId,
+                    eventId: params.eventId,
+                }
+            }
+        };
+
+        return await stripeInstance.checkout.sessions.create(sessionData);
     }
 
     /**

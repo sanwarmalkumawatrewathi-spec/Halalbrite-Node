@@ -6,11 +6,23 @@ import { FaRegCalendarAlt, FaRegClock } from "react-icons/fa";
 import EventType from "@/Components/EventType";
 import TicketSection from "@/Components/TicketSection";
 import { useAuth } from "@/context/authContext";
+import ReviewModal from "./EventPublishing/ReviewModal";
+import BecomeOrganizerModal from "./EventPublishing/BecomeOrganizerModal";
+import PublishSuccess from "./EventPublishing/PublishSuccess";
+import { useRouter } from "next/navigation";
 
 export default function EventForm({ editId }: { editId?: string | null }) {
-    const { user } = useAuth();
+    const { user, isOrganizer, becomeOrganizer, isStripeConnected } = useAuth();
+    const router = useRouter();
     const isEditMode = !!editId;
     const [categories, setCategories] = useState<any[]>([]);
+    
+    // Modal states
+    const [showReview, setShowReview] = useState(false);
+    const [showBecomeOrganizer, setShowBecomeOrganizer] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [publishedEventId, setPublishedEventId] = useState("");
+    const [publishedEventSlug, setPublishedEventSlug] = useState("");
     const [form, setForm] = useState<{
         title: string;
         category: string;
@@ -197,16 +209,34 @@ export default function EventForm({ editId }: { editId?: string | null }) {
     };
 
     const handleSubmit = async (e: any) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
+        setShowReview(true);
+    };
+
+    const confirmPublish = async (isBypassingRoleCheck = false) => {
+        if (!isOrganizer && !isBypassingRoleCheck) {
+            setShowReview(false);
+            setShowBecomeOrganizer(true);
+            return;
+        }
+
+        if (!isStripeConnected && !isEditMode) {
+            setStatus({ type: "error", message: "Please connect your Stripe account in the Organizer Dashboard before publishing." });
+            setShowReview(false);
+            return;
+        }
+
         setLoading(true);
         setStatus({ type: "", message: "" });
+        setShowReview(false);
 
         try {
-            let bannerUrl = "";
+            let bannerUrl = form.bannerPreview;
             let thumbnailUrl = "";
 
-            // 1. Handle Banner Upload
-            const bannerFile = (document.getElementsByName("banner")[0] as HTMLInputElement)?.files?.[0];
+            // 1. Handle Banner Upload (if file is selected)
+            const bannerFileInput = (document.getElementsByName("banner")[0] as HTMLInputElement);
+            const bannerFile = bannerFileInput?.files?.[0];
             if (bannerFile) {
                 bannerUrl = await handleUpload(bannerFile);
             }
@@ -228,6 +258,8 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                     saleEnd
                 };
             });
+
+            const selectedCategory = categories.find(c => c._id === form.category);
 
             const eventData = {
                 ...form,
@@ -259,14 +291,40 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || (isEditMode ? "Failed to update event" : "Failed to create event"));
 
-            setStatus({ type: "success", message: isEditMode ? "Event updated successfully! Redirecting..." : "Event created successfully! Redirecting..." });
-            setTimeout(() => {
-                window.location.href = "/organizer-dashboard";
-            }, 2000);
+            if (isEditMode) {
+                setStatus({ type: "success", message: "Event updated successfully! Redirecting..." });
+                setTimeout(() => {
+                    router.push("/organizer-dashboard");
+                }, 2000);
+            } else {
+                const event = data.data || data;
+                setPublishedEventId(event._id);
+                setPublishedEventSlug(event.slug || event._id);
+                setShowSuccess(true);
+            }
 
         } catch (error: any) {
             console.error("Submission Error:", error);
             setStatus({ type: "error", message: error.message || "An error occurred during submission" });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleConvertAndPublish = async () => {
+        try {
+            setLoading(true);
+            const result = await becomeOrganizer();
+            if (result.success) {
+                setShowBecomeOrganizer(false);
+                // Now that they are an organizer, publish
+                // We need to wait a bit for context to update or just bypass the check
+                await confirmPublish(true);
+            } else {
+                setStatus({ type: "error", message: result.message || "Failed to convert account" });
+            }
+        } catch (err) {
+            console.error("Conversion error:", err);
         } finally {
             setLoading(false);
         }
@@ -552,6 +610,25 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                     </button>
                 </div>
             </form>
+
+            <ReviewModal
+                isOpen={showReview}
+                onClose={() => setShowReview(false)}
+                onPublish={confirmPublish}
+                eventData={{
+                    ...form,
+                    categoryName: categories.find(c => c._id === form.category)?.name
+                }}
+                tickets={tickets}
+            />
+
+            <BecomeOrganizerModal
+                isOpen={showBecomeOrganizer}
+                onClose={() => setShowBecomeOrganizer(false)}
+                onConvert={handleConvertAndPublish}
+            />
+
+            {showSuccess && <PublishSuccess eventId={publishedEventId} slug={publishedEventSlug} />}
         </div>
     );
 }

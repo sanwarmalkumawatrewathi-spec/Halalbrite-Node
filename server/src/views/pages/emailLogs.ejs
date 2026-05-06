@@ -1,0 +1,75 @@
+<div class="card">
+    <div class="card-header">
+        <h3>Email Delivery Logs</h3>
+        <span class="text-muted">History of outgoing platform notifications</span>
+    </div>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Recipient</th>
+                    <th>Role</th>
+                    <th>Subject</th>
+                    <th>Booking Ref</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (logs.length === 0) { %>
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No email logs found.</td>
+                    </tr>
+                <% } else { %>
+                    <% logs.forEach(log => { %>
+                        <tr>
+                            <td>
+                                <%= new Date(log.createdAt).toLocaleString('en-GB', { 
+                                    day: '2-digit', month: '2-digit', year: 'numeric',
+                                    hour: '2-digit', minute: '2-digit' 
+                                }) %>
+                            </td>
+                            <td>
+                                <div class="customer-info">
+                                    <span class="customer-name"><%= log.recipient %></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge <%= log.role === 'admin' ? 'badge-primary' : (log.role === 'organizer' ? 'badge-warning' : 'badge-info') %>">
+                                    <%= log.role %>
+                                </span>
+                            </td>
+                            <td title="<%= log.subject %>">
+                                <%= log.subject.substring(0, 40) %><%= log.subject.length > 40 ? '...' : '' %>
+                            </td>
+                            <td>
+                                <% if (log.booking_id) { %>
+                                    <a href="/admin/orders/view/<%= log.booking_id._id %>">
+                                        <%= log.booking_id.booking_reference %>
+                                    </a>
+                                <% } else { %>
+                                    <span class="text-muted">-</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (log.status === 'sent') { %>
+                                    <span class="badge badge-success"><i class="fa-solid fa-check"></i> Sent</span>
+                                <% } else { %>
+                                    <span class="badge badge-danger" title="<%= log.error %>">
+                                        <i class="fa-solid fa-xmark"></i> Failed
+                                    </span>
+                                <% } %>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .badge-primary { background-color: #007bff; color: white; }
+    .badge-info { background-color: #17a2b8; color: white; }
+    .badge-warning { background-color: #ffc107; color: #333; }
+</style>

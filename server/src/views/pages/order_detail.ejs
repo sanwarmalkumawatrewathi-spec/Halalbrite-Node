@@ -135,6 +135,13 @@
         <!-- Actions Card -->
         <div class="card" style="margin-top: 2rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
             <div class="card-body" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                <% if (order.payment_status !== 'paid') { %>
+                <form action="/admin/orders/mark-paid/<%= order._id %>" method="POST" onsubmit="return confirm('Mark this order as paid manually? This will deduct inventory and send tickets.')">
+                    <button type="submit" class="btn btn-success" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; margin-bottom: 1rem;">
+                        <i class="fa-solid fa-check"></i> Mark as Paid
+                    </button>
+                </form>
+                <% } %>
                 <a href="/api/payments/booking/<%= order._id %>/download" target="_blank" class="btn btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px;">
                     <i class="fa-solid fa-download"></i> Download Tickets
                 </a>
