@@ -52,8 +52,8 @@ export default function CustomersTab() {
 
     // Create rows (properly handling commas in values by wrapping in quotes)
     const rows = customers.map(booking => [
-      booking.user_id?.username || "N/A",
-      booking.user_id?.email || "N/A",
+      booking.customer_name || booking.user_id?.username || "N/A",
+      booking.customer_email || booking.user_id?.email || "N/A",
       booking.event_id?.title || "N/A",
       booking.quantity || 0,
       booking.amount_total ? booking.amount_total.toFixed(2) : "0.00",
@@ -76,6 +76,91 @@ export default function CustomersTab() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any>(null);
+  const [messageSubject, setMessageSubject] = useState("");
+  const [messageContent, setMessageContent] = useState("");
+  const [isSending, setIsSending] = useState(false);
+
+  const handleMessageClick = (booking: any) => {
+    setSelectedBooking(booking);
+    setMessageSubject(`Message regarding ${booking.event_name}`);
+    setMessageContent("");
+    setShowMessageModal(true);
+  };
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const handleSendMessage = async () => {
+    if (!messageContent.trim()) {
+      alert("Please enter a message.");
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/dashboard/organizer/message-attendee`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          bookingId: selectedBooking._id,
+          subject: messageSubject,
+          message: messageContent
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setShowMessageModal(false);
+        setSuccessMessage("Your message has been sent successfully to the attendee.");
+        setShowSuccessModal(true);
+      } else {
+        alert("Failed to send message: " + result.message);
+      }
+    } catch (error: any) {
+      alert("Error: " + error.message);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const [showResendModal, setShowResendModal] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+
+  const handleResendClick = (booking: any) => {
+    setSelectedBooking(booking);
+    setShowResendModal(true);
+  };
+
+  const handleResendTickets = async () => {
+    setIsResending(true);
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const response = await fetch(`${API_URL}/api/payments/booking/${selectedBooking._id}/resend-email`, {
+        method: 'POST'
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setShowResendModal(false);
+        setSuccessMessage("Tickets have been resent successfully to the attendee's email.");
+        setShowSuccessModal(true);
+      } else {
+        alert("Failed to resend tickets: " + result.message);
+      }
+    } catch (error: any) {
+      alert("Error: " + error.message);
+    } finally {
+      setIsResending(false);
+    }
   };
 
   if (loading) return <div className="p-10 text-center">Loading customers...</div>;
@@ -113,7 +198,9 @@ export default function CustomersTab() {
                     <tbody data-slot="table-body" className="[&amp;_tr:last-child]:border-0">
                       {customers.length > 0 ? (
                         customers.map((booking, i) => {
-                          const initials = booking.user_id?.username?.substring(0, 2).toUpperCase() || "U";
+                          const customerName = booking.customer_name || booking.user_id?.username || 'Unknown';
+                          const customerEmail = booking.customer_email || booking.user_id?.email || 'N/A';
+                          const initials = customerName.substring(0, 2).toUpperCase();
                           return (
                             <tr key={i} data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
                               <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
@@ -125,10 +212,10 @@ export default function CustomersTab() {
                                       <span data-slot="avatar-fallback" className="flex size-full items-center justify-center rounded-full bg-red-100 text-red-700">{initials}</span>
                                     )}
                                   </span>
-                                  <span className="text-gray-900 font-medium">{booking.user_id?.username || 'Unknown'}</span>
+                                  <span className="text-gray-900 font-medium">{customerName}</span>
                                 </div>
                               </td>
-                              <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">{booking.user_id?.email || 'N/A'}</td>
+                              <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">{customerEmail}</td>
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">{booking.event_id?.title || 'Unknown Event'}</td>
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap text-center">{booking.quantity}</td>
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-red-700 whitespace-nowrap font-medium">
@@ -137,17 +224,13 @@ export default function CustomersTab() {
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">{new Date(booking.createdAt).toLocaleDateString()}</td>
                               <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
                                 <div className="flex gap-2 whitespace-nowrap">
-                                  <button data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 border-red-300 text-red-700 hover:bg-red-50">
+                                  <button onClick={() => handleMessageClick(booking)} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 border-red-300 text-red-700 hover:bg-red-50">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-mail w-4 h-4 mr-1"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>
                                     Message
                                   </button>
-                                  <button data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 border-blue-300 text-blue-700 hover:bg-blue-50">
+                                  <button onClick={() => handleResendClick(booking)} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 border-blue-300 text-blue-700 hover:bg-blue-50">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-send w-4 h-4 mr-1"><path d="M14.536 21.686a.5.5 0 0 0 .937-.024l6.5-19a.496.496 0 0 0-.635-.635l-19 6.5a.5.5 0 0 0-.024.937l7.93 3.18a2 2 0 0 1 1.112 1.11z"></path><path d="m21.854 2.147-10.94 10.939"></path></svg>
                                     Resend Tickets
-                                  </button>
-                                  <button data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 border-red-300 text-red-700 hover:bg-red-50">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-rotate-ccw w-4 h-4 mr-1"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                                    Refund
                                   </button>
                                 </div>
                               </td>
@@ -170,7 +253,7 @@ export default function CustomersTab() {
         </div>
       </div>
 
-      <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white">
+      <div data-slot="card" className="hidden bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white">
         <div data-slot="card-header" className="@container/card-header auto-rows-min grid-rows-[auto_auto] gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-row items-start justify-between space-y-0 pb-4">
           <div className="space-y-1.5">
             <h4 data-slot="card-title" className="leading-none text-red-900 font-semibold text-lg">Refund Requests</h4>
@@ -218,10 +301,6 @@ export default function CustomersTab() {
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-dollar-sign w-4 h-4 mr-1"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                               Open Stripe Dashboard
                             </button>
-                            <button data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border bg-background hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 border-red-300 text-red-700 hover:bg-red-50">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-rotate-ccw w-4 h-4 mr-1"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                              Refund
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -233,6 +312,151 @@ export default function CustomersTab() {
           </div>
         </div>
       </div>
+      {/* Message Modal */}
+      {showMessageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-100">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-red-50/30">
+              <h3 className="text-xl font-bold text-red-900">Send Message</h3>
+              <button 
+                onClick={() => setShowMessageModal(false)}
+                className="text-gray-400 hover:text-red-600 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Recipient</label>
+                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 text-sm">
+                  {selectedBooking?.customer_name} ({selectedBooking?.customer_email})
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Subject</label>
+                <input 
+                  type="text"
+                  value={messageSubject}
+                  onChange={(e) => setMessageSubject(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all text-sm"
+                  placeholder="Enter subject..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Message Description</label>
+                <textarea 
+                  rows={5}
+                  value={messageContent}
+                  onChange={(e) => setMessageContent(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all text-sm resize-none"
+                  placeholder="Write your message here..."
+                />
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+              <button 
+                onClick={() => setShowMessageModal(false)}
+                className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSendMessage}
+                disabled={isSending}
+                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-bold shadow-md shadow-red-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSending ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                    Send Message
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Resend Tickets Modal */}
+      {showResendModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-gray-100">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-blue-50/30">
+              <h3 className="text-xl font-bold text-blue-900">Resend Tickets</h3>
+              <button 
+                onClick={() => setShowResendModal(false)}
+                className="text-gray-400 hover:text-blue-600 transition-colors"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+            
+            <div className="p-8 text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+              </div>
+              <div>
+                <h4 className="text-lg font-bold text-gray-900">Confirm Resend</h4>
+                <p className="text-sm text-gray-500 mt-2">
+                  Are you sure you want to resend the tickets for <strong>{selectedBooking?.event_name}</strong> to:
+                </p>
+                <p className="text-md font-semibold text-blue-700 mt-1">
+                  {selectedBooking?.customer_email}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-6 bg-gray-50 border-t border-gray-100 flex justify-center gap-3">
+              <button 
+                onClick={() => setShowResendModal(false)}
+                className="px-6 py-2 text-sm font-semibold text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleResendTickets}
+                disabled={isResending}
+                className="px-8 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-bold shadow-md shadow-blue-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isResending ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Resending...
+                  </>
+                ) : (
+                  "Yes, Resend Now"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center transform animate-in zoom-in-95 duration-200">
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check text-green-600 w-10 h-10"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-2">Success!</h3>
+            <p className="text-gray-600 mb-8">{successMessage}</p>
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-red-200"
+            >
+              Great, thanks!
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -54,7 +54,7 @@ function CheckoutContent() {
     const [hasAutoFilledAddress, setHasAutoFilledAddress] = useState(false);
 
     useEffect(() => {
-        // Auto-fill form from user data if available
+        // 1. Auto-fill form from user data if available (Identity only)
         if (user && !hasAutoFilledAddress) {
             setFormData(prev => ({
                 ...prev,
@@ -62,18 +62,23 @@ function CheckoutContent() {
                 email: prev.email || user.email || "",
                 phone: prev.phone || user.phone || ""
             }));
+            setHasAutoFilledAddress(true);
+        }
 
-            if (user.addresses && user.addresses.length > 0) {
-                const defaultAddr = user.addresses.find(a => a.isDefault) || user.addresses[0];
+        // 2. Load last used address from localStorage (Browser persistence)
+        const savedAddress = localStorage.getItem('last_checkout_address');
+        if (savedAddress) {
+            try {
+                const addr = JSON.parse(savedAddress);
                 setFormData(prev => ({
                     ...prev,
-                    addressLine1: defaultAddr.street || "",
-                    city: defaultAddr.city || "",
-                    postcode: defaultAddr.postcode || "",
-                    country: defaultAddr.country || "United Kingdom"
+                    addressLine1: prev.addressLine1 || addr.addressLine1 || "",
+                    addressLine2: prev.addressLine2 || addr.addressLine2 || "",
+                    city: prev.city || addr.city || "",
+                    postcode: prev.postcode || addr.postcode || "",
+                    country: prev.country || addr.country || "United Kingdom"
                 }));
-            }
-            setHasAutoFilledAddress(true);
+            } catch (e) { console.error("Failed to parse saved address", e); }
         }
     }, [user, hasAutoFilledAddress]);
 
@@ -143,6 +148,16 @@ function CheckoutContent() {
 
     const handleCompletePurchase = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Save address for next time (Browser persistence)
+        localStorage.setItem('last_checkout_address', JSON.stringify({
+            addressLine1: formData.addressLine1,
+            addressLine2: formData.addressLine2,
+            city: formData.city,
+            postcode: formData.postcode,
+            country: formData.country
+        }));
+
         setProcessing(true);
         try {
             const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");

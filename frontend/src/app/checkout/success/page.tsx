@@ -44,8 +44,45 @@ function SuccessContent() {
         if (bookingId) fetchBooking();
     }, [bookingId]);
 
-    if (loading) return <div className=" flex items-center justify-center">Verifying Booking...</div>;
-    if (!booking) return <div className=" flex items-center justify-center text-red-600">Booking not found</div>;
+    if (loading) return (
+        <div className="min-h-screen bg-[#fff9fa] flex flex-col items-center justify-center p-6 text-center">
+            <div className="relative mb-8">
+                {/* Outer glowing ring */}
+                <div className="absolute inset-0 bg-red-200 rounded-full blur-2xl opacity-40 animate-pulse"></div>
+                {/* Main Spinner */}
+                <div className="relative w-24 h-24">
+                    <div className="absolute inset-0 border-4 border-red-100 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-red-600 rounded-full border-t-transparent animate-spin"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <CheckCircle2 size={32} className="text-red-600 animate-bounce" />
+                    </div>
+                </div>
+            </div>
+            <h2 className="text-2xl font-bold text-red-900 mb-2">Verifying Your Booking</h2>
+            <p className="text-gray-500 font-medium animate-pulse">
+                Please wait while we finalize your tickets...
+            </p>
+        </div>
+    );
+    if (!booking) return (
+        <div className="min-h-screen bg-[#fff9fa] flex flex-col items-center justify-center p-6 text-center">
+            <div className="bg-white p-10 rounded-[32px] shadow-2xl shadow-red-100/50 max-w-sm w-full border border-red-50">
+                <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle2 size={40} className="text-red-300" style={{ transform: 'rotate(45deg)' }} />
+                </div>
+                <h2 className="text-2xl font-bold text-red-900 mb-2">Booking Not Found</h2>
+                <p className="text-gray-500 mb-8 text-sm leading-relaxed">
+                    We couldn't find the details for this booking. If you believe this is an error, please contact support or check your email.
+                </p>
+                <button 
+                    onClick={() => router.push('/')}
+                    className="w-full bg-red-600 text-white py-4 rounded-xl font-bold text-sm hover:bg-red-700 transition-all shadow-lg shadow-red-100"
+                >
+                    Back to Home
+                </button>
+            </div>
+        </div>
+    );
 
     const handleDownload = () => {
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
