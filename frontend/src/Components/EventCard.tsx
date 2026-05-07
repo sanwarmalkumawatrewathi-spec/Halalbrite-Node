@@ -1,10 +1,11 @@
 "use client";
 
-import { Heart, Calendar, MapPin } from "lucide-react";
+import { Heart, Calendar } from "lucide-react";
 import Link from "next/link";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/authContext";
 import { useRouter } from "next/navigation";
+import { LocationIcon } from "./Icons";
 
 type EventCardProps = {
     id: string;
@@ -13,9 +14,13 @@ type EventCardProps = {
   organizer: string;
   organizerId?: string;
   organizerSlug?: string;
-  date: string;
+  startDate: string;
+  endDate: string;
+  startTime?: string;
+  endTime?: string;
   location: string;
   price: number | string;
+  priceLabel?: string;
   image: string;
   category: string;
 };
@@ -27,9 +32,13 @@ export default function EventCard({
   organizer,
   organizerId,
   organizerSlug,
-  date,
+  startDate,
+  endDate,
+  startTime,
+  endTime,
   location,
   price,
+  priceLabel,
   image,
   category,
 }: EventCardProps) {
@@ -39,6 +48,18 @@ export default function EventCard({
   
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
   const bannerImage = image ? (image.startsWith('http') ? image : `${baseUrl}${image}`) : "/images/noimage.jpg";
+  
+  const formatEventDate = (dateStr: string, timeStr?: string) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    const datePart = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    const dayPart = date.toLocaleDateString('en-US', { weekday: 'short' });
+    return `${datePart} • ${dayPart} ${timeStr || ""}`;
+  };
   
   const displayPrice = typeof price === 'number' ? formatPrice(price) : price;
   const isSaved = user?.savedEvents?.includes(id);
@@ -60,7 +81,7 @@ export default function EventCard({
   return (
     <div 
       onClick={handleCardClick}
-      className="bg-white rounded-2xl shadow-md overflow-hidden w-[300px] my-3 cursor-pointer hover:shadow-lg transition-shadow"
+      className="bg-white rounded-2xl shadow-md overflow-hidden w-full h-full flex flex-col cursor-pointer hover:shadow-lg transition-shadow border border-gray-100"
     >
       {/* Image */}
       <div className="relative">
@@ -93,7 +114,7 @@ export default function EventCard({
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-2">
+      <div className="p-4 flex-1 flex flex-col gap-2">
         <h3 className=" text-red-900 text-sm font-bold">
           {title}
         </h3>
@@ -107,21 +128,24 @@ export default function EventCard({
         )}
 
         {/* Date */}
-        <div className="flex items-center gap-2 text-gray-500 text-xs">
-          <Calendar size={14} color="red"/>
-          <span>{date}</span>
+        <div className="flex items-start gap-2 text-gray-500 text-[11px] leading-tight">
+          <Calendar size={14} className="text-red-600 mt-0.5 flex-shrink-0"/>
+          <div className="flex flex-col gap-1">
+            <p><span className="font-semibold text-gray-600">Start:</span> {formatEventDate(startDate, startTime)}</p>
+            <p><span className="font-semibold text-gray-600">End:</span> {formatEventDate(endDate, endTime)}</p>
+          </div>
         </div>
 
         {/* Location */}
         <div className="flex items-center gap-2 text-gray-500 text-xs">
-          <MapPin size={14} color="red" />
+          <LocationIcon size={14} className="text-red-600" />
           <span>{location}</span>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2">
+        <div className="flex items-center justify-between pt-2 mt-auto">
           <span className="text-red-700 text-sm font-medium">
-            {price === 0 ? 'Free' : displayPrice}
+            {priceLabel || (price === 0 ? 'Free' : displayPrice)}
           </span>
 
           <button className="bg-red-600 text-white text-xs px-4 py-2 rounded-lg hover:bg-red-700 transition">

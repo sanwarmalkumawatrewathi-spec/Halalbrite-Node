@@ -16,14 +16,14 @@ import React from 'react'
 
 export default function Page() {
   const [events, setEvents] = useState([]);
-  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState("All");
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-        const query = selectedCity ? `?city=${encodeURIComponent(selectedCity)}` : '';
+        const query = selectedCities.length > 0 ? `?city=${encodeURIComponent(selectedCities.join(','))}` : '';
         const response = await fetch(`${baseUrl}/api/events${query}`);
         const data = await response.json();
         const eventData = Array.isArray(data) ? data : data.data || [];
@@ -33,7 +33,7 @@ export default function Page() {
       }
     };
     fetchEvents();
-  }, [selectedCity]);
+  }, [selectedCities]);
 
   // Filter events for map based on active category
   const mapEvents = events.filter((event: any) => {
@@ -46,19 +46,22 @@ export default function Page() {
   return (
     <div className="bg-[#fef3f6]">
       <Header />
-      <Herosections onLocationSelect={(city) => setSelectedCity(city)} />
+      <Herosections 
+        selectedCities={selectedCities}
+        onLocationSelect={(cities) => setSelectedCities(cities)} 
+      />
 
       <div className="max-w-7xl mx-auto pt-3">
         <CategoryTabs active={activeCategory} setActive={setActiveCategory} />
         <FeaturedEvents
           activeCategory={activeCategory}
-          selectedCity={selectedCity}
+          selectedCities={selectedCities}
         />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-2">
         <h2 className="text-2xl font-bold text-red-900 mb-2 d-none">
-          {selectedCity ? `Event Map: ${selectedCity}` : 'Event Map'}
+          {selectedCities.length > 0 ? `Event Map: ${selectedCities.join(', ')}` : 'Event Map'}
           {activeCategory !== 'All' && ` - ${activeCategory}`}
         </h2>
         <p className="text-gray-600 mb-6 d-none">Explore events happening near you</p>

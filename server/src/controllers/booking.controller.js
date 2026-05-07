@@ -24,10 +24,10 @@ exports.getMyTickets = async (req, res) => {
 // @access  Private
 exports.getBookingById = async (req, res) => {
     try {
-        let booking = await Booking.findById(req.params.id);
+        const booking = await Booking.findById(req.params.id).populate('event_id');
         
         if (!booking) {
-            return res.status(404).json({ message: 'Booking not found' });
+            return res.status(404).json({ success: false, message: 'Booking not found' });
         }
 
         // On-the-fly verification for pending bookings
@@ -41,20 +41,18 @@ exports.getBookingById = async (req, res) => {
                     booking.stripe_payment_intent_id = session.payment_intent;
                     await booking.save();
                     await handleTicketDelivery(booking);
-                    // Reload to get populated fields if any (though here we just saved)
-                    booking = await Booking.findById(booking._id);
                 }
             } catch (err) { console.error('Verification error in getBookingById:', err.message); }
         }
 
         // Ensure user owns this booking (if not guest)
         if (booking.user_id && (!req.user || booking.user_id.toString() !== req.user._id.toString())) {
-            return res.status(401).json({ message: 'Not authorized' });
+            return res.status(401).json({ success: false, message: 'Not authorized' });
         }
 
-        res.json(booking);
+        res.json({ success: true, data: booking });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ success: false, message: error.message });
     }
 };
 

@@ -5,10 +5,10 @@ import EventCard from "./EventCard";
 
 type Props = {
   activeCategory: string;
-  selectedCity?: string | null;
+  selectedCities?: string[];
 };
 
-export default function FeaturedEvents({ activeCategory, selectedCity }: Props) {
+export default function FeaturedEvents({ activeCategory, selectedCities = [] }: Props) {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,8 +47,8 @@ export default function FeaturedEvents({ activeCategory, selectedCity }: Props) 
     const categoryMatch = activeCategory === "All" ||
       event.category?.name?.toLowerCase() === activeCategory?.toLowerCase();
 
-    const cityMatch = !selectedCity ||
-      event.location?.city?.toLowerCase() === selectedCity?.toLowerCase();
+    const cityMatch = selectedCities.length === 0 ||
+      selectedCities.some(city => event.location?.city?.toLowerCase() === city.toLowerCase());
 
     return categoryMatch && cityMatch;
   });
@@ -65,7 +65,9 @@ export default function FeaturedEvents({ activeCategory, selectedCity }: Props) 
             Featured Events
           </h2>
           <p className="text-gray-600 text-[15px] mb-3">
-            {selectedCity ? `Discover upcoming events in ${selectedCity}` : 'Discover upcoming events in your community'}
+            {selectedCities.length > 0 
+              ? `Discover upcoming events in ${selectedCities.join(', ')}` 
+              : 'Discover upcoming events in your community'}
           </p>
         </div>
 
@@ -73,7 +75,7 @@ export default function FeaturedEvents({ activeCategory, selectedCity }: Props) 
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredEvents.length > 0 ? (
           filteredEvents.map((event, i) => (
             <EventCard
@@ -84,9 +86,13 @@ export default function FeaturedEvents({ activeCategory, selectedCity }: Props) 
               organizer={event.organizerName || event.organizer?.username || "Organizer"}
               organizerId={typeof event.organizer === 'object' ? event.organizer._id : event.organizer}
               organizerSlug={event.organizer?.slug}
-              date={`${formatDate(event.startDate)} ${event.startTime || ""}`}
+              startDate={event.startDate}
+              endDate={event.endDate}
+              startTime={event.startTime}
+              endTime={event.endTime}
               location={`${event.location?.city || ""}, ${event.location?.country || "UK"}`}
               price={event.price}
+              priceLabel={event.priceLabel}
               image={event.banner ? (event.banner.startsWith('http') ? event.banner : `${(process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "")}${event.banner}`) : "/images/noimage.jpg"}
               category={event.category?.name || "Event"}
             />

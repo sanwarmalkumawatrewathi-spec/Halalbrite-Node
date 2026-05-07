@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, SlidersHorizontal, MapPin, Calendar, Filter, X } from "lucide-react";
+import { Search, SlidersHorizontal, Calendar, Filter, X } from "lucide-react";
+import { LocationIcon } from "./Icons";
 
 export default function FilterBar({ filters, setFilters }: { filters: any, setFilters: any }) {
   const [open, setOpen] = useState(false);
@@ -106,7 +107,7 @@ export default function FilterBar({ filters, setFilters }: { filters: any, setFi
             {/* LOCATION INPUT */}
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
-                <MapPin size={12} /> City / Location
+                <LocationIcon size={12} /> City / Location
               </label>
               <div className="relative">
                 <input

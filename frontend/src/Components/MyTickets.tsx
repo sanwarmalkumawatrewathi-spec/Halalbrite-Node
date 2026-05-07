@@ -21,8 +21,6 @@ type Ticket = {
 export default function MyTickets() {
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
-    const [showRefundModal, setShowRefundModal] = useState(false);
-    const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
     const router = useRouter();
 
     useEffect(() => {
@@ -94,7 +92,7 @@ export default function MyTickets() {
                   </div>
                   <div className="flex flex-wrap gap-2 sm:flex-shrink-0">
                     <button 
-                      onClick={()=>router.push(`/TicketPreview`)}
+                      onClick={()=>router.push(`/TicketPreview?bookingId=${ticket._id}`)}
                       data-slot="button" 
                       className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 text-white rounded-md px-3 bg-red-600 hover:bg-red-700 flex-1 sm:flex-initial text-xs sm:text-sm h-8 sm:h-9"
                     >
@@ -107,17 +105,6 @@ export default function MyTickets() {
                     >
                       Details
                     </button>
-                    <button 
-                      onClick={() => {
-                          setSelectedTicket(ticket);
-                          setShowRefundModal(true);
-                      }}
-                      disabled={ticket.payment_status !== "paid"}
-                      data-slot="button" 
-                      className={`inline-flex items-center justify-center whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 border rounded-md px-3 flex-1 sm:flex-initial text-xs sm:text-sm h-8 sm:h-9 ${ticket.payment_status === "paid" ? "bg-white text-red-600 border-red-200 hover:bg-red-50" : "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"}`}
-                    >
-                      Request Refund
-                    </button>
                   </div>
                 </div>
               </div>
@@ -125,74 +112,6 @@ export default function MyTickets() {
           </div>
         </div>
       </div>
-
-      {showRefundModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-xl w-full max-w-md p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200">
-            
-            <button
-              onClick={() => setShowRefundModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
-            >
-              ✕
-            </button>
-
-            <h2 className="text-xl font-bold mb-1">Request Refund</h2>
-            <p className="text-sm text-gray-500 mb-6">
-              Request a refund for <span className="font-semibold text-gray-900">{selectedTicket?.event_name}</span>
-            </p>
-
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Reason for refund</label>
-                    <select className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-red-500 outline-none">
-                        <option>Select a reason</option>
-                        <option>Can't attend</option>
-                        <option>Event postponed</option>
-                        <option>Medical emergency</option>
-                        <option>Other</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Additional details</label>
-                    <textarea
-                        className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                        rows={4}
-                        placeholder="Please provide any additional information to help us process your request..."
-                    />
-                </div>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 text-blue-700 text-[11px] rounded-lg p-3 my-6">
-              <p className="font-bold mb-1">Important Information:</p>
-              <ul className="list-disc ml-4 space-y-1">
-                  <li>Refund requests must be made within 5 days of the event.</li>
-                  <li>Processing may take 5–10 business days.</li>
-                  <li>Some processing fees might be non-refundable.</li>
-              </ul>
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowRefundModal(false)}
-                className="px-6 py-2 text-sm font-medium border border-gray-300 rounded-md hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={() => {
-                    alert("Refund request submitted successfully!");
-                    setShowRefundModal(false);
-                }}
-                className="px-6 py-2 text-sm font-bold bg-red-600 text-white rounded-md hover:bg-red-700 transition"
-              >
-                Submit Request
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

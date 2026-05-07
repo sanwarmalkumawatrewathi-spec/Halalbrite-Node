@@ -4,7 +4,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
 import { QRCodeSVG } from "qrcode.react";
-import { Download, Mail, Share2, Home, CheckCircle2, MapPin, Calendar, Clock } from "lucide-react";
+import { Download, Mail, Share2, Home, CheckCircle2, Calendar, Clock } from "lucide-react";
+import { LocationIcon } from "@/Components/Icons";
 
 function SuccessContent() {
     const searchParams = useSearchParams();
@@ -19,18 +20,32 @@ function SuccessContent() {
                 const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
                 // 1. Fetch booking details
                 const res = await fetch(`${baseUrl}/api/bookings/${bookingId}`);
-                let data = await res.json();
-                
+                let result = await res.json();
+                let data = result.data || result;
+
+                // Nuclear Option: If event details are missing, fetch them directly
+                if (data && data.event_id && (!data.event_name || !data.event_date)) {
+                    console.log("Details missing, fetching event directly...");
+                    const eventId = typeof data.event_id === 'string' ? data.event_id : data.event_id._id;
+                    const eventRes = await fetch(`${baseUrl}/api/events/${eventId}`);
+                    const eventResult = await eventRes.json();
+                    const eventData = eventResult.data || eventResult;
+                    if (eventData) {
+                        data.event = eventData;
+                    }
+                }
+
                 // 2. If booking is still pending, trigger a verification with Stripe via our new endpoint
                 if (data && data.payment_status === 'pending') {
                     console.log("Booking is pending, verifying status with Stripe...");
                     const verifyRes = await fetch(`${baseUrl}/api/payments/booking/${bookingId}/verify`, { method: 'POST' });
                     const verifyData = await verifyRes.json();
-                    
+
                     if (verifyData.success && verifyData.status === 'paid') {
                         // Re-fetch or update local state to reflect 'paid' status
                         const updatedRes = await fetch(`${baseUrl}/api/bookings/${bookingId}`);
-                        data = await updatedRes.json();
+                        const updatedResult = await updatedRes.json();
+                        data = updatedResult.data || updatedResult;
                     }
                 }
 
@@ -74,7 +89,7 @@ function SuccessContent() {
                 <p className="text-gray-500 mb-8 text-sm leading-relaxed">
                     We couldn't find the details for this booking. If you believe this is an error, please contact support or check your email.
                 </p>
-                <button 
+                <button
                     onClick={() => router.push('/')}
                     className="w-full bg-red-600 text-white py-4 rounded-xl font-bold text-sm hover:bg-red-700 transition-all shadow-lg shadow-red-100"
                 >
@@ -132,26 +147,40 @@ function SuccessContent() {
 
                         {/* EVENT DETAILS CARD */}
                         <div className="bg-[#fff5f6] rounded-3xl p-8 space-y-6">
-                            <h2 className="text-xl font-bold text-red-800 leading-tight">{booking.event_name}</h2>
+                            <h2 className="text-xl font-bold text-red-800 leading-tight">
+                                {booking.event_name || booking.event?.title || booking.event_id?.title || "Event Confirmed"}
+                            </h2>
 
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-1.5">
                                     <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Date</p>
                                     <p className="text-sm font-bold text-gray-700">
-                                        {new Date(booking.event_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                        {(booking.event_date || booking.event?.startDate || booking.event_id?.startDate)
+                                          ? new Date(booking.event_date || booking.event?.startDate || booking.event_id?.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                                          : 'N/A'}
                                     </p>
                                 </div>
                                 <div className="space-y-1.5">
                                     <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Time</p>
-                                    <p className="text-sm font-bold text-gray-700">{booking.event_time || '11:00 AM - 7:00 PM'}</p>
+                                    <p className="text-sm font-bold text-gray-700">
+                                      {booking.event_time || 
+                                       (booking.event?.startTime ? `${booking.event.startTime}${booking.event.endTime ? ' - ' + booking.event.endTime : ''}` : 
+                                       (booking.event_id?.startTime ? `${booking.event_id.startTime}${booking.event_id.endTime ? ' - ' + booking.event_id.endTime : ''}` : 'N/A'))}
+                                    </p>
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
-                                <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Location</p>
+                                <p className="text-[10px] font-black text-red-400 uppercase tracking-widest flex items-center gap-1">
+                                    <LocationIcon size={12} /> Location
+                                </p>
                                 <p className="text-sm font-bold text-gray-700 leading-relaxed">
-                                    {booking.event_venue}<br />
-                                    <span className="text-gray-500 font-medium">{booking.event_location}</span>
+                                    {booking.event_venue || booking.event?.location?.venueName || booking.event_id?.location?.venueName || "Venue Confirmed"}<br />
+                                    <span className="text-gray-500 font-medium">
+                                      {booking.event_location || 
+                                       (booking.event?.location?.city ? `${booking.event.location.address ? booking.event.location.address + ', ' : ''}${booking.event.location.city}` : 
+                                       (booking.event_id?.location?.city ? `${booking.event_id.location.address ? booking.event_id.location.address + ', ' : ''}${booking.event_id.location.city}` : "Location Confirmed"))}
+                                    </span>
                                 </p>
                             </div>
                         </div>

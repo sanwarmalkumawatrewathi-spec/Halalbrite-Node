@@ -9,7 +9,9 @@ import Header from "@/Components/Header";
 import TicketSelection from "@/Components/TicketSelection";
 const MapComponent = dynamic(() => import("@/Components/MapComponent"), { ssr: false });
 import Link from "next/link";
-import { MapPin, Share2, Heart, Calendar, Clock, Users } from "lucide-react";
+import { Share2, Heart, Calendar, Clock, Users } from "lucide-react";
+import { LocationIcon } from "@/Components/Icons";
+import ShareModal from "@/Components/ShareModal";
 
 export default function EventDetails({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -17,6 +19,8 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
   const { user, toggleFollowOrganizer, toggleSavedEvent } = useAuth();
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchEvent = async () => {
@@ -89,11 +93,14 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
         </div>
 
         {/* Hero Section */}
-        <div className="relative w-full h-[350px] md:h-[500px]">
+        <div 
+          className="relative w-full h-[350px] md:h-[500px] cursor-pointer group"
+          onClick={() => setIsPopupOpen(true)}
+        >
           <img
             src={bannerImage}
             alt={event.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:opacity-95 transition-opacity"
             onError={(e: any) => {
               e.target.onerror = null;
               e.target.src = "/images/noimage.jpg";
@@ -101,7 +108,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
           />
 
           {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
 
           {/* Content */}
           <div className="absolute bottom-10 left-0 right-0 max-w-7xl mx-auto px-6 text-white">
@@ -113,18 +120,14 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
               {event.title}
             </h1>
 
-            <div className="flex flex-wrap gap-6 mt-6 text-sm font-medium">
+            <div className="flex flex-col gap-3 mt-6 text-sm font-medium">
               <div className="flex items-center gap-2">
                 <Calendar size={18} className="text-red-400" />
-                <span>{formatDate(event.startDate)}</span>
+                <span><span className="text-red-200">Start:</span> {formatDate(event.startDate)} @ {event.startTime || "TBA"}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock size={18} className="text-red-400" />
-                <span>{event.startTime || "TBA"} - {event.endTime || "End"}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users size={18} className="text-red-400" />
-                <span>{event.attendees?.length || 0} attending</span>
+                <span><span className="text-red-200">End:</span> {formatDate(event.endDate)} @ {event.endTime || "TBA"}</span>
               </div>
             </div>
           </div>
@@ -228,16 +231,40 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
             {/* LOCATION CARD */}
             <div className="bg-white rounded-2xl shadow-lg border-0">
               <div className="px-6 pt-6 pb-2">
-                <h4 className="text-lg font-semibold text-red-900 leading-none">Location</h4>
+                <h4 className="text-lg font-semibold text-red-900 leading-none">Event Details</h4>
               </div>
-              <div className="px-6 pb-6 space-y-4">
-                <div>
-                  <h4 className="text-gray-900 font-medium mb-1">{event.location?.venueName || "Venue Name"}</h4>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    {event.location?.address}<br />
-                    {event.location?.city}, {event.location?.postcode}<br />
-                    {event.location?.country || "United Kingdom"}
-                  </p>
+              <div className="px-6 pb-6 space-y-6">
+                {/* Date & Time */}
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Calendar size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-bold text-gray-900">Date</p>
+                      <p className="text-gray-600">{formatDate(event.startDate)} - {formatDate(event.endDate)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Clock size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-sm">
+                      <p className="font-bold text-gray-900">Time</p>
+                      <p className="text-gray-600">{event.startTime || "TBA"} - {event.endTime || "End"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 pt-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <LocationIcon size={18} className="text-red-600" />
+                    <h4 className="text-gray-900 font-bold">Location</h4>
+                  </div>
+                  <div>
+                    <h4 className="text-gray-900 font-medium mb-1">{event.location?.venueName || "Venue Name"}</h4>
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      {event.location?.address}<br />
+                      {event.location?.city}, {event.location?.postcode}<br />
+                      {event.location?.country || "United Kingdom"}
+                    </p>
+                  </div>
                 </div>
 
                 <a
@@ -246,7 +273,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-2"
                 >
-                  <MapPin size={16} className="text-red-600" />
+                  <LocationIcon size={16} className="text-red-600" />
                   View in Google Maps
                 </a>
               </div>
@@ -254,7 +281,10 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
 
             {/* ACTION BUTTONS */}
             <div className="bg-white rounded-2xl shadow-lg border-0 p-4 space-y-3">
-              <button className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-2">
+              <button 
+                onClick={() => setIsShareModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-2"
+              >
                 <Share2 size={18} className="text-gray-600" />
                 Share Event
               </button>
@@ -296,6 +326,41 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
       </section>
 
       <Footer />
+
+      <ShareModal 
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        eventTitle={event.title}
+        eventUrl={typeof window !== 'undefined' ? window.location.href : ''}
+      />
+
+      {/* Image Popup / Lightbox */}
+      {isPopupOpen && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300"
+          onClick={() => setIsPopupOpen(false)}
+        >
+          <div className="relative max-w-5xl w-full flex flex-col items-center">
+            {/* Close Button - Circular like reference */}
+            <button 
+              className="absolute -top-12 right-0 md:-right-12 w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-white hover:bg-white/10 transition-all z-[110]"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsPopupOpen(false);
+              }}
+            >
+              <span className="text-2xl font-light leading-none">✕</span>
+            </button>
+
+            <img
+              src={bannerImage}
+              alt={event.title}
+              className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

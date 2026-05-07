@@ -1,7 +1,8 @@
 "use client";
 
 import React from 'react';
-import { FiCalendar, FiMapPin, FiTag, FiArrowRight, FiCheck } from 'react-icons/fi';
+import { FiCalendar, FiTag, FiArrowRight, FiCheck } from 'react-icons/fi';
+import { LocationIcon } from '../Icons';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -55,7 +56,7 @@ export default function ReviewModal({ isOpen, onClose, onPublish, eventData, tic
 
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <FiMapPin className="text-red-600 w-5 h-5" />
+                <LocationIcon size={20} className="text-red-600" />
               </div>
               <div>
                 <p className="text-sm font-semibold text-gray-900">Location</p>

@@ -2,8 +2,26 @@
 // @ts-nocheck
 
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, CircleMarker, Popup, Tooltip } from "react-leaflet";
+import L from "leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
 import Link from "next/link";
+
+// Custom Location Icon for Map
+const createLocationIcon = () => {
+  return L.divIcon({
+    html: `
+      <div style="color: #dc2626; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+        </svg>
+      </div>
+    `,
+    className: 'custom-location-marker',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32],
+  });
+};
 
 type MapEvent = {
   _id: string;
@@ -49,7 +67,7 @@ export default function MapComponent({ center, events, onMarkerClick }: MapCompo
 
   const MapContainerAny = MapContainer as any;
   const TileLayerAny = TileLayer as any;
-  const CircleMarkerAny = CircleMarker as any;
+  const MarkerAny = Marker as any;
   const TooltipAny = Tooltip as any;
   const PopupAny = Popup as any;
 
@@ -68,10 +86,9 @@ export default function MapComponent({ center, events, onMarkerClick }: MapCompo
 
         {/* Display single center marker if provided */}
         {center && (
-          <CircleMarkerAny
-            center={mapCenter}
-            radius={12}
-            pathOptions={{ color: "#dc2626", fillColor: "#ef4444", fillOpacity: 1 }}
+          <MarkerAny
+            position={mapCenter}
+            icon={createLocationIcon()}
           />
         )}
 
@@ -94,30 +111,28 @@ export default function MapComponent({ center, events, onMarkerClick }: MapCompo
             : "/images/noimage.jpg";
 
           return (
-            <CircleMarkerAny
+            <MarkerAny
               key={event._id}
-              center={position}
-              radius={10}
+              position={position}
+              icon={createLocationIcon()}
               eventHandlers={{
                 click: () => onMarkerClick && onMarkerClick(event._id)
               }}
-              pathOptions={{
-                color: "#991b1b",
-                fillColor: "#dc2626",
-                fillOpacity: 0.8,
-                weight: 2
-              }}
             >
-              <TooltipAny direction="top" offset={[0, -10]} opacity={1}>
-                <div className="flex items-center gap-3 p-1 min-w-[150px]">
+              <TooltipAny direction="top" offset={[0, -20]} opacity={1}>
+                <div className="flex items-center gap-3 p-2 min-w-[200px] max-w-[250px]">
                   <img
                     src={thumbUrl}
                     alt=""
-                    className="w-10 h-10 rounded object-cover border border-gray-100"
+                    className="w-12 h-12 rounded-lg flex-shrink-0 object-cover border border-gray-100"
                   />
-                  <div>
-                    <div className="font-bold text-red-900 leading-tight mb-0.5">{event.title}</div>
-                    <div className="text-[10px] text-gray-600">{event.location?.venueName || event.location?.city}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-red-900 text-xs leading-tight mb-1 break-words">
+                      {event.title}
+                    </div>
+                    <div className="text-[10px] text-gray-500 truncate">
+                      {event.location?.venueName || event.location?.city}
+                    </div>
                   </div>
                 </div>
               </TooltipAny>
@@ -139,7 +154,7 @@ export default function MapComponent({ center, events, onMarkerClick }: MapCompo
                   </Link>
                 </div>
               </PopupAny>
-            </CircleMarkerAny>
+            </MarkerAny>
           );
         })}
       </MapContainerAny>

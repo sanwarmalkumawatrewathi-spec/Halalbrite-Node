@@ -3,7 +3,8 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
-import { ShieldCheck, MapPin, Calendar, Clock, CreditCard, User, Mail, Phone, Globe, ChevronLeft } from "lucide-react";
+import { ShieldCheck, Calendar, Clock, CreditCard, User, Mail, Phone, Globe, ChevronLeft } from "lucide-react";
+import { LocationIcon } from "@/Components/Icons";
 import GuestCheckoutModal from "@/Components/GuestCheckoutModal";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/authContext";
@@ -149,15 +150,6 @@ function CheckoutContent() {
     const handleCompletePurchase = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Save address for next time (Browser persistence)
-        localStorage.setItem('last_checkout_address', JSON.stringify({
-            addressLine1: formData.addressLine1,
-            addressLine2: formData.addressLine2,
-            city: formData.city,
-            postcode: formData.postcode,
-            country: formData.country
-        }));
-
         setProcessing(true);
         try {
             const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
@@ -177,11 +169,6 @@ function CheckoutContent() {
                     attendeeEmail: formData.email,
                     customerPhone: formData.phone,
                     attendees: attendeeNames, // Send all attendee names
-                    addressLine1: formData.addressLine1,
-                    addressLine2: formData.addressLine2,
-                    city: formData.city,
-                    postcode: formData.postcode,
-                    country: formData.country,
                     isGuest: !token
                 })
             });
@@ -459,162 +446,14 @@ function CheckoutContent() {
                                     )}
                                 </div>
                             </div>
-
-                            {/* BILLING ADDRESS */}
+                            {/* SECURITY & PURCHASE */}
                             <div className="bg-white rounded-[32px] shadow-xl shadow-red-100/50 border border-red-50 p-8 md:p-10">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-                                    <h3 className="text-xl  text-gray-900 flex items-center gap-3 m-0">
-
-                                        Billing Address
-                                    </h3>
-                                    {user?.addresses && user.addresses.length > 0 && (
-                                        <select
-                                            className="bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 font-medium text-gray-700 outline-none focus:border-red-500 transition-all"
-                                            onChange={(e) => {
-                                                if (e.target.value) {
-                                                    const addr = user.addresses?.find((a: any) => a._id === e.target.value);
-                                                    if (addr) {
-                                                        setFormData({
-                                                            ...formData,
-                                                            addressLine1: addr.street || "",
-                                                            addressLine2: "",
-                                                            city: addr.city || "",
-                                                            postcode: addr.postcode || "",
-                                                            country: addr.country || "United Kingdom"
-                                                        });
-                                                    }
-                                                }
-                                            }}
-                                        >
-                                            <option value="">Auto-fill from saved...</option>
-                                            {user.addresses.map((addr: any) => (
-                                                <option key={addr._id} value={addr._id}>
-                                                    {addr.label || "Saved Address"} - {addr.street}, {addr.city}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    )}
-                                </div>
-
-                                <div className="space-y-6">
-
-                                    <div className="space-y-2">
-                                        {/* Label */}
-                                        <label className="text-sm font-medium text-gray-800">
-                                            Address Line 1
-                                        </label>
-
-                                        {/* Input */}
-                                        <input
-                                            type="text"
-                                            required
-                                            value={formData.addressLine1}
-                                            onChange={e => setFormData({ ...formData, addressLine1: e.target.value })}
-                                            placeholder="Address Line 1"
-                                            className="w-full bg-[#f5f6f7] border border-gray-300 rounded-xl px-4 py-3 outline-none 
-               focus:border-gray-400 focus:bg-white transition-all text-sm"
-                                        />
-                                    </div>
-
-
-                                    <div className="space-y-2">
-                                        {/* Label */}
-                                        <label className="text-sm font-medium text-gray-800">
-                                            Address Line 2 (Optional)
-                                        </label>
-
-                                        {/* Input */}
-                                        <input
-                                            type="text"
-                                            value={formData.addressLine2}
-                                            onChange={e => setFormData({ ...formData, addressLine2: e.target.value })}
-                                            placeholder="Apartment, suite, etc. (optional)"
-                                            className="w-full bg-[#f5f6f7] border border-gray-300 rounded-xl px-4 py-3 outline-none 
-               focus:border-gray-400 focus:bg-white transition-all text-sm"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-6">
-
-                                        {/* City */}
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-gray-800">
-                                                City
-                                            </label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={formData.city}
-                                                onChange={e => setFormData({ ...formData, city: e.target.value })}
-                                                className="w-full bg-[#f5f6f7] border border-gray-300 rounded-xl px-4 py-3 outline-none 
-                 focus:border-blue-500 focus:bg-white transition-all text-sm"
-                                            />
-                                        </div>
-
-                                        {/* Postcode */}
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-gray-800">
-                                                Postcode
-                                            </label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={formData.postcode}
-                                                onChange={e => setFormData({ ...formData, postcode: e.target.value })}
-                                                className="w-full bg-[#f5f6f7] border border-gray-300 rounded-xl px-4 py-3 outline-none 
-                 focus:border-blue-500 focus:bg-white transition-all text-sm"
-                                            />
-                                        </div>
-
-                                    </div>
-
-
-
-                                    <div className="space-y-2">
-                                        <label className="text-sm text-gray-700">Country</label>
-
-                                        <div className="relative">
-                                            <select
-                                                value={formData.country}
-                                                onChange={e => setFormData({ ...formData, country: e.target.value })}
-                                                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-5 py-3 pr-10 outline-none  focus:bg-white transition-all text-sm text-gray-800 appearance-none"
-                                            >
-                                                <option value="United Kingdom">United Kingdom</option>
-                                                <option value="Ireland">Ireland</option>
-                                                <option value="United States">United States</option>
-                                                <option value="Australia">Australia</option>
-                                            </select>
-
-                                            {/* Custom Arrow */}
-                                            <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
-                                                <svg
-                                                    className="w-4 h-4"
-                                                    fill="none"
-                                                    stroke="currentColor"
-                                                    strokeWidth="2"
-                                                    viewBox="0 0 24 24"
-                                                >
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="bg-[#f5f6f7] rounded-xl px-4 py-3 flex items-center gap-2 text-gray-600 mt-4 mb-2.5">
+                                <div className="bg-[#f5f6f7] rounded-xl px-4 py-3 flex items-center gap-2 text-gray-600 mb-6">
                                     <FiLock className="text-gray-500" size={16} />
-
                                     <span className="text-sm font-medium">
                                         Your payment is secured with 256-bit SSL encryption
                                     </span>
                                 </div>
-
-
-
-
-
-
-
 
                                 <button
                                     type="submit"
@@ -634,12 +473,11 @@ function CheckoutContent() {
                                     )}
                                 </button>
 
-                                <p className="text-center  text-gray-500
-                     max-w-sm mx-auto leading-relaxed mt-4">
+                                <p className="text-center text-gray-500 max-w-sm mx-auto leading-relaxed mt-4">
                                     By completing this purchase, you agree to our Terms of Service and Refund Policy
                                 </p>
-
                             </div>
+
                         </form>
                     </div>
 

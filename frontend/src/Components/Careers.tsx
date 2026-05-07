@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   Heart, Users, Zap, TrendingUp, 
   DollarSign, Laptop, Calendar, GraduationCap, Shield, Coffee,
-  Briefcase, MapPin, Clock, CircleCheckBig, ArrowDown 
+  Briefcase, Clock, CircleCheckBig, ArrowDown 
 } from 'lucide-react';
+import { LocationIcon } from './Icons';
 
 interface Job {
   _id: string;
@@ -127,10 +128,10 @@ export default function Careers() {
                 </div>
               </div>
               
-              <div className="flex gap-3 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Laptop className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
-                </div>
+              <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                <LocationIcon size={20} className="text-red-600" />
+              </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="mb-1 text-gray-900 font-medium text-sm sm:text-base md:text-lg">Remote First</h3>
                   <p className="text-gray-600 text-xs sm:text-sm md:text-base">Work from anywhere in Europe with flexible hours</p>
@@ -213,7 +214,7 @@ export default function Careers() {
                             <span className="truncate">{job.department}</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                            <LocationIcon size={16} className="text-red-500" />
                             <span className="truncate">{job.location}</span>
                           </div>
                           <div className="flex items-center gap-1">

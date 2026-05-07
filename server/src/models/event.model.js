@@ -53,6 +53,10 @@ const eventSchema = new mongoose.Schema({
         type: String, // e.g., "From £25"
         default: 'Free'
     },
+    maxPrice: {
+        type: Number,
+        default: 0
+    },
     location: {
         venueName: String,
         address: String,

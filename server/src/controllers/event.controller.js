@@ -49,9 +49,15 @@ exports.getEvents = async (req, res) => {
 
         // 4. Price Range
         if (minPrice !== undefined || maxPrice !== undefined) {
-            query.price = {};
-            if (minPrice !== undefined) query.price.$gte = parseFloat(minPrice);
-            if (maxPrice !== undefined) query.price.$lte = parseFloat(maxPrice);
+            const parsedMin = (minPrice && minPrice !== "") ? parseFloat(minPrice) : null;
+            const parsedMax = (maxPrice && maxPrice !== "") ? parseFloat(maxPrice) : null;
+
+            if (parsedMin !== null && !isNaN(parsedMin)) {
+                query.price = { $gte: parsedMin };
+            }
+            if (parsedMax !== null && !isNaN(parsedMax)) {
+                query.maxPrice = { $lte: parsedMax };
+            }
         }
 
         // 5. Search & City
@@ -133,21 +139,38 @@ exports.createEvent = async (req, res) => {
         const currencySymbol = settings?.platform?.currency === 'EUR' ? '€' : settings?.platform?.currency === 'USD' ? '$' : '£';
         const { ticketTypes } = req.body;
         let minPrice = Infinity;
+        let maxPrice = 0;
         let hasTickets = ticketTypes && ticketTypes.length > 0;
         
+        let calculatedPrice = 0;
+        let calculatedLabel = 'Free';
+
         if (hasTickets) {
             ticketTypes.forEach(ticket => {
                 const ticketPrice = parseFloat(ticket.price) || 0;
                 if (ticketPrice < minPrice) minPrice = ticketPrice;
+                if (ticketPrice > maxPrice) maxPrice = ticketPrice;
             });
+            calculatedPrice = minPrice === Infinity ? 0 : minPrice;
+            
+            if (ticketTypes.length > 1) {
+                calculatedLabel = calculatedPrice === 0 ? 'From Free' : `From ${currencySymbol}${calculatedPrice}`;
+            } else {
+                calculatedLabel = calculatedPrice === 0 ? 'Free' : `${currencySymbol}${calculatedPrice}`;
+            }
+        } else {
+            calculatedPrice = parseFloat(req.body.price) || 0;
+            maxPrice = calculatedPrice;
+            calculatedLabel = calculatedPrice === 0 ? 'Free' : `${currencySymbol}${calculatedPrice}`;
         }
 
         const eventData = {
             ...req.body,
             organizer: req.user._id,
             organizerName: req.body.organizerName || req.user.username,
-            price: hasTickets ? (minPrice === Infinity ? 0 : minPrice) : (req.body.price || 0),
-            priceLabel: hasTickets ? (minPrice === 0 ? 'Free' : `From ${currencySymbol}${minPrice}`) : (req.body.price === 0 ? 'Free' : `${currencySymbol}${req.body.price || 0}`)
+            price: calculatedPrice,
+            maxPrice: maxPrice,
+            priceLabel: calculatedLabel
         };
 
         const event = await Event.create(eventData);
@@ -181,15 +204,27 @@ exports.updateEvent = async (req, res) => {
 
                 const { ticketTypes } = req.body;
                 let minPrice = Infinity;
-                if (ticketTypes.length > 0) {
+                let maxPrice = 0;
+                if (ticketTypes && ticketTypes.length > 0) {
                     ticketTypes.forEach(ticket => {
                         const ticketPrice = parseFloat(ticket.price) || 0;
                         if (ticketPrice < minPrice) minPrice = ticketPrice;
+                        if (ticketPrice > maxPrice) maxPrice = ticketPrice;
                     });
-                    req.body.price = minPrice;
-                    req.body.priceLabel = minPrice === 0 ? 'Free' : `From ${currencySymbol}${minPrice}`;
+                    const finalPrice = minPrice === Infinity ? 0 : minPrice;
+                    req.body.price = finalPrice;
+                    req.body.maxPrice = maxPrice;
+                    
+                    if (ticketTypes.length > 1) {
+                        req.body.priceLabel = finalPrice === 0 ? 'From Free' : `From ${currencySymbol}${finalPrice}`;
+                    } else {
+                        req.body.priceLabel = finalPrice === 0 ? 'Free' : `${currencySymbol}${finalPrice}`;
+                    }
                 } else {
-                    req.body.priceLabel = 'Free';
+                    const basePrice = parseFloat(req.body.price) || 0;
+                    req.body.price = basePrice;
+                    req.body.maxPrice = basePrice;
+                    req.body.priceLabel = basePrice === 0 ? 'Free' : `${currencySymbol}${basePrice}`;
                 }
             }
 
