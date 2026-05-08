@@ -58,7 +58,7 @@ export default function AccountTabs() {
 
       {/* Heading */}
       <div className="mb-4 sm:mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">My Account</h1>
+        <h1 className="text-gray-900 text-2xl sm:text-3xl md:text-4xl">My Account</h1>
         <p className="text-sm text-gray-500 mt-1">
           Manage your profile, preferences, and tickets
         </p>
@@ -70,7 +70,7 @@ export default function AccountTabs() {
           role="tablist"
           aria-orientation="horizontal"
           data-slot="tabs-list"
-          className="text-gray-500 h-10 items-center rounded-xl p-[3px] justify-between flex bg-white border border-gray-200 w-full sm:w-auto min-w-max justify-start outline-none shadow-sm"
+          className="text-muted-foreground h-9 items-center rounded-xl p-[3px] flex bg-white border border-gray-200 w-full justify-start overflow-x-auto"
           tabIndex={0}
         >
           {tabs.map((tab) => {
@@ -85,7 +85,7 @@ export default function AccountTabs() {
                 data-state={isActive ? "active" : "inactive"}
                 data-slot="tabs-trigger"
                 onClick={() => setActiveTab(tab.id)}
-                className="inline-flex h-[calc(100%-1px)] flex-1 sm:flex-none min-w-[25%] cursor-pointer items-center justify-center gap-1.5 rounded-[9px] border border-transparent px-3 sm:px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:ring-2 focus-visible:ring-red-500 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-red-600 data-[state=active]:text-white text-gray-600 hover:text-gray-900 data-[state=active]:hover:text-white"
+                className="dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-xl border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 flex-shrink-0 data-[state=active]:bg-red-600 data-[state=active]:text-white"
                 tabIndex={isActive ? 0 : -1}
               >
                 {tab.svg}

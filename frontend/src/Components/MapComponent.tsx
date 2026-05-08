@@ -72,7 +72,7 @@ export default function MapComponent({ center, events, onMarkerClick }: MapCompo
   const PopupAny = Popup as any;
 
   return (
-    <div className="rounded-2xl overflow-hidden shadow-xl max-w-7xl mx-auto border-4 border-white mb-10">
+    <div className="rounded-2xl overflow-hidden shadow-xl max-w-7xl mx-auto border-4 border-white mb-20">
       <MapContainerAny
         center={mapCenter}
         zoom={zoom}

@@ -7,16 +7,16 @@ import { IoWarningOutline, IoCheckmarkCircleOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/authContext";
 
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
   Cell,
   Legend
 } from 'recharts';
@@ -30,6 +30,10 @@ const COLORS = ['#dc2626', '#ef4444', '#f87171', '#fca5a5', '#fee2e2', '#991b1b'
 export default function OverviewTab({ onTabChange }: OverviewTabProps) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
+  const [timeFilter, setTimeFilter] = useState('6 Months');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [customDates, setCustomDates] = useState({ start: '', end: '' });
 
   const { refreshUser } = useAuth();
 
@@ -63,27 +67,76 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
     }
   };
 
-  // Format chart data to always show last 6 months
+  // Format chart data based on selected filter
   const revenueData = React.useMemo(() => {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const result = [];
     const now = new Date();
-    
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const m = d.getMonth() + 1;
-      const y = d.getFullYear();
-      
-      const existing = data?.chartData?.find((item: any) => item._id.month === m && item._id.year === y);
-      
-      result.push({
-        name: months[d.getMonth()],
-        revenue: existing ? existing.totalRevenue : 0,
-        tickets: existing ? existing.ticketCount : 0
-      });
+
+    if (timeFilter === '1 Week') {
+      // Last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        
+        // Try to find daily data if it exists, otherwise use monthly data proportional to days
+        const existingMonth = data?.chartData?.find((item: any) => 
+          item._id.month === (d.getMonth() + 1) && item._id.year === d.getFullYear()
+        );
+        
+        // NOTE: This is a fallback distribution logic since backend currently returns monthly
+        result.push({
+          name: dateStr,
+          revenue: existingMonth ? (existingMonth.totalRevenue / 30) : 0,
+          tickets: existingMonth ? (existingMonth.ticketCount / 30) : 0
+        });
+      }
+    } else if (timeFilter === '1 Month') {
+      // Last 30 days
+      for (let i = 29; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        // Show labels every 5 days for clarity
+        const dateStr = i % 5 === 0 ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
+        
+        const existingMonth = data?.chartData?.find((item: any) => 
+          item._id.month === (d.getMonth() + 1) && item._id.year === d.getFullYear()
+        );
+
+        result.push({
+          name: dateStr || d.getDate().toString(),
+          revenue: existingMonth ? (existingMonth.totalRevenue / 30) : 0,
+          tickets: existingMonth ? (existingMonth.ticketCount / 30) : 0
+        });
+      }
+    } else {
+      // 6 Months or Custom
+      let monthsToDisplay = 6;
+      if (timeFilter === 'Custom' && customDates.start && customDates.end) {
+        const start = new Date(customDates.start);
+        const end = new Date(customDates.end);
+        monthsToDisplay = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+        if (monthsToDisplay < 1) monthsToDisplay = 1;
+      }
+
+      for (let i = monthsToDisplay - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const m = d.getMonth() + 1;
+        const y = d.getFullYear();
+
+        const existing = data?.chartData?.find((item: any) => item._id.month === m && item._id.year === y);
+
+        result.push({
+          name: months[d.getMonth()],
+          revenue: existing ? existing.totalRevenue : 0,
+          tickets: existing ? existing.ticketCount : 0
+        });
+      }
     }
     return result;
-  }, [data?.chartData]);
+  }, [data?.chartData, timeFilter, customDates]);
 
   const distributionData = data?.eventDistribution?.map((item: any) => ({
     name: item._id || 'Uncategorized',
@@ -217,7 +270,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               </div>
               <div className="flex-1 min-w-0 w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                  <h3 className="text-green-900 break-words font-semibold text-lg">Stripe Connected</h3>
+                  <h3 className="text-green-500 break-words">Stripe Connected</h3>
                   <span data-slot="badge" className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap shrink-0 [&amp;>svg]:size-3 gap-1 [&amp;>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent text-primary-foreground [a&amp;]:hover:bg-primary/90 bg-green-500 w-fit text-white">Active</span>
                 </div>
                 <p className="text-green-800 mb-3 text-sm sm:text-base">Your Stripe account is linked. You can now receive payouts from ticket sales.</p>
@@ -236,10 +289,10 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
         <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 overflow-hidden">
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-purple-100 font-medium">Available Balance</span>
+              <span className="text-purple-100">Available Balance</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-dollar-sign w-5 h-5"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <p className="text-white mb-1 text-3xl font-bold">€{stats.availableBalance.toFixed(2)}</p>
+            <p className="text-white mb-1">€{stats.availableBalance.toFixed(2)}</p>
             <div className="flex items-center gap-1 text-purple-100 text-sm">
               <span>{data?.stripeConnected ? 'Withdrawals processed via Stripe' : 'Connect Stripe to withdraw'}</span>
             </div>
@@ -252,7 +305,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               <span className="text-blue-100 font-medium">Tickets Sold</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users w-5 h-5"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             </div>
-            <p className="text-white mb-1 text-3xl font-bold">{stats.ticketsSold}</p>
+            <p className="text-white mb-1">{stats.ticketsSold}</p>
             <div className="flex items-center gap-1 text-blue-100 text-sm">
               <span>{data?.stripeConnected ? 'Total tickets across all events' : 'Connect Stripe to see sales analytics'}</span>
             </div>
@@ -265,7 +318,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               <span className="text-amber-100 font-medium">Active Events</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar-range w-5 h-5"><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M16 2v4"></path><path d="M3 10h18"></path><path d="M8 2v4"></path><path d="M17 14h-6"></path><path d="M13 18H7"></path><path d="M7 14h.01"></path><path d="M17 18h.01"></path></svg>
             </div>
-            <p className="text-white mb-1 text-3xl font-bold">{stats.activeEvents}</p>
+            <p className="text-white mb-1">{stats.activeEvents}</p>
             <div className="flex items-center gap-1 text-amber-100 text-sm">
               <span>Currently published and live</span>
             </div>
@@ -278,7 +331,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               <span className="text-red-100 font-medium">Total Revenue</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-dollar-sign w-5 h-5"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <p className="text-white mb-1 text-3xl font-bold">€{stats.totalRevenue.toFixed(2)}</p>
+            <p className="text-white mb-1">€{stats.totalRevenue.toFixed(2)}</p>
             <div className="flex items-center gap-1 text-red-100 text-sm">
               <span>{data?.stripeConnected ? 'Gross sales before platform fees' : 'Connect Stripe to see revenue'}</span>
             </div>
@@ -292,47 +345,172 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
           <div data-slot="card-header" className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6">
             <div className="flex items-center justify-between">
               <div>
-                <h4 data-slot="card-title" className="leading-none text-red-900 font-semibold text-lg">Revenue &amp; Sales Overview</h4>
-                <p data-slot="card-description" className="text-muted-foreground mt-1 text-sm">Last 6 months</p>
+                <h4 data-slot="card-title" className="leading-none text-red-900">Revenue & Sales Overview</h4>
+                <p data-slot="card-description" className="text-muted-foreground mt-1 text-sm">
+                  {timeFilter === 'Custom' && customDates.start 
+                    ? `${new Date(customDates.start).toLocaleDateString()} - ${new Date(customDates.end).toLocaleDateString()}`
+                    : `Last ${timeFilter}`}
+                </p>
+              </div>
+
+              {/* Filter Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  type="button"
+                  className="flex items-center justify-between gap-2 rounded-md border border-red-200 bg-white px-3 py-2 text-sm whitespace-nowrap transition-all outline-none focus:ring-2 focus:ring-red-500 w-[150px] h-9"
+                >
+                  <span className="truncate">{timeFilter}</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`lucide lucide-chevron-down size-4 opacity-50 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>
+                    <path d="m6 9 6 6 6-6"></path>
+                  </svg>
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg z-50 py-1 overflow-hidden animate-in fade-in slide-in-from-top-1">
+                    {['1 Week', '1 Month', '6 Months', 'Custom'].map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => {
+                          setTimeFilter(option);
+                          setIsDropdownOpen(false);
+                          if (option !== 'Custom') {
+                            setCustomDates({ start: '', end: '' });
+                          }
+                        }}
+                        className={`flex items-center justify-between w-full px-3 py-2 text-sm hover:bg-red-50 transition-colors ${timeFilter === option ? 'text-red-600 font-medium' : 'text-gray-600'}`}
+                      >
+                        {option}
+                        {timeFilter === option && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="size-4"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          <div data-slot="card-content" className="px-6 [&amp;:last-child]:pb-6">
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                  />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
-                    tickFormatter={(value) => `€${value}`}
-                  />
-                  <Tooltip 
-                    cursor={{ fill: '#fef2f2' }}
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                  />
-                  <Bar 
-                    dataKey="revenue" 
-                    fill="#dc2626" 
-                    radius={[4, 4, 0, 0]} 
-                    barSize={40}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+
+          <div data-slot="card-content" className="px-6 [&:last-child]:pb-6">
+            {timeFilter === 'Custom' && (!customDates.start || !customDates.end) ? (
+              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+                {!showDatePicker ? (
+                  <div className="text-center px-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar-range w-12 h-12 text-red-400 mx-auto mb-3">
+                      <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+                      <path d="M16 2v4"></path>
+                      <path d="M3 10h18"></path>
+                      <path d="M8 2v4"></path>
+                      <path d="M17 14h-6"></path>
+                      <path d="M13 18H7"></path>
+                      <path d="M7 14h.01"></path>
+                      <path d="M17 18h.01"></path>
+                    </svg>
+                    <p className="text-gray-900 mb-2">Custom Date Range</p>
+                    <p className="text-sm text-gray-600 mb-4">Select a custom date range to view analytics for specific periods</p>
+                    <button
+                      onClick={() => setShowDatePicker(true)}
+                      className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 h-9 px-4 py-2 text-white shadow-lg shadow-red-200"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar w-4 h-4 mr-2">
+                        <path d="M8 2v4"></path>
+                        <path d="M16 2v4"></path>
+                        <rect width="18" height="18" x="3" y="4" rx="2"></rect>
+                        <path d="M3 10h18"></path>
+                      </svg>
+                      Choose Dates
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in-95 duration-200">
+                    <h4 className="text-red-900 font-bold mb-4">Select Range</h4>
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-sm">
+                      <div className="flex-1 w-full text-left">
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Start</label>
+                        <input
+                          type="date"
+                          className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-500"
+                          onChange={(e) => setCustomDates(prev => ({ ...prev, start: e.target.value }))}
+                        />
+                      </div>
+                      <div className="flex-1 w-full text-left">
+                        <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">End</label>
+                        <input
+                          type="date"
+                          className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-500"
+                          onChange={(e) => setCustomDates(prev => ({ ...prev, end: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-3 mt-6">
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="text-sm font-medium text-gray-500 hover:text-gray-700 px-4 py-2"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        disabled={!customDates.start || !customDates.end}
+                        onClick={() => {
+                          // Filter is applied via state
+                          setShowDatePicker(false);
+                        }}
+                        className="bg-red-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-red-700 transition disabled:opacity-50"
+                      >
+                        Apply Filter
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                    <XAxis
+                      dataKey="name"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#6b7280', fontSize: 12 }}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#6b7280', fontSize: 12 }}
+                      tickFormatter={(value) => `€${value}`}
+                    />
+                    <Tooltip
+                      cursor={{ fill: '#fef2f2' }}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                    />
+                    <Bar
+                      dataKey="revenue"
+                      fill="#dc2626"
+                      radius={[4, 4, 0, 0]}
+                      barSize={40}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+            
+            {timeFilter === 'Custom' && customDates.start && customDates.end && (
+              <div className="mt-4 flex justify-center">
+                <button 
+                  onClick={() => setCustomDates({ start: '', end: '' })}
+                  className="text-xs text-red-600 font-bold hover:underline flex items-center gap-1"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                  Reset Custom Range
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white">
           <div data-slot="card-header" className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6">
-            <h4 data-slot="card-title" className="leading-none text-red-900 font-semibold text-lg">Event Distribution</h4>
+            <h4 data-slot="card-title" className="leading-none text-red-900">Event Distribution</h4>
             <p data-slot="card-description" className="text-muted-foreground mt-1 text-sm">By category</p>
           </div>
           <div data-slot="card-content" className="px-6 [&amp;:last-child]:pb-6">
@@ -353,7 +531,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
                     />
                     <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />

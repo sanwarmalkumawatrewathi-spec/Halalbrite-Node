@@ -44,28 +44,27 @@ export default function FilterBar({ filters, setFilters }: { filters: any, setFi
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 mb-8">
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-        
+
         {/* Main Search Bar */}
-        <div className="flex flex-col md:flex-row items-center gap-4 p-6 bg-white">
+        <div className="flex flex-row items-center gap-4 p-6 bg-white">
           <div className="relative flex-1 group w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-500 transition-colors" size={18} />
             <input
               type="text"
               placeholder="Search events by name, organiser or venue..."
-              className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:bg-white focus:border-red-500 transition-all text-sm font-medium"
+              className="w-full pl-12  pr-4 py-4 bg-gray-50 border-[1px solid red !important] border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:bg-white focus:border-red-500 transition-all text-sm font-medium"
               value={filters.search}
               onChange={handleSearchChange}
             />
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-3 w-auto">
             <button
               onClick={() => setOpen(!open)}
-              className={`flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-sm transition-all whitespace-nowrap w-full md:w-auto ${
-                open 
-                ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' 
+              className={`flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-sm transition-all whitespace-nowrap w-full md:w-auto ${open
+                ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
                 : 'bg-white border-2 border-red-500 text-red-500 hover:bg-red-50'
-              }`}
+                }`}
             >
               <SlidersHorizontal size={18} />
               {open ? 'Close Filters' : 'More Filters'}
@@ -86,7 +85,7 @@ export default function FilterBar({ filters, setFilters }: { filters: any, setFi
         {/* Extended Filter Panel */}
         {open && (
           <div className="px-6 pb-6 pt-2 border-t border-gray-50 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-in slide-in-from-top-4 duration-300">
-            
+
             {/* CATEGORY DROPDOWN */}
             <div>
               <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
@@ -155,14 +154,14 @@ export default function FilterBar({ filters, setFilters }: { filters: any, setFi
 
         {/* Active Filters Summary */}
         {hasActiveFilters && (
-           <div className="px-6 py-3 bg-gray-50 flex items-center gap-3 overflow-x-auto border-t border-gray-50">
-              <span className="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">Active Filters:</span>
-              {filters.search && <FilterBadge label={`"${filters.search}"`} onClear={() => setFilters((p:any)=>({...p, search:''}))} />}
-              {filters.category && <FilterBadge label="Category Active" onClear={() => setFilters((p:any)=>({...p, category:''}))} />}
-              {filters.city && <FilterBadge label={filters.city} onClear={() => setFilters((p:any)=>({...p, city:''}))} />}
-              {filters.maxPrice && <FilterBadge label={`Max $${filters.maxPrice}`} onClear={() => setFilters((p:any)=>({...p, maxPrice:''}))} />}
-              {filters.startDate && <FilterBadge label="Date Filter" onClear={() => setFilters((p:any)=>({...p, startDate:''}))} />}
-           </div>
+          <div className="px-6 py-3 bg-gray-50 flex items-center gap-3 overflow-x-auto border-t border-gray-50">
+            <span className="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">Active Filters:</span>
+            {filters.search && <FilterBadge label={`"${filters.search}"`} onClear={() => setFilters((p: any) => ({ ...p, search: '' }))} />}
+            {filters.category && <FilterBadge label="Category Active" onClear={() => setFilters((p: any) => ({ ...p, category: '' }))} />}
+            {filters.city && <FilterBadge label={filters.city} onClear={() => setFilters((p: any) => ({ ...p, city: '' }))} />}
+            {filters.maxPrice && <FilterBadge label={`Max $${filters.maxPrice}`} onClear={() => setFilters((p: any) => ({ ...p, maxPrice: '' }))} />}
+            {filters.startDate && <FilterBadge label="Date Filter" onClear={() => setFilters((p: any) => ({ ...p, startDate: '' }))} />}
+          </div>
         )}
       </div>
     </div>

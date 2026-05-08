@@ -21,21 +21,21 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
   const [loading, setLoading] = useState<string | null>(null);
   const [settings, setSettings] = useState<any>(null);
   const { currentCurrency, formatPrice } = useCurrency();
-  
+
   const displayTickets = tickets || [];
 
   useEffect(() => {
     const fetchSettings = async () => {
-        try {
-            const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-            const response = await fetch(`${API_URL}/api/admin/settings/public`);
-            const result = await response.json();
-            if (result.data) {
-                setSettings(result.data.platform);
-            }
-        } catch (error) {
-            console.error("Failed to fetch platform settings:", error);
+      try {
+        const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+        const response = await fetch(`${API_URL}/api/admin/settings/public`);
+        const result = await response.json();
+        if (result.data) {
+          setSettings(result.data.platform);
         }
+      } catch (error) {
+        console.error("Failed to fetch platform settings:", error);
+      }
     };
     fetchSettings();
   }, []);
@@ -51,7 +51,7 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
 
   const calcFees = (price: number) => {
     if (!settings || price === 0) return { platform: 0, vat: 0, stripe: 0, totalFees: 0, grandTotal: price };
-    
+
     const feePercentage = settings.feePercentage || 0;
     const fixedFee = settings.fixedFee || 0;
     const vatRate = settings.vatRate || 0;
@@ -64,16 +64,16 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
     const totalFees = platform + vat + stripe;
 
     return {
-        platform: platform,
-        vat: vat,
-        stripe: stripe,
-        totalFees: totalFees,
-        grandTotal: price + totalFees
+      platform: platform,
+      vat: vat,
+      stripe: stripe,
+      totalFees: totalFees,
+      grandTotal: price + totalFees
     };
   };
 
   const handleBuyNow = (ticket: Ticket) => {
-    const quantity = qty[ticket._id] || 0; 
+    const quantity = qty[ticket._id] || 0;
     if (quantity <= 0) {
       alert("Please select at least one ticket.");
       return;
@@ -114,7 +114,7 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
 
   const totalSelectedQty = Object.values(qty).reduce((a, b) => a + b, 0);
   const selectedTicketTypes = displayTickets.filter(t => (qty[t._id] || 0) > 0);
-  
+
   const overallTotal = selectedTicketTypes.reduce((acc, t) => {
     const count = qty[t._id] || 0;
     const feeData = calcFees(t.price);
@@ -123,7 +123,7 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
 
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-red-50 p-6 md:p-8">
-      <h2 className="text-xl  text-red-900 mb-8 flex items-center gap-3">
+      <h2 className="leading-none text-red-900">
         Select Tickets
       </h2>
 
@@ -132,7 +132,7 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
           const count = qty[ticket._id] || 0;
           const isProcessing = loading === ticket._id;
           const feeData = calcFees(ticket.price);
-          
+
           // Display price with fees if ticket.chargeCustomer is true or undefined (default)
           const showFees = ticket.price > 0;
 
@@ -150,30 +150,30 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                   </p>
                 </div>
 
-                  <div className="flex flex-wrap items-baseline md:justify-end gap-2">
-                    <span className=" text-xl text-gray-900">
-                      {formatPrice(ticket.price)}
+                <div className="flex flex-wrap items-baseline md:justify-end gap-2">
+                  <span className=" text-xl text-gray-900">
+                    {formatPrice(ticket.price)}
+                  </span>
+                  {showFees && (
+                    <span className="text-xs text-gray-400 font-medium">
+                      + fees (incl. VAT) {formatPrice(feeData.totalFees)}
                     </span>
-                    {showFees && (
-                      <span className="text-xs text-gray-400 font-medium">
-                        + fees (incl. VAT) {formatPrice(feeData.totalFees)}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center md:justify-end gap-1.5 mt-1">
-                    {(ticket.quantity - count) <= 5 && (ticket.quantity - count) > 0 ? (
-                        <div className="flex items-center gap-1 text-orange-600 font-bold text-[11px] uppercase tracking-wide">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                            Only {ticket.quantity - count} left
-                        </div>
-                    ) : (
-                        <p className="text-xs text-gray-400 uppercase tracking-wider">
-                            {ticket.quantity - count} Left
-                        </p>
-                    )}
-                  </div>
+                  )}
+                </div>
+                <div className="flex items-center md:justify-end gap-1.5 mt-1">
+                  {(ticket.quantity - count) <= 5 && (ticket.quantity - count) > 0 ? (
+                    <div className="flex items-center gap-1 text-orange-600 font-bold text-[11px] uppercase tracking-wide">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      Only {ticket.quantity - count} left
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">
+                      {ticket.quantity - count} Left
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* ACTION ROW */}
@@ -192,9 +192,8 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                   <button
                     onClick={() => handleChange(ticket._id, "inc")}
                     disabled={count >= ticket.quantity}
-                    className={`w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-600 font-bold transition-all shadow-sm ${
-                        count >= ticket.quantity ? 'opacity-30 cursor-not-allowed' : 'hover:bg-red-50 hover:text-red-600 hover:border-red-100'
-                    }`}
+                    className={`w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-600 font-bold transition-all shadow-sm ${count >= ticket.quantity ? 'opacity-30 cursor-not-allowed' : 'hover:bg-red-50 hover:text-red-600 hover:border-red-100'
+                      }`}
                   >
                     +
                   </button>
@@ -204,13 +203,12 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                 <button
                   disabled={isProcessing}
                   onClick={() => handleBuyNow(ticket)}
-                  className={`flex-1 relative overflow-hidden py-4 rounded-2xl font-bold text-white transition-all duration-300 transform h-[40px] active:scale-95 flex items-center justify-center ${
-                    isProcessing 
-                      ? "bg-gray-400" 
-                      : (selectedTicketTypes.length > 1 
-                          ? "bg-[#c5c9d1] hover:bg-gray-400" 
-                          : (count > 0 ? "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-100" : "bg-[#f28e9d] hover:bg-red-600"))
-                  }`}
+                  className={`flex-1 relative overflow-hidden py-4 rounded-2xl font-bold text-white transition-all duration-300 transform h-[40px] active:scale-95 flex items-center justify-center ${isProcessing
+                    ? "bg-gray-400"
+                    : (selectedTicketTypes.length > 1
+                      ? "bg-[#c5c9d1] hover:bg-gray-400"
+                      : (count > 0 ? "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-100" : "bg-[#f28e9d] hover:bg-red-600"))
+                    }`}
                 >
                   {isProcessing ? (
                     <div className="flex items-center gap-2">
@@ -227,12 +225,12 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
 
                 {/* TOTAL SUMMARY IF QTY > 0 */}
                 {count > 0 && showFees && (
-                    <div className="bg-red-50/50 border border-red-100 rounded-2xl px-6 py-3.5 flex flex-col items-center justify-center">
-                        <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest mb-0.5">Total + fees</span>
-                        <span className="font-bold text-lg text-gray-900">
-                            {formatPrice(feeData.grandTotal * count)}
-                        </span>
-                    </div>
+                  <div className="bg-red-50/50 border border-red-100 rounded-2xl px-6 py-3.5 flex flex-col items-center justify-center">
+                    <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest mb-0.5">Total + fees</span>
+                    <span className="font-bold text-lg text-gray-900">
+                      {formatPrice(feeData.grandTotal * count)}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
@@ -252,14 +250,14 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                 {selectedTicketTypes.map(t => `${qty[t._id]}x ${t.name}`).join(', ')}
               </span>
             </div>
-            
+
             <div className="flex items-center gap-4 w-full md:w-auto">
               <div className="text-right hidden sm:block">
                 <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total + fees</span>
                 <span className="text-xl font-bold text-red-600">{formatPrice(overallTotal)}</span>
               </div>
-              
-              <button 
+
+              <button
                 onClick={handleBuyAll}
                 className="flex-1 md:flex-none bg-red-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-700 transition-all shadow-lg shadow-red-200"
               >

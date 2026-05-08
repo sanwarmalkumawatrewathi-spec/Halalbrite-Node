@@ -93,7 +93,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
         </div>
 
         {/* Hero Section */}
-        <div 
+        <div
           className="relative w-full h-[350px] md:h-[500px] cursor-pointer group"
           onClick={() => setIsPopupOpen(true)}
         >
@@ -112,22 +112,22 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
 
           {/* Content */}
           <div className="absolute bottom-10 left-0 right-0 max-w-7xl mx-auto px-6 text-white">
-            <span className="bg-red-600 text-white text-xs px-4 py-1.5 rounded-full font-bold tracking-wide">
+            <span className="bg-[#eeeceb] text-red-600 text-xs px-4 py-1 rounded-[8px] font-bold tracking-wide ">
               {event.category?.name || "Event"}
             </span>
 
-            <h1 className="text-3xl md:text-2xl font-400 mt-4 max-w-3xl leading-tight">
+            <h1 className="text-3xl md:text-2xl font-400 mt-4 max-w-3xl leading-tight mb-3">
               {event.title}
             </h1>
 
-            <div className="flex flex-col gap-3 mt-6 text-sm font-medium">
+            <div className="flex flex-wrap gap-4 text-white">
               <div className="flex items-center gap-2">
-                <Calendar size={18} className="text-red-400" />
-                <span><span className="text-red-200">Start:</span> {formatDate(event.startDate)} @ {event.startTime || "TBA"}</span>
+                <Calendar size={18} className="text-white-400" />
+                <span> {formatDate(event.startDate)} @ {event.startTime || "TBA"}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock size={18} className="text-red-400" />
-                <span><span className="text-red-200">End:</span> {formatDate(event.endDate)} @ {event.endTime || "TBA"}</span>
+                <Clock size={18} className="text-white-400" />
+                <span> {formatDate(event.endDate)} @ {event.endTime || "TBA"}</span>
               </div>
             </div>
           </div>
@@ -213,9 +213,12 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
               <div className="px-6 pt-6">
                 <h2 className="text-xl font-semibold text-red-900 mb-4">Event Overview</h2>
               </div>
-              <div className="px-6 pb-6 whitespace-pre-line text-gray-700 leading-relaxed">
+              <div className="px-6 pb-6 text-gray-700 leading-relaxed">
                 <h3 className="text-red-900 mb-4 text-lg">Overview:</h3>
-                {event.description}
+                <div
+                  dangerouslySetInnerHTML={{ __html: event.description }}
+                  className="prose prose-red max-w-none"
+                />
               </div>
             </div>
 
@@ -271,7 +274,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${event.location?.venueName} ${event.location?.address} ${event.location?.city}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-2"
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-1"
                 >
                   <LocationIcon size={16} className="text-red-600" />
                   View in Google Maps
@@ -281,9 +284,9 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
 
             {/* ACTION BUTTONS */}
             <div className="bg-white rounded-2xl shadow-lg border-0 p-4 space-y-3">
-              <button 
+              <button
                 onClick={() => setIsShareModalOpen(true)}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-2"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-1"
               >
                 <Share2 size={18} className="text-gray-600" />
                 Share Event
@@ -297,7 +300,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                   }
                   await toggleSavedEvent(event._id);
                 }}
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-2"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all bg-white text-gray-900 hover:bg-gray-50 h-10 px-4 py-2 w-full rounded-xl border-1"
               >
                 <Heart
                   size={18}
@@ -327,7 +330,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
 
       <Footer />
 
-      <ShareModal 
+      <ShareModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         eventTitle={event.title}
@@ -336,13 +339,13 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
 
       {/* Image Popup / Lightbox */}
       {isPopupOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300"
           onClick={() => setIsPopupOpen(false)}
         >
           <div className="relative max-w-5xl w-full flex flex-col items-center">
             {/* Close Button - Circular like reference */}
-            <button 
+            <button
               className="absolute -top-12 right-0 md:-right-12 w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-white hover:bg-white/10 transition-all z-[110]"
               onClick={(e) => {
                 e.stopPropagation();

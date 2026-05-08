@@ -36,11 +36,11 @@ export default async function RootLayout({
   let googleClientId = '';
 
   try {
-    const res = await fetch(`${API_URL}/api/admin/settings/public`, { 
+    const res = await fetch(`${API_URL}/api/admin/settings/public`, {
       next: { revalidate: 3600 },
       headers: { 'Accept': 'application/json' }
     });
-    
+
     if (res.ok) {
       const result = await res.json();
       if (result.data) {
@@ -63,8 +63,8 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-   
-      <body className="min-h-full flex flex-col bg-[#fef3f6]" suppressHydrationWarning>
+
+      <body className="min-h-full flex flex-col bg-[#fafaf9]" suppressHydrationWarning>
         <GoogleOAuthProvider clientId={finalClientId}>
           <AuthProvider>
             <CurrencyProvider>
@@ -73,7 +73,7 @@ export default async function RootLayout({
           </AuthProvider>
         </GoogleOAuthProvider>
       </body>
-   
+
     </html>
   );
 }

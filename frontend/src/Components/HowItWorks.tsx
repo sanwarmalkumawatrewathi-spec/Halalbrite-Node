@@ -27,7 +27,7 @@ export default function HowItWorks() {
             'USD': '$',
             'AUD': 'A$',
           };
-          
+
           setFees({
             ...result.data,
             currency: currencySymbols[result.data.currency] || result.data.currency
@@ -42,16 +42,16 @@ export default function HowItWorks() {
 
   const calculateFees = () => {
     const price = Number(ticketPrice);
-    
+
     // Halalbrite Fee = (Price * Percentage) + Fixed
     const hbFee = (price * (fees.feePercentage / 100)) + fees.fixedFee;
-    
+
     // VAT on Halalbrite Fee
     const vat = hbFee * (fees.vatRate / 100);
-    
+
     // Stripe Fee = (Price * StripePercentage) + StripeFixed
     const stripeFee = (price * (fees.stripeFeePercentage / 100)) + fees.fixedStripeFee;
-    
+
     const totalFees = hbFee + vat + stripeFee;
     const attendeePays = price + totalFees;
     const organizerReceives = price;
@@ -413,7 +413,7 @@ export default function HowItWorks() {
                     </svg></div>
                   <h4 className="text-gray-900 mb-2">Analytics</h4>
                   <p className="text-gray-600 text-sm">Track ticket sales, revenue, and attendance in
-                  real-time</p>
+                    real-time</p>
                 </div>
                 <div className="text-center">
                   <div
@@ -787,7 +787,7 @@ export default function HowItWorks() {
                 <rect width="18" height="18" x="3" y="4" rx="2" />
                 <path d="M3 10h18" />
               </svg>Browse Events</button><button data-slot="button"
-                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 has-[>svg]:px-4 border-2 border-white text-red-600 hover:bg-white/10 rounded-xl px-8 bg-[rgb(250,249,249)]"><svg
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:text-accent-foreground dark:bg-input/30 dark: dark:hover:bg-input/50 h-10 has-[>svg]:px-4 border-2 border-white text-red-600 hover:bg-white/10 rounded-xl px-8 bg-[rgb(250,249,249)]"><svg
                   xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                   fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
                   strokeLinejoin="round" className="lucide lucide-zap w-5 h-5 mr-2">

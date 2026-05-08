@@ -37,7 +37,7 @@ export default function Footer() {
                     </div>
 
                     <div>
-                        <h4 className="mb-4 font-semibold">Company</h4>
+                        <h4 className="mb-4">Company</h4>
                         <ul className="space-y-2 text-red-100 text-sm">
                             {companyPages.map(page => (
                                 <li key={page.slug}>
@@ -50,7 +50,7 @@ export default function Footer() {
                     </div>
 
                     <div>
-                        <h4 className="mb-4 font-semibold">Support</h4>
+                        <h4 className="mb-4">Support</h4>
                         <ul className="space-y-2 text-red-100 text-sm">
                             {supportPages.map(page => (
                                 <li key={page.slug}>
@@ -63,7 +63,7 @@ export default function Footer() {
                     </div>
 
                     <div>
-                        <h4 className="mb-4 font-semibold">Follow Us</h4>
+                        <h4 className="mb-4">Follow Us</h4>
                         <div className="flex gap-3 flex-wrap">
                             <Link href="#" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="Instagram">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram w-5 h-5 text-white/80"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>

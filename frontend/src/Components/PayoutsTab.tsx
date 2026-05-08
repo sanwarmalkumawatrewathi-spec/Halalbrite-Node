@@ -42,7 +42,7 @@ export default function PayoutsTab() {
       console.error("Failed to fetch payout data:", error);
       // If error is Failed to fetch, it might be CORS or server down
       if (error.message === 'Failed to fetch') {
-          console.error("This is likely a CORS or Network issue. Check if backend is running on 5000.");
+        console.error("This is likely a CORS or Network issue. Check if backend is running on 5000.");
       }
     } finally {
       setLoading(false);
@@ -62,10 +62,10 @@ export default function PayoutsTab() {
         <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white overflow-hidden w-full">
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white h-full">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-purple-100 font-medium">Available Balance</span>
+              <span className="text-purple-100">Available Balance</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wallet w-5 h-5"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a8 8 0 0 1-9.27 7.8A4.02 4.02 0 0 1 5.38 16H4a2 2 0 0 1-2-2V4"></path><path d="M21 12v4"></path><path d="M12 21h-2"></path><circle cx="18" cy="14" r="1"></circle></svg>
             </div>
-            <p className="text-white mb-1 text-3xl font-bold">€{(stats?.availableBalance || 0).toFixed(2)}</p>
+            <p className="text-white mb-1">€{(stats?.availableBalance || 0).toFixed(2)}</p>
             <div className="flex items-center gap-1 text-purple-100 text-sm">
               <span>Ready for next payout</span>
             </div>
@@ -101,7 +101,7 @@ export default function PayoutsTab() {
 
       <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white overflow-hidden w-full min-w-0">
         <div data-slot="card-header" className="@container/card-header auto-rows-min grid-rows-[auto_auto] gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-col space-y-1.5 pb-4">
-          <h4 data-slot="card-title" className="leading-none text-red-900 font-semibold text-lg">Payout History</h4>
+          <h4 data-slot="card-title" className="leading-none text-red-900">Payout History</h4>
           <p data-slot="card-description" className="text-muted-foreground mt-1 text-sm">Track your payment disbursements</p>
         </div>
         <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-0">

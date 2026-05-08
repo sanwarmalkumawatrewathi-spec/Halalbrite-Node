@@ -20,7 +20,7 @@ function CheckoutContent() {
     const eventId = params.slug;
     const itemsParam = searchParams.get("items");
     const checkoutItems = itemsParam ? JSON.parse(itemsParam) : [];
-    
+
     // Fallback for single ticket legacy (though we updated TicketSelection)
     if (checkoutItems.length === 0 && searchParams.get("ticket")) {
         checkoutItems.push({
@@ -281,7 +281,7 @@ function CheckoutContent() {
                             {/* Total */}
                             <div className="flex justify-between items-center border-t border-gray-300 mt-4 pt-4">
                                 <span className="font-semibold text-gray-900">Total</span>
-                                <span className="text-lg font-bold text-gray-900">
+                                <span className="text-lg sm:text-xl">
                                     {formatPrice(overallGrandTotal)}
                                 </span>
                             </div>

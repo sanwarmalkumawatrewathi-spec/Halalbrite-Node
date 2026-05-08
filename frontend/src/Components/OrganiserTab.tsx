@@ -32,6 +32,8 @@ export default function OrganiserTab() {
     confirmPassword: ''
   });
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const logoInputRef = React.useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Form State
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -103,6 +105,47 @@ export default function OrganiserTab() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type and size (5MB)
+    if (!file.type.startsWith('image/')) {
+      alert("Please upload an image file (PNG, JPG, GIF).");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert("File size exceeds 5MB limit.");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const token = localStorage.getItem('token');
+      const formDataUpload = new FormData();
+      formDataUpload.append("image", file);
+
+      const response = await fetch(`${API_URL}/api/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formDataUpload,
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Upload failed");
+
+      setFormData(prev => ({ ...prev, logo: data.url }));
+    } catch (error: any) {
+      console.error("Logo upload error:", error);
+      alert(`Upload failed: ${error.message || "Please try again."}`);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleSocialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,7 +311,7 @@ export default function OrganiserTab() {
 
   const handleSuggestCategory = async () => {
     if (!suggestedCategoryName.trim()) return;
-    
+
     setIsSuggesting(true);
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
@@ -281,7 +324,7 @@ export default function OrganiserTab() {
         },
         body: JSON.stringify({ name: suggestedCategoryName })
       });
-      
+
       const result = await response.json();
       if (result.success) {
         const newCatName = result.data.name;
@@ -307,7 +350,7 @@ export default function OrganiserTab() {
       <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white overflow-hidden w-full min-w-0">
         <div data-slot="card-header" className="@container/card-header auto-rows-min grid-rows-[auto_auto] gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-row items-start justify-between space-y-0 pb-4">
           <div className="space-y-1.5">
-            <h4 data-slot="card-title" className="leading-none text-red-900 font-semibold text-lg flex items-center gap-2">
+            <h4 data-slot="card-title" className="leading-none text-red-900 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-building-2 w-5 h-5"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
               Organisation Profiles
             </h4>
@@ -345,11 +388,41 @@ export default function OrganiserTab() {
 
                 <div>
                   <label className="block text-sm font-bold text-gray-800 mb-1">Organisation Logo</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-white/50">
-                    <IoBusinessOutline className="text-4xl text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm font-bold text-gray-700">Drag and drop your logo here</p>
-                    <p className="text-xs text-gray-500">or click to browse</p>
-                    <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">PNG, JPG, GIF up to 5MB</p>
+                  <input
+                    type="file"
+                    ref={logoInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                  />
+                  <div
+                    onClick={() => logoInputRef.current?.click()}
+                    className={`border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-white/50 cursor-pointer hover:border-red-400 hover:bg-red-50/20 transition-all group relative overflow-hidden ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                  >
+                    {isUploading ? (
+                      <div className="flex flex-col items-center py-2">
+                        <svg className="animate-spin h-8 w-8 text-red-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <p className="text-sm font-bold text-red-900">Uploading logo...</p>
+                      </div>
+                    ) : formData.logo ? (
+                      <div className="flex flex-col items-center">
+                        <div className="w-20 h-20 rounded-xl border border-red-100 shadow-sm overflow-hidden mb-3 relative group">
+                          <img src={formData.logo} alt="Logo Preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-white text-[10px] font-bold">CHANGE</span>
+                          </div>
+                        </div>
+                        <p className="text-xs font-bold text-red-600">Logo uploaded successfully!</p>
+                        <p className="text-[10px] text-gray-400 mt-1">Click to change or edit URL below</p>
+                      </div>
+                    ) : (
+                      <>
+                        <IoBusinessOutline className="text-4xl text-gray-400 mx-auto mb-2 group-hover:text-red-500 transition-colors" />
+                        <p className="text-sm font-bold text-gray-700">Drag and drop your logo here</p>
+                        <p className="text-xs text-gray-500">or click to browse</p>
+                        <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-wider">PNG, JPG, GIF up to 5MB</p>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-4 my-4">
@@ -423,16 +496,16 @@ export default function OrganiserTab() {
                             className="flex-1 border border-red-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-red-500 outline-none"
                             autoFocus
                           />
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={handleSuggestCategory}
                             disabled={isSuggesting || !suggestedCategoryName.trim()}
                             className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold disabled:opacity-50 hover:bg-red-700 transition flex items-center gap-2"
                           >
                             {isSuggesting ? <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> : "Add"}
                           </button>
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={() => { setShowSuggestInput(false); setSuggestedCategoryName(""); }}
                             className="bg-white border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-50 transition"
                           >
@@ -442,8 +515,8 @@ export default function OrganiserTab() {
                         <p className="text-[10px] text-red-700/60 mt-2 italic">Suggest a category that isn't in our list. We'll review it for future use.</p>
                       </div>
                     ) : (
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => setShowSuggestInput(true)}
                         className="mt-5 text-red-600 border border-red-200 bg-red-50 hover:bg-red-100 font-bold text-xs px-4 py-2 rounded-lg transition"
                       >
@@ -500,12 +573,38 @@ export default function OrganiserTab() {
               {organisations.length > 0 ? (
                 organisations.map((org, i) => (
                   <div key={i} className="w-full border rounded-xl p-5 flex flex-col sm:flex-row gap-5 items-start hover:bg-gray-50/50 hover:shadow-sm transition-all bg-white">
-                    <div className="w-14 h-14 flex flex-shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 text-xl font-bold shadow-sm">
+                    <div className="w-14 h-14 flex flex-shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 text-xl font-bold shadow-sm overflow-hidden">
                       {org.logo ? (
-                        <img src={org.logo} alt="" className="w-full h-full rounded-xl object-cover" />
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-building-2 w-6 h-6"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path><path d="M10 6h4"></path><path d="M10 10h4"></path><path d="M10 14h4"></path><path d="M10 18h4"></path></svg>
-                      )}
+                        <img
+                          src={org.logo}
+                          alt=""
+                          className="w-full h-full rounded-xl object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).parentElement?.querySelector('.fallback-svg')?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className={`lucide lucide-building2 lucide-building-2 w-10 h-10 text-red-600 fallback-svg ${org.logo ? 'hidden' : ''}`}
+                      >
+                        <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path>
+                        <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path>
+                        <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path>
+                        <path d="M10 6h4"></path>
+                        <path d="M10 10h4"></path>
+                        <path d="M10 14h4"></path>
+                        <path d="M10 18h4"></path>
+                      </svg>
                     </div>
                     <div className="flex-1 w-full">
                       <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-3">
@@ -585,10 +684,10 @@ export default function OrganiserTab() {
                 <p className="text-sm text-gray-500 mt-1">Update your account password to keep your account secure</p>
               </div>
             </div>
-            <button 
+            <button
               onClick={() => setShowPasswordModal(true)}
-              data-slot="button" 
-              className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-background hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-9 px-4 py-2 border-gray-200 text-gray-700 hover:bg-gray-50 w-full sm:w-auto rounded-md shadow-sm"
+              data-slot="button"
+              className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-background hover:text-accent-foreground dark:bg-input/30 dark: dark:hover:bg-input/50 h-9 px-4 py-2 border-gray-200 text-gray-700 hover:bg-gray-50 w-full sm:w-auto rounded-md shadow-sm"
             >
               Change Password
             </button>
@@ -610,16 +709,16 @@ export default function OrganiserTab() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={isDeleting}
                 className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-50 transition disabled:opacity-50"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={confirmDelete}
                 disabled={isDeleting}
                 className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2 disabled:opacity-70"

@@ -19,60 +19,60 @@ type Ticket = {
 };
 
 export default function MyTickets() {
-    const [tickets, setTickets] = useState<Ticket[]>([]);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
-    useEffect(() => {
-        fetchTickets();
-    }, []);
+  useEffect(() => {
+    fetchTickets();
+  }, []);
 
-    const fetchTickets = async () => {
-        try {
-            const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-            const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/bookings/my-tickets`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const contentType = response.headers.get("content-type");
-            if (response.ok && contentType && contentType.includes("application/json")) {
-                const data = await response.json();
-                setTickets(data);
-            } else {
-                console.error("Failed to fetch tickets:", response.status, await response.text());
-            }
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchTickets = async () => {
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/bookings/my-tickets`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const contentType = response.headers.get("content-type");
+      if (response.ok && contentType && contentType.includes("application/json")) {
+        const data = await response.json();
+        setTickets(data);
+      } else {
+        console.error("Failed to fetch tickets:", response.status, await response.text());
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    if (loading) return <div className="p-10 text-center">Loading tickets...</div>;
-    
-    if (tickets.length === 0) return (
-      <div data-slot="card" className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl border border-gray-200">
-        <div data-slot="card-header" className="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 p-4 sm:p-6 pb-0">
-          <h4 data-slot="card-title" className="text-lg sm:text-xl font-semibold">My Tickets</h4>
-          <p data-slot="card-description" className="text-gray-500 text-sm">View and manage your event tickets</p>
-        </div>
-        <div data-slot="card-content" className="p-4 sm:p-6 pt-0 text-center py-10">
-          <p className="text-gray-500 mb-4">You don't have any tickets yet.</p>
-          <button onClick={() => router.push('/events')} className="bg-red-600 text-white px-6 py-2 rounded-md font-medium hover:bg-red-700 transition">
-            Explore Events
-          </button>
-        </div>
+  if (loading) return <div className="p-10 text-center">Loading tickets...</div>;
+
+  if (tickets.length === 0) return (
+    <div data-slot="card" className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl border border-gray-200">
+      <div data-slot="card-header" className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-4 sm:p-6">
+        <h4 data-slot="card-title" className="text-lg sm:text-xl">My Tickets</h4>
+        <p data-slot="card-description" className="text-gray-500 text-sm">View and manage your event tickets</p>
       </div>
-    );
+      <div data-slot="card-content" className="[&:last-child]:pb-6 p-4 sm:p-6 text-center py-10">
+        <p className="text-gray-500 mb-4">You don't have any tickets yet.</p>
+        <button onClick={() => router.push('/events')} className="bg-red-600 text-white px-6 py-2 rounded-md font-medium hover:bg-red-700 transition">
+          Explore Events
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="space-y-6" suppressHydrationWarning>
-      <div data-slot="card" className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl border border-gray-200 shadow-sm">
-        <div data-slot="card-header" className="grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 p-4 sm:p-6 pb-0">
-          <h4 data-slot="card-title" className="text-lg sm:text-xl font-semibold">My Tickets</h4>
+    <div className="space-y-6 mb-20" suppressHydrationWarning>
+      <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border">
+        <div data-slot="card-header" className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-4 sm:p-6">
+          <h4 data-slot="card-title" className="text-lg sm:text-xl">My Tickets</h4>
           <p data-slot="card-description" className="text-gray-500 text-sm">View and manage your event tickets</p>
         </div>
-        <div data-slot="card-content" className="p-4 sm:p-6 pt-0">
+        <div data-slot="card-content" className="[&:last-child]:pb-6 p-4 sm:p-6">
           <div className="space-y-3 sm:space-y-4">
             {tickets.map((ticket) => (
               <div key={ticket._id} className="border border-gray-200 bg-white rounded-lg p-3 sm:p-4 hover:border-red-300 transition-colors">
@@ -91,16 +91,16 @@ export default function MyTickets() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-2 sm:flex-shrink-0">
-                    <button 
-                      onClick={()=>router.push(`/TicketPreview?bookingId=${ticket._id}`)}
-                      data-slot="button" 
+                    <button
+                      onClick={() => router.push(`/TicketPreview?bookingId=${ticket._id}`)}
+                      data-slot="button"
                       className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 text-white rounded-md px-3 bg-red-600 hover:bg-red-700 flex-1 sm:flex-initial text-xs sm:text-sm h-8 sm:h-9"
                     >
                       View Ticket
                     </button>
-                    <button 
+                    <button
                       onClick={() => router.push(`/event/${ticket.event_id?.slug || ticket.event_id?._id || ticket.event_id}`)}
-                      data-slot="button" 
+                      data-slot="button"
                       className="inline-flex items-center justify-center whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 border bg-white text-gray-900 hover:bg-gray-100 rounded-md px-3 flex-1 sm:flex-initial text-xs sm:text-sm h-8 sm:h-9 border-gray-200"
                     >
                       Details

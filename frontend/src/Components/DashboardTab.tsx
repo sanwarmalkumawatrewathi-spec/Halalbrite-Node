@@ -32,10 +32,10 @@ export default function DashboardTab() {
     { name: "Organiser", icon: FiHome },
   ];
   return (
-    <div className="max-w-7xl  w-[100%]  mx-auto px-4 sm:px-6 lg:px-8 py-4  sm:py-8">
+    <div className="max-w-7xl  w-[100%]  mx-auto px-4 sm:px-6 lg:px-8 py-4  sm:py-8 bg-[#fafaf9] mb-20">
       {/* Header */}
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-[rgb(0,0,0)] mb-2 font-bold text-[36px]">Organiser Dashboard</h1>
+        <h1 className="text-[rgb(0,0,0)] mb-2 font-bold text-[36px] font-normal">Organiser Dashboard</h1>
         <p className="text-gray-600 text-sm sm:text-base">
           Manage your events, sales, and payouts
         </p>
@@ -44,7 +44,7 @@ export default function DashboardTab() {
       {/* Tabs */}
 
 
-      <div className="flex items-center bg-white rounded-xl shadow-sm border-0 p-1 mb-6 sm:mb-8 flex justify-start w-full overflow-x-auto gap-2">
+      <div className="text-muted-foreground h-9 items-center bg-white rounded-xl shadow-sm border-0 p-1 mb-6 sm:mb-8 flex justify-start w-full overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.name;

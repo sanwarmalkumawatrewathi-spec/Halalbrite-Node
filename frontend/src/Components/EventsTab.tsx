@@ -85,7 +85,7 @@ export default function EventsTab() {
       <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white overflow-hidden w-full min-w-0">
         <div data-slot="card-header" className="@container/card-header auto-rows-min grid-rows-[auto_auto] gap-1.5 px-6 pt-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 flex flex-row items-start justify-between space-y-0 pb-4">
           <div className="space-y-1.5">
-            <h4 data-slot="card-title" className="leading-none text-red-900 font-semibold text-lg">Your Events</h4>
+            <h4 data-slot="card-title" className="leading-none text-red-900">Your Events</h4>
             <p data-slot="card-description" className="text-muted-foreground mt-1 text-sm">Manage and track your event listings</p>
           </div>
           <button onClick={() => router.push('/post-an-event')} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-lg shadow-md">
@@ -126,10 +126,10 @@ export default function EventsTab() {
                               <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
                                 <div className="flex items-center gap-3 whitespace-nowrap">
                                   <div className="w-10 h-10 rounded overflow-hidden shrink-0">
-                                    <img 
-                                      src={e.banner ? (e.banner.startsWith('http') ? e.banner : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '')}${e.banner}`) : "/images/noimage.jpg"} 
-                                      alt="" 
-                                      className="w-full h-full object-cover" 
+                                    <img
+                                      src={e.banner ? (e.banner.startsWith('http') ? e.banner : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '')}${e.banner}`) : "/images/noimage.jpg"}
+                                      alt=""
+                                      className="w-full h-full object-cover"
                                       onError={(e: any) => {
                                         e.target.onerror = null;
                                         e.target.src = "/images/noimage.jpg";
@@ -210,16 +210,16 @@ export default function EventsTab() {
                 </p>
               </div>
             </div>
-            
+
             <div className="flex gap-3">
-              <button 
+              <button
                 onClick={() => setShowDeleteModal(false)}
                 disabled={deletingId !== null}
                 className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-50 transition disabled:opacity-50"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={confirmDelete}
                 disabled={deletingId !== null}
                 className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2 disabled:opacity-70"

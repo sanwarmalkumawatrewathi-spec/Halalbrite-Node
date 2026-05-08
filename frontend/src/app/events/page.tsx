@@ -84,8 +84,8 @@ function EventContent() {
     <div className="bg-[#fef3f6] ">
       <Header />
 
-      <section className="pt-14 pb-7 px-[40px] pt-[32px]  sm:px-0 sm:pt-0">
-        <div className="max-w-7xl mx-auto mb-9 pt-6">
+      <section className="pt-0  pb-0 sm:pb-7 px-[40px] sm:px-5">
+        <div className="max-w-7xl mx-auto mb-9 pt-6 sm:px-5 px-0">
           <div
             className={`relative rounded-sm overflow-hidden transition-all duration-500 ${expanded ? "h-[500px]" : "h-[200px]"
               }`}
