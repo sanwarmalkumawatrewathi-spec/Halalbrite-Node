@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   title: "HalalBrite - Connecting communities through meaningful halal events",
   description: "Discover and book local halal events, community gatherings, and spiritual reflections.",
   icons: {
-    icon: "/icon.svg",
+    icon: "/icon.png",
   },
 };
 

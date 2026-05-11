@@ -572,7 +572,7 @@ export default function OrganiserTab() {
             <div className="space-y-4">
               {organisations.length > 0 ? (
                 organisations.map((org, i) => (
-                  <div key={i} className="w-full border rounded-xl p-5 flex flex-col sm:flex-row gap-5 items-start hover:bg-gray-50/50 hover:shadow-sm transition-all bg-white">
+                  <div key={i} className="w-full  rounded-xl p-5 flex flex-col sm:flex-row gap-5 border border-gray-200 items-start hover:bg-gray-50/50 hover:shadow-sm transition-all bg-white">
                     <div className="w-14 h-14 flex flex-shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 text-xl font-bold shadow-sm overflow-hidden">
                       {org.logo ? (
                         <img

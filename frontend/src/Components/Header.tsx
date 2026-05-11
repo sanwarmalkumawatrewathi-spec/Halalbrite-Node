@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { FaChevronDown, FaUser, FaThLarge } from "react-icons/fa";
 import { FiLogOut, FiX, FiCalendar, FiPlus } from "react-icons/fi";
 import CustomModal from "./CustomModal";
-
+import Image from "next/image";
 import { useAuth } from "@/context/authContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRouter } from "next/navigation";
@@ -53,10 +53,8 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
 
           {/* Logo */}
-          <Link href="/">
-            <div className="w-16 sm:w-20 h-12 sm:h-16 flex items-center cursor-pointer">
-              <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full"> <text x="50" y="60" textAnchor="middle" fill="#DC2626" fontSize="60" fontFamily="cursive, 'Apple Chancery', 'Comic Sans MS', fantasy" fontWeight="700" strokeWidth="2.5" stroke="#DC2626" paintOrder="stroke">H</text><circle cx="50" cy="38" r="3" fill="#EF4444"></circle><text x="50" y="92" textAnchor="middle" fill="#DC2626" fontSize="24" fontFamily="'Trebuchet MS', 'Arial Rounded MT Bold', Verdana, sans-serif" fontWeight="700">HalalBrite</text></svg>
-            </div>
+          <Link href="/" className="  logoside">
+            <img src="/images/logo.png" alt="Logo" className="w-full img-fluid" />
           </Link>
 
           {/* Header Actions */}
@@ -127,7 +125,7 @@ export default function Header() {
               <div className="relative">
                 <div
                   onClick={() => setOpen(!open)}
-                  className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                  className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                 >
                   {user.avatar ? (
                     <img src={user.avatar} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
