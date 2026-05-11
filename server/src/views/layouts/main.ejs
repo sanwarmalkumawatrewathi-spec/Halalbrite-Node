@@ -9,9 +9,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-    <!-- Custom Style -->
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#E31E24',
+                        secondary: '#1e293b',
+                    }
+                }
+            }
+        }
+    </script>
     <!-- Custom Style -->
     <link rel="stylesheet" href="/css/modern-admin.css">
+    <link rel="stylesheet" href="/css/forms-premium.css">
     <%- style %>
 </head>
 
@@ -54,11 +68,10 @@
                     onclick="toggleSubmenu('stripe-submenu')">
                     <i class="fa-solid fa-money-bill-transfer"></i>
                     <span>Stripe Connect</span>
-                    <i class="fa-solid fa-chevron-down submenu-arrow"
-                        style="<%= activePage === 'stripe' ? 'transform: rotate(180deg);' : '' %>"></i>
+                    <i
+                        class="fa-solid fa-chevron-down submenu-arrow transition-transform duration-300 <%= activePage === 'stripe' ? 'rotate-180' : '' %>"></i>
                 </div>
-                <div class="submenu" id="stripe-submenu"
-                    style="<%= activePage === 'stripe' ? 'display: block;' : 'display: none;' %>">
+                <div class="submenu <%= activePage === 'stripe' ? 'block' : 'hidden' %>" id="stripe-submenu">
                     <a href="/admin/stripe/dashboard"
                         class="submenu-item <%= (typeof activeSubPage !== 'undefined' && activeSubPage === 'overview') ? 'active' : '' %>">Overview</a>
                     <a href="/admin/stripe/settings"
@@ -82,8 +95,7 @@
                 <i class="fa-solid fa-envelope"></i>
                 <span>Inquiries</span>
             </a>
-            <a href="/admin/jobs" class="nav-item <%= activePage === 'jobs' ? 'active' : '' %>"
-                title="Careers">
+            <a href="/admin/jobs" class="nav-item <%= activePage === 'jobs' ? 'active' : '' %>" title="Careers">
                 <i class="fa-solid fa-briefcase"></i>
                 <span>Careers</span>
             </a>
@@ -149,7 +161,8 @@
                     <i class="fa-solid fa-moon" id="darkModeIcon"></i>
                 </button>
 
-                <div class="user-avatar" onclick="window.location.href='/admin/profile'" style="cursor: pointer;" title="Edit Profile">
+                <div class="user-avatar" onclick="window.location.href='/admin/profile'" style="cursor: pointer;"
+                    title="Edit Profile">
                     <%= admin.username.charAt(0).toUpperCase() %>
                 </div>
             </div>

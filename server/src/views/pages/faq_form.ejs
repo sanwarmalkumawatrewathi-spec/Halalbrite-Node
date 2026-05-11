@@ -1,19 +1,24 @@
-<div class="card">
-    <div class="card-header">
-        <h3 style="font-size: 1.1rem; color: var(--dark);">
-            <%= faq ? 'Edit FAQ' : 'Add New FAQ' %>
-        </h3>
-        <a href="/admin/faqs" class="btn" style="background: #f3f4f6;">Back to List</a>
+<div class="form-container">
+    <div class="form-header flex justify-between items-center">
+        <div>
+            <h3 class="form-title">
+                <%= faq ? 'Edit FAQ' : 'Add New FAQ' %>
+            </h3>
+            <p class="form-subtitle">Manage frequently asked questions and help content</p>
+        </div>
+        <a href="/admin/faqs" class="form-btn-cancel text-sm">Back to List</a>
     </div>
-    <div style="padding: 2rem;">
-        <form action="/admin/faqs/save" method="POST">
-            <% if (faq) { %>
-                <input type="hidden" name="id" value="<%= faq._id %>">
-            <% } %>
 
+    <form action="/admin/faqs/save" method="POST" class="space-y-8">
+        <% if (faq) { %>
+            <input type="hidden" name="id" value="<%= faq._id %>">
+        <% } %>
+
+        <div class="form-section">
+            <span class="section-label">Content Settings</span>
             <div class="form-group">
-                <label>FAQ Category</label>
-                <select name="category" class="form-control" required>
+                <label class="form-label">FAQ Category</label>
+                <select name="category" class="form-select" required>
                     <option value="General" <%= faq && faq.category === 'General' ? 'selected' : '' %>>General</option>
                     <option value="Organizer" <%= faq && faq.category === 'Organizer' ? 'selected' : '' %>>Organizer</option>
                     <option value="Attendee" <%= faq && faq.category === 'Attendee' ? 'selected' : '' %>>Attendee</option>
@@ -23,35 +28,40 @@
             </div>
 
             <div class="form-group">
-                <label>Question</label>
-                <input type="text" name="question" value="<%= faq ? faq.question : '' %>" class="form-control" placeholder="Enter question here..." required>
+                <label class="form-label">Question</label>
+                <input type="text" name="question" value="<%= faq ? faq.question : '' %>" 
+                    class="form-input" placeholder="Enter question here..." required>
             </div>
 
             <div class="form-group">
-                <label>Answer</label>
-                <textarea name="answer" class="form-control" rows="6" placeholder="Provide a detailed answer..." required><%= faq ? faq.answer : '' %></textarea>
+                <label class="form-label">Answer</label>
+                <textarea name="answer" class="form-textarea" rows="6" 
+                    placeholder="Provide a detailed answer..." required><%= faq ? faq.answer : '' %></textarea>
             </div>
+        </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div class="form-section">
+            <span class="section-label">Display & Visibility</span>
+            <div class="form-grid-2">
                 <div class="form-group">
-                    <label>Display Order</label>
-                    <input type="number" name="order" value="<%= faq ? faq.order : 0 %>" class="form-control">
-                    <small style="color: var(--gray);">Higher numbers appear later.</small>
+                    <label class="form-label">Display Order</label>
+                    <input type="number" name="order" value="<%= faq ? faq.order : 0 %>" class="form-input">
+                    <p class="form-hint">Higher numbers appear later in the list.</p>
                 </div>
                 <div class="form-group">
-                    <label>Status</label>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-                        <input type="checkbox" name="isActive" <%= (faq && !faq.isActive) ? '' : 'checked' %>>
-                        <span>Active / Visible on site</span>
-                    </div>
+                    <label class="form-label">Status</label>
+                    <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:border-primary transition-colors mt-2">
+                        <input type="checkbox" name="isActive" <%= (faq && !faq.isActive) ? '' : 'checked' %> class="w-5 h-5 accent-primary">
+                        <span class="text-sm font-bold text-slate-700">Active / Visible on site</span>
+                    </label>
                 </div>
             </div>
+        </div>
 
-            <div style="text-align: right; margin-top: 2rem; border-top: 1px solid var(--light-gray); padding-top: 1.5rem;">
-                <button type="submit" class="btn btn-primary" style="padding-left: 3rem; padding-right: 3rem;">
-                    <%= faq ? 'Update FAQ' : 'Create FAQ' %>
-                </button>
-            </div>
-        </form>
-    </div>
+        <div class="flex justify-end pt-8 border-t border-slate-100">
+            <button type="submit" class="form-btn-submit">
+                <%= faq ? 'Update FAQ' : 'Create FAQ' %>
+            </button>
+        </div>
+    </form>
 </div>

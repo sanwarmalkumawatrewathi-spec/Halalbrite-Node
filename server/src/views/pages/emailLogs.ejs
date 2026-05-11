@@ -35,7 +35,7 @@
                                 </div>
                             </td>
                             <td>
-                                <span class="badge <%= log.role === 'admin' ? 'badge-primary' : (log.role === 'organizer' ? 'badge-warning' : 'badge-info') %>">
+                                <span class="badge badge-premium <%= log.role === 'admin' ? 'badge-primary' : (log.role === 'organizer' ? 'badge-warning' : 'badge-info') %>">
                                     <%= log.role %>
                                 </span>
                             </td>
@@ -53,9 +53,9 @@
                             </td>
                             <td>
                                 <% if (log.status === 'sent') { %>
-                                    <span class="badge badge-success"><i class="fa-solid fa-check"></i> Sent</span>
+                                    <span class="badge badge-premium badge-success"><i class="fa-solid fa-check"></i> Sent</span>
                                 <% } else { %>
-                                    <span class="badge badge-danger" title="<%= log.error %>">
+                                    <span class="badge badge-premium badge-danger" title="<%= log.error %>">
                                         <i class="fa-solid fa-xmark"></i> Failed
                                     </span>
                                 <% } %>
@@ -67,9 +67,3 @@
         </table>
     </div>
 </div>
-
-<style>
-    .badge-primary { background-color: #007bff; color: white; }
-    .badge-info { background-color: #17a2b8; color: white; }
-    .badge-warning { background-color: #ffc107; color: #333; }
-</style>

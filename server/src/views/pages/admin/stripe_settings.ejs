@@ -1,237 +1,285 @@
 <%- contentFor('style') %>
-<%- contentFor('body') %>
+    <%- contentFor('body') %>
 
-<div class="page-header">
-    <div>
-        <h1 class="page-title">Stripe Connect Configuration</h1>
-        <p class="page-subtitle">Manage your platform's financial integration, fees, and payout settings.</p>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-12">
-        <!-- Sync Tool Section -->
-        <div class="form-section-card mb-4">
-            <div class="form-section-header">
-                <i class="fa-solid fa-rotate"></i>
-                <div>
-                    <h2 class="form-section-title">Manual Data Synchronization</h2>
-                    <p class="form-section-desc">Backfill transaction and payout history directly from the Stripe API.</p>
-                </div>
+        <div class="form-header-premium pb-0">
+            <div class="header-left">
+                <h1 class="page-title">Stripe Connect Configuration</h1>
+                <p class="page-subtitle">Manage your platform's financial integration, fees, and payout settings</p>
             </div>
-            
-            <form action="/admin/stripe/sync" method="POST" onsubmit="return confirm('Starting manual sync from Stripe API... Continue?');">
-                <div class="grid-3-col align-center">
-                    <div class="form-group">
-                        <label class="form-label">Sync Depth (Items per type)</label>
-                        <input type="number" name="limit" value="100" class="form-control">
-                    </div>
-                    <div style="padding-top: 1.8rem;">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fa-solid fa-cloud-arrow-down"></i> Sync Payouts Now
-                        </button>
-                    </div>
-                    <div class="sync-stats-mini">
-                        <div class="stat-mini">
-                            <span class="label">Cron Status</span>
-                            <span class="value success">Active</span>
-                        </div>
-                    </div>
-                </div>
-            </form>
-
-            <% if (success && success.includes('Sync Summary')) { %>
-                <div class="alert-success-modern mt-4">
-                    <div class="sync-summary-grid">
-                        <div class="summary-item">
-                            <i class="fa-solid fa-money-bill-transfer"></i>
-                            <span>Transfers: <strong><%= success.match(/Transfers: (\d+)/)?.[1] || 0 %></strong></span>
-                        </div>
-                        <div class="summary-item">
-                            <i class="fa-solid fa-building-columns"></i>
-                            <span>Payouts: <strong><%= success.match(/Payouts: (\d+)/)?.[1] || 0 %></strong></span>
-                        </div>
-                        <div class="summary-item">
-                            <i class="fa-solid fa-user-group"></i>
-                            <span>Organizers: <strong><%= success.match(/Organizers: (\d+)/)?.[1] || 0 %></strong></span>
-                        </div>
-                    </div>
-                </div>
-            <% } %>
         </div>
 
-        <form action="/admin/stripe/settings/save" method="POST">
-            <!-- API Keys Section -->
-            <div class="form-section-card mb-4">
-                <div class="form-section-header">
-                    <i class="fa-solid fa-key"></i>
+        <div class="form-container" style="max-width: 100%; padding: 0 20px;">
+            <!-- Sync Tool Section -->
+            <div class="form-section-card" style="padding: 24px; margin-bottom: 10px;">
+                <div
+                    style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--form-border); padding-bottom: 16px;">
+                    <div
+                        style="width: 44px; height: 44px; background: var(--form-bg); color: var(--form-text-muted); border: 1px solid var(--form-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                        <i class="fa-solid fa-rotate"></i>
+                    </div>
                     <div>
-                        <h2 class="form-section-title">API Authentication</h2>
-                        <p class="form-section-desc">Configure your Stripe API keys for both testing and live environments.</p>
+                        <h3 class="section-title" style="margin-bottom: 2px;">Manual Data Synchronization</h3>
+                        <p class="section-desc" style="margin-bottom: 0;">Backfill transaction and payout history
+                            directly from the Stripe API</p>
                     </div>
                 </div>
 
-                <div class="grid-2-col">
-                    <div class="form-group">
-                        <label class="form-label">Operation Mode</label>
-                        <select name="isTestMode" class="form-control">
-                            <option value="on" <%= settings?.stripe?.isTestMode ? 'selected' : '' %>>Test Mode (Sandbox)</option>
-                            <option value="off" <%= !settings?.stripe?.isTestMode ? 'selected' : '' %>>Live Mode (Production)</option>
-                        </select>
-                        <small class="form-hint">Enable "Test Mode" for development without charging real cards.</small>
+                <form action="/admin/stripe/sync" method="POST"
+                    onsubmit="return confirm('Starting manual sync from Stripe API... Continue?');">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label">Sync Depth (Items per type)</label>
+                            <input type="number" name="limit" value="100" class="form-input"
+                                style="padding: 10px 16px;">
+                        </div>
+                        <div>
+                            <button type="submit" class="form-btn-submit" style="width: 100%; padding: 11px;">
+                                <i class="fa-solid fa-cloud-arrow-down mr-2"></i> Sync Payouts Now
+                            </button>
+                        </div>
+                        <div
+                            style="display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: #f0fdf41a; border: 1px solid #dcfce7; border-radius: 12px;">
+                            <div
+                                style="width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.1);">
+                            </div>
+                            <span
+                                style="font-size: 0.75rem; font-weight: 800; color: #22c55e; text-transform: uppercase; letter-spacing: 0.05em;">Cron
+                                Status: Active</span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Webhook Secret</label>
-                        <input type="password" name="webhookSecret" value="<%= settings?.stripe?.webhookSecret %>" class="form-control" placeholder="whsec_••••••••">
-                    </div>
-                </div>
+                </form>
 
-                <div class="section-divider">Test Environment (Sandbox)</div>
-                <div class="grid-3-col">
-                    <div class="form-group">
-                        <label class="form-label">Test Secret Key</label>
-                        <input type="password" name="testSecretKey" value="<%= settings?.stripe?.testSecretKey %>" class="form-control" placeholder="sk_test_••••••••">
+                <% if (success && success.includes('Sync Summary')) { %>
+                    <div
+                        style="margin-top: 24px; padding: 16px; background: var(--form-bg); border: 1px solid var(--form-border); border-radius: 16px;">
+                        <div class="grid grid-cols-3 gap-4 text-center">
+                            <div>
+                                <p class="text-slate-500"
+                                    style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">
+                                    Transfers</p>
+                                <p class="text-slate-900" style="font-size: 1.25rem; font-weight: 900; margin: 0;">
+                                    <%= success.match(/Transfers: (\d+)/)?.[1] || 0 %>
+                                </p>
+                            </div>
+                            <div
+                                style="border-left: 1px solid var(--form-border); border-right: 1px solid var(--form-border);">
+                                <p class="text-slate-500"
+                                    style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">
+                                    Payouts</p>
+                                <p class="text-slate-900" style="font-size: 1.25rem; font-weight: 900; margin: 0;">
+                                    <%= success.match(/Payouts: (\d+)/)?.[1] || 0 %>
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500"
+                                    style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">
+                                    Organizers</p>
+                                <p class="text-slate-900" style="font-size: 1.25rem; font-weight: 900; margin: 0;">
+                                    <%= success.match(/Organizers: (\d+)/)?.[1] || 0 %>
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Test Publishable Key</label>
-                        <input type="text" name="testPublishableKey" value="<%= settings?.stripe?.testPublishableKey %>" class="form-control" placeholder="pk_test_••••••••">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Test Client ID (Connect)</label>
-                        <input type="text" name="testClientId" value="<%= settings?.stripe?.testClientId %>" class="form-control" placeholder="ca_••••••••">
-                    </div>
-                </div>
-
-                <div class="section-divider">Live Environment (Production)</div>
-                <div class="grid-3-col">
-                    <div class="form-group">
-                        <label class="form-label">Live Secret Key</label>
-                        <input type="password" name="liveSecretKey" value="<%= settings?.stripe?.liveSecretKey %>" class="form-control" placeholder="sk_live_••••••••">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Live Publishable Key</label>
-                        <input type="text" name="livePublishableKey" value="<%= settings?.stripe?.livePublishableKey %>" class="form-control" placeholder="pk_live_••••••••">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Live Client ID (Connect)</label>
-                        <input type="text" name="liveClientId" value="<%= settings?.stripe?.liveClientId %>" class="form-control" placeholder="ca_••••••••">
-                    </div>
-                </div>
+                    <% } %>
             </div>
 
-            <!-- Platform Fees & Payouts Section -->
-            <div class="form-section-card mb-4">
-                <div class="form-section-header">
-                    <i class="fa-solid fa-coins"></i>
-                    <div>
-                        <h2 class="form-section-title">Fees & Payout Strategy</h2>
-                        <p class="form-section-desc">Define your platform's commission structure and automatic payout rules.</p>
-                    </div>
-                </div>
-
-                <div class="grid-3-col">
-                    <div class="form-group">
-                        <label class="form-label">Platform Fee (%)</label>
-                        <div class="input-with-icon">
-                            <input type="number" step="0.01" name="feePercentage" value="<%= settings?.platform?.feePercentage %>" class="form-control">
-                            <span class="icon">%</span>
+            <form action="/admin/stripe/settings/save" method="POST">
+                <!-- API Authentication -->
+                <div class="form-section-card" style="padding: 24px; margin-bottom: 10px;">
+                    <div
+                        style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--form-border); padding-bottom: 16px;">
+                        <div
+                            style="width: 44px; height: 44px; background: var(--form-bg); color: var(--form-text-muted); border: 1px solid var(--form-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                        <div>
+                            <h3 class="section-title" style="margin-bottom: 2px;">API Authentication</h3>
+                            <p class="section-desc" style="margin-bottom: 0;">Configure your Stripe API keys and
+                                connection mode</p>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Fixed Platform Fee</label>
-                        <div class="input-with-icon">
-                            <span class="icon"><%= settings?.platform?.currency === 'EUR' ? '€' : '£' %></span>
-                            <input type="number" step="0.01" name="fixedFee" value="<%= settings?.platform?.fixedFee %>" class="form-control">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                        <div class="form-group">
+                            <label class="form-label">Operation Mode</label>
+                            <select name="isTestMode" class="form-select" style="padding: 10px 16px;">
+                                <option value="on" <%=settings?.stripe?.isTestMode ? 'selected' : '' %>>Test Mode
+                                    (Sandbox)</option>
+                                <option value="off" <%=!settings?.stripe?.isTestMode ? 'selected' : '' %>>Live Mode
+                                    (Production)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Webhook Secret</label>
+                            <input type="password" name="webhookSecret" value="<%= settings?.stripe?.webhookSecret %>"
+                                class="form-input" style="padding: 10px 16px;" placeholder="whsec_••••••••">
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">VAT Rate (%)</label>
-                        <div class="input-with-icon">
-                            <input type="number" step="0.01" name="vatRate" value="<%= settings?.platform?.vatRate %>" class="form-control">
-                            <span class="icon">%</span>
+
+                    <div
+                        style="padding: 12px 16px; background: #fffbeb1a; border: 1px solid #fef3c7; border-radius: 10px; color: #d97706; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.05em;">
+                        Test Environment (Sandbox)
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="form-group">
+                            <label class="form-label">Test Secret Key</label>
+                            <input type="password" name="testSecretKey" value="<%= settings?.stripe?.testSecretKey %>"
+                                class="form-input" style="padding: 10px 16px;" placeholder="sk_test_••••">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Test Publishable Key</label>
+                            <input type="text" name="testPublishableKey"
+                                value="<%= settings?.stripe?.testPublishableKey %>" class="form-input"
+                                style="padding: 10px 16px;" placeholder="pk_test_••••">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Test Client ID (Connect)</label>
+                            <input type="text" name="testClientId" value="<%= settings?.stripe?.testClientId %>"
+                                class="form-input" style="padding: 10px 16px;" placeholder="ca_••••">
                         </div>
                     </div>
-                </div>
 
-                <div class="grid-3-col mt-3">
-                    <div class="form-group">
-                        <label class="form-label">Stripe Percent Fee (%)</label>
-                        <input type="number" step="0.01" name="stripeFeePercentage" value="<%= settings?.platform?.stripeFeePercentage %>" class="form-control">
+                    <div
+                        style="padding: 12px 16px; background: #f0fdf41a; border: 1px solid #dcfce7; border-radius: 10px; color: #166534; font-size: 0.75rem; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 0.05em;">
+                        Live Environment (Production)
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">Stripe Fixed Fee</label>
-                        <input type="number" step="0.01" name="fixedStripeFee" value="<%= settings?.platform?.fixedStripeFee %>" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">System Currency</label>
-                        <select name="currency" class="form-control">
-                            <option value="GBP" <%= settings?.platform?.currency === 'GBP' ? 'selected' : '' %>>GBP (£)</option>
-                            <option value="EUR" <%= settings?.platform?.currency === 'EUR' ? 'selected' : '' %>>EUR (€)</option>
-                            <option value="USD" <%= settings?.platform?.currency === 'USD' ? 'selected' : '' %>>USD ($)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid-2-col mt-3">
-                    <div class="form-group">
-                        <label class="form-label">Payout Threshold</label>
-                        <input type="number" name="payoutThreshold" value="<%= settings?.platform?.payoutThreshold %>" class="form-control">
-                        <small class="form-hint">Minimum balance required for organizer payouts.</small>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Payout Schedule</label>
-                        <select name="payoutSchedule" class="form-control">
-                            <option value="Manual" <%= settings?.platform?.payoutSchedule === 'Manual' ? 'selected' : '' %>>Manual Approval</option>
-                            <option value="Daily" <%= settings?.platform?.payoutSchedule === 'Daily' ? 'selected' : '' %>>Daily Automated</option>
-                            <option value="Weekly" <%= settings?.platform?.payoutSchedule === 'Weekly' ? 'selected' : '' %>>Weekly Automated</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Webhook Info Section -->
-            <div class="form-section-card mb-5">
-                <div class="form-section-header">
-                    <i class="fa-solid fa-link"></i>
-                    <div>
-                        <h2 class="form-section-title">Webhook Integration</h2>
-                        <p class="form-section-desc">Receive real-time updates from Stripe to synchronize your database.</p>
-                    </div>
-                </div>
-
-                <div class="webhook-config-box">
-                    <div class="url-label">Endpoint URL:</div>
-                    <div class="url-copy-box">
-                        <code>https://<%= host || 'your-domain.com' %>/api/v1/payments/webhook</code>
-                        <button type="button" class="btn-copy" onclick="copyToClipboard(this)"><i class="fa-regular fa-copy"></i></button>
-                    </div>
-                    <div class="event-tags">
-                        <div class="tags-label">Listening for Events:</div>
-                        <div class="tags-list">
-                            <span class="event-tag">account.updated</span>
-                            <span class="event-tag">charge.succeeded</span>
-                            <span class="event-tag">payout.paid</span>
-                            <span class="event-tag">transfer.created</span>
-                            <span class="event-tag">payment_intent.succeeded</span>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="form-group">
+                            <label class="form-label">Live Secret Key</label>
+                            <input type="password" name="liveSecretKey" value="<%= settings?.stripe?.liveSecretKey %>"
+                                class="form-input" style="padding: 10px 16px;" placeholder="sk_live_••••">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Live Publishable Key</label>
+                            <input type="text" name="livePublishableKey"
+                                value="<%= settings?.stripe?.livePublishableKey %>" class="form-input"
+                                style="padding: 10px 16px;" placeholder="pk_live_••••">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Live Client ID (Connect)</label>
+                            <input type="text" name="liveClientId" value="<%= settings?.stripe?.liveClientId %>"
+                                class="form-input" style="padding: 10px 16px;" placeholder="ca_••••">
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="form-actions-bar">
-                <button type="submit" class="btn btn-primary btn-lg">
-                    <i class="fa-solid fa-save"></i> Save Configuration
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+                <!-- Fees & Payouts -->
+                <div class="form-section-card" style="padding: 24px; margin-bottom: 10px;">
+                    <div
+                        style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--form-border); padding-bottom: 16px;">
+                        <div
+                            style="width: 44px; height: 44px; background: var(--form-bg); color: var(--form-text-muted); border: 1px solid var(--form-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            <i class="fa-solid fa-coins"></i>
+                        </div>
+                        <div>
+                            <h3 class="section-title" style="margin-bottom: 2px;">Fees & Payout Strategy</h3>
+                            <p class="section-desc" style="margin-bottom: 0;">Define your platform commission and payout
+                                rules</p>
+                        </div>
+                    </div>
 
-<script>
-function copyToClipboard(btn) {
-    const code = btn.previousElementSibling.innerText;
-    navigator.clipboard.writeText(code);
-    btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-    setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i>'; }, 2000);
-}
-</script>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="form-group">
+                            <label class="form-label">Platform Fee (%)</label>
+                            <input type="number" step="0.01" name="feePercentage"
+                                value="<%= settings?.platform?.feePercentage %>" class="form-input"
+                                style="padding: 10px 16px;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Fixed Platform Fee</label>
+                            <input type="number" step="0.01" name="fixedFee" value="<%= settings?.platform?.fixedFee %>"
+                                class="form-input" style="padding: 10px 16px;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">VAT Rate (%)</label>
+                            <input type="number" step="0.01" name="vatRate" value="<%= settings?.platform?.vatRate %>"
+                                class="form-input" style="padding: 10px 16px;">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                        <div class="form-group">
+                            <label class="form-label">Payout Threshold</label>
+                            <input type="number" name="payoutThreshold"
+                                value="<%= settings?.platform?.payoutThreshold %>" class="form-input"
+                                style="padding: 10px 16px;">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Payout Schedule</label>
+                            <select name="payoutSchedule" class="form-select" style="padding: 10px 16px;">
+                                <option value="Manual" <%=settings?.platform?.payoutSchedule==='Manual' ? 'selected'
+                                    : '' %>>Manual Approval</option>
+                                <option value="Daily" <%=settings?.platform?.payoutSchedule==='Daily' ? 'selected' : ''
+                                    %>>Daily Automated</option>
+                                <option value="Weekly" <%=settings?.platform?.payoutSchedule==='Weekly' ? 'selected'
+                                    : '' %>>Weekly Automated</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Webhook Info -->
+                <div class="form-section-card" style="padding: 24px; margin-bottom: 10px;">
+                    <div
+                        style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; border-bottom: 1px solid var(--form-border); padding-bottom: 16px;">
+                        <div
+                            style="width: 44px; height: 44px; background: var(--form-bg); color: var(--form-text-muted); border: 1px solid var(--form-border); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                            <i class="fa-solid fa-link"></i>
+                        </div>
+                        <div>
+                            <h3 class="section-title" style="margin-bottom: 2px;">Webhook Integration</h3>
+                            <p class="section-desc" style="margin-bottom: 0;">Real-time database synchronization
+                                endpoint</p>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: #0f172a; border-radius: 16px; padding: 24px; box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.06);">
+                        <p
+                            style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.05em;">
+                            Endpoint URL</p>
+                        <div
+                            style="background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                            <code
+                                style="color: #818cf8; font-size: 0.85rem; font-family: monospace; word-break: break-all;">https://<%= host || 'your-domain.com' %>/api/v1/payments/webhook</code>
+                            <button type="button"
+                                style="background: none; border: none; color: #64748b; cursor: pointer; transition: color 0.2s;"
+                                onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#64748b'"
+                                onclick="copyToClipboard(this)">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                        <p
+                            style="font-size: 0.7rem; font-weight: 800; color: #64748b; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 0.05em;">
+                            Active Events</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                            <span
+                                style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-family: monospace;">account.updated</span>
+                            <span
+                                style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-family: monospace;">charge.succeeded</span>
+                            <span
+                                style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-family: monospace;">payout.paid</span>
+                            <span
+                                style="background: #1e293b; color: #cbd5e1; border: 1px solid #334155; padding: 4px 10px; border-radius: 6px; font-size: 0.7rem; font-family: monospace;">transfer.created</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="position: sticky; bottom: 20px; left: 0; right: 0; display: flex; justify-content: flex-end; margin-bottom: 30px;">
+                    <button type="submit" class="form-btn-submit"
+                        style="width: auto; padding: 16px 48px; box-shadow: 0 10px 15px -3px rgba(227, 30, 36, 0.3);">
+                        <i class="fa-solid fa-save mr-2"></i> Save Configuration
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            function copyToClipboard(btn) {
+                const code = btn.previousElementSibling.innerText;
+                navigator.clipboard.writeText(code);
+                btn.innerHTML = '<i class="fa-solid fa-check"></i>';
+                setTimeout(() => { btn.innerHTML = '<i class="fa-regular fa-copy"></i>'; }, 2000);
+            }
+        </script>

@@ -1,85 +1,91 @@
-<div class="card">
-    <div class="card-header">
-        <h3 style="font-size: 1.1rem; color: var(--dark);">
-            <%= page ? 'Edit SEO for Static Page' : 'SEO for Page' %>
-        </h3>
-        <a href="/admin/cms" class="btn btn-ghost">Back to List</a>
+<div class="form-container">
+    <div class="form-header flex justify-between items-center">
+        <div>
+            <h3 class="form-title">
+                <%= page ? 'Edit Page Settings' : 'Page Settings' %>
+            </h3>
+            <p class="form-subtitle">Configure SEO and menu visibility for static pages</p>
+        </div>
+        <a href="/admin/cms" class="form-btn-cancel text-sm">Back to List</a>
     </div>
-    <div style="padding: 2rem;">
-        <form action="/admin/cms/save" method="POST" id="cmsForm">
-            <% if (page) { %>
-                <input type="hidden" name="id" value="<%= page._id %>">
+
+    <form action="/admin/cms/save" method="POST" id="cmsForm" class="space-y-8">
+        <% if (page) { %>
+            <input type="hidden" name="id" value="<%= page._id %>">
             <% } %>
 
-            <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
-                <div class="form-group">
-                    <label>Page Title</label>
-                    <input type="text" name="title" value="<%= page ? page.title : '' %>" class="form-control" placeholder="e.g., About Us, Refund Policy" required>
-                </div>
-                <div class="form-group">
-                    <label>URL Slug</label>
-                    <input type="text" name="slug" value="<%= page ? page.slug : '' %>" class="form-control" placeholder="e.g., about-us" required>
-                    <small style="color: var(--gray);">URL: /<%= page ? page.slug : 'slug' %></small>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 1.5rem; padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border, rgba(255,255,255,0.1));">
-                <div>
-                    <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">SEO Settings</h4>
-                    <div class="form-group">
-                        <label>Meta Title</label>
-                        <input type="text" name="metaTitle" value="<%= page ? page.metaTitle : '' %>" class="form-control" placeholder="SEO Title">
-                    </div>
-                    <div class="form-group" style="margin-top: 1rem;">
-                        <label>Meta Description</label>
-                        <textarea name="metaDescription" class="form-control" rows="3" placeholder="SEO Description"><%= page ? page.metaDescription : '' %></textarea>
-                    </div>
-                    <div class="form-group" style="margin-top: 1rem;">
-                        <label>Meta Keywords</label>
-                        <input type="text" name="metaKeywords" value="<%= page ? page.metaKeywords : '' %>" class="form-control" placeholder="Keywords, separated, by, commas">
+                <div class="form-section">
+                    <span class="section-label">General Information</span>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="form-group md:col-span-2">
+                            <label class="form-label">Page Title</label>
+                            <input type="text" name="title" value="<%= page ? page.title : '' %>" class="form-input"
+                                placeholder="e.g., About Us, Refund Policy" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">URL Slug</label>
+                            <input type="text" name="slug" value="<%= page ? page.slug : '' %>" class="form-input"
+                                placeholder="e.g., about-us" required>
+                            <p class="form-hint">URL: /<%= page ? page.slug : 'slug' %>
+                            </p>
+                        </div>
                     </div>
                 </div>
-                <div>
-                    <h4 style="margin-bottom: 1rem; color: var(--dark); font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Menu Settings</h4>
-                    <div class="form-group flex-row" style="display: flex; align-items: center; gap: 10px; margin-bottom: 1rem;">
-                        <input type="checkbox" name="showInMenu" id="showInMenu" <%= page && page.showInMenu ? 'checked' : '' %> style="width: 18px; height: 18px;">
-                        <label for="showInMenu" style="margin-bottom: 0;">Show in Footer Menu</label>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 p-0 rounded-2xl border border-slate-100">
+                    <div class="space-y-6">
+                        <h4 class="text-sm font-extrabold text-slate-800 uppercase tracking-widest">SEO Settings</h4>
+                        <div class="form-group">
+                            <label class="form-label">Meta Title</label>
+                            <input type="text" name="metaTitle" value="<%= page ? page.metaTitle : '' %>"
+                                class="form-input" placeholder="SEO Title">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Meta Description</label>
+                            <textarea name="metaDescription" class="form-textarea" rows="3"
+                                placeholder="SEO Description"><%= page ? page.metaDescription : '' %></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Meta Keywords</label>
+                            <input type="text" name="metaKeywords" value="<%= page ? page.metaKeywords : '' %>"
+                                class="form-input" placeholder="Keywords, separated, by, commas">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Menu Location</label>
-                        <select name="menuLocation" class="form-control">
-                            <option value="none" <%= page && page.menuLocation === 'none' ? 'selected' : '' %>>None</option>
-                            <option value="company" <%= page && page.menuLocation === 'company' ? 'selected' : '' %>>Company</option>
-                            <option value="support" <%= page && page.menuLocation === 'support' ? 'selected' : '' %>>Support</option>
-                        </select>
+
+                    <div class="space-y-6">
+                        <h4 class="text-sm font-extrabold text-slate-800 uppercase tracking-widest">Menu Settings</h4>
+                        <label
+                            class="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 cursor-pointer hover:border-primary transition-colors">
+                            <input type="checkbox" name="showInMenu" id="showInMenu" <%=page && page.showInMenu
+                                ? 'checked' : '' %> class="w-5 h-5 accent-primary">
+                            <span class="text-sm font-bold text-slate-700">Show in Footer Menu</span>
+                        </label>
+                        <div class="form-group">
+                            <label class="form-label">Menu Location</label>
+                            <select name="menuLocation" class="form-select">
+                                <option value="none" <%=page && page.menuLocation==='none' ? 'selected' : '' %>>None
+                                </option>
+                                <option value="company" <%=page && page.menuLocation==='company' ? 'selected' : '' %>
+                                    >Company</option>
+                                <option value="support" <%=page && page.menuLocation==='support' ? 'selected' : '' %>
+                                    >Support</option>
+                            </select>
+                        </div>
+
+                        <% if (page) { %>
+                            <div
+                                class="p-4 bg-slate-100/50 rounded-xl text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-2">
+                                <i class="fa-solid fa-clock-rotate-left"></i>
+                                Last updated: <%= new Date(page.updatedAt).toLocaleString() %>
+                            </div>
+                            <% } %>
                     </div>
                 </div>
-            </div>
 
-
-
-            <% if (page) { %>
-                <div style="padding: 1rem; border-radius: 6px; margin-bottom: 2rem; font-size: 0.8rem; color: var(--gray); border: 1px solid var(--border, rgba(255,255,255,0.1));">
-                    <i class="fa-solid fa-clock-rotate-left"></i> Last updated: <%= new Date(page.updatedAt).toLocaleString() %>
+                <div class="flex justify-end pt-8 border-t border-slate-100">
+                    <button type="submit" class="form-btn-submit">
+                        Update Settings
+                    </button>
                 </div>
-            <% } %>
-
-            <div style="text-align: right; margin-top: 2rem; border-top: 1px solid var(--light-gray); padding-top: 1.5rem;">
-                <button type="submit" class="btn btn-primary" style="padding-left: 3rem; padding-right: 3rem;">
-                    Update SEO Settings
-                </button>
-            </div>
-        </form>
-    </div>
+    </form>
 </div>
-
-
-
-<style>
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: var(--dark);
-    }
-</style>
