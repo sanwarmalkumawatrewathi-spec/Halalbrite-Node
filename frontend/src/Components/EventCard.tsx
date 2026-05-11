@@ -121,10 +121,10 @@ export default function EventCard({
 
         {organizerId ? (
           <Link href={`/organiser/${organizerSlug || organizerId}`} onClick={(e) => e.stopPropagation()}>
-            <p className="text-gray-600 mb-1 text-xs sm:text-sm">{organizer}</p>
+            <p className="text-gray-600 mb-4 break-words">{organizer}</p>
           </Link>
         ) : (
-          <p className="text-gray-600 mb-1 text-xs sm:text-sm">{organizer}</p>
+          <p className="text-gray-600 mb-4  break-words">{organizer}</p>
         )}
 
         {/* Date */}
