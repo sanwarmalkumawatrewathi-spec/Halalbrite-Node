@@ -1,7 +1,7 @@
 "use client";
 
 import { FiEdit, FiTrash2, FiGlobe, FiFacebook, FiInstagram, FiTwitter, FiYoutube, FiLinkedin, FiLink } from "react-icons/fi";
-import { IoBusinessOutline, IoLockClosedOutline } from "react-icons/io5";
+import { IoBusinessOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 
 // Fallback categories if backend fails
@@ -25,13 +25,6 @@ export default function OrganiserTab() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const logoInputRef = React.useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -122,6 +115,11 @@ export default function OrganiserTab() {
     }
 
     setIsUploading(true);
+    // 1. Create immediate local preview
+    const localPreviewUrl = URL.createObjectURL(file);
+    const oldLogo = formData.logo;
+    setFormData(prev => ({ ...prev, logo: localPreviewUrl }));
+
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
       const token = localStorage.getItem('token');
@@ -139,13 +137,23 @@ export default function OrganiserTab() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || "Upload failed");
 
+      // 2. Update with permanent server URL
       setFormData(prev => ({ ...prev, logo: data.url }));
     } catch (error: any) {
       console.error("Logo upload error:", error);
       alert(`Upload failed: ${error.message || "Please try again."}`);
+      // Revert to old logo on error
+      setFormData(prev => ({ ...prev, logo: oldLogo }));
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const getImageUrl = (url: string) => {
+    if (!url) return "";
+    if (url.startsWith('http') || url.startsWith('blob:')) return url;
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+    return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
   const handleSocialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -232,55 +240,34 @@ export default function OrganiserTab() {
     }
   };
 
-  const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("New passwords do not match!");
-      return;
-    }
-
-    setIsUpdatingPassword(true);
-    try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-      const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/auth/change-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
-        })
-      });
-
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.indexOf("application/json") !== -1) {
-        const result = await response.json();
-        if (response.ok) {
-          setShowPasswordModal(false);
-          setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
-          setSuccessMessage("Your password has been changed successfully.");
-          setShowSuccessModal(true);
-        } else {
-          alert(result.message || "Failed to change password");
-        }
-      } else {
-        const errorText = await response.text();
-        console.error("Server returned non-JSON response:", errorText);
-        alert(`Server error (${response.status}). Please try again later.`);
-      }
-    } catch (error: any) {
-      console.error("Error changing password:", error);
-      alert(`Network error: ${error.message || "Please try again."}`);
-    } finally {
-      setIsUpdatingPassword(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Normalize URLs
+    const normalizeUrl = (url: string) => {
+      if (!url || url.trim() === "") return "";
+      const trimmed = url.trim();
+      if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/') || trimmed.startsWith('blob:')) {
+        return trimmed;
+      }
+      return `https://${trimmed}`;
+    };
+
+    const normalizedData = {
+      ...formData,
+      website: normalizeUrl(formData.website),
+      logo: normalizeUrl(formData.logo),
+      socialLinks: {
+        facebook: normalizeUrl(formData.socialLinks.facebook),
+        instagram: normalizeUrl(formData.socialLinks.instagram),
+        linkedin: normalizeUrl(formData.socialLinks.linkedin),
+        twitter: normalizeUrl(formData.socialLinks.twitter),
+        youtube: normalizeUrl(formData.socialLinks.youtube),
+        otherWebsite: normalizeUrl(formData.socialLinks.otherWebsite)
+      }
+    };
+
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
       const token = localStorage.getItem('token');
@@ -294,7 +281,7 @@ export default function OrganiserTab() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(normalizedData)
       });
 
       const result = await response.json();
@@ -407,13 +394,13 @@ export default function OrganiserTab() {
                     ) : formData.logo ? (
                       <div className="flex flex-col items-center">
                         <div className="w-20 h-20 rounded-xl border border-red-100 shadow-sm overflow-hidden mb-3 relative group">
-                          <img src={formData.logo} alt="Logo Preview" className="w-full h-full object-cover" />
+                          <img src={getImageUrl(formData.logo)} alt="Logo Preview" className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <span className="text-white text-[10px] font-bold">CHANGE</span>
                           </div>
                         </div>
-                        <p className="text-xs font-bold text-red-600">Logo uploaded successfully!</p>
-                        <p className="text-[10px] text-gray-400 mt-1">Click to change or edit URL below</p>
+                        <p className="text-xs font-bold text-red-600">Logo selected!</p>
+                        <p className="text-[10px] text-gray-400 mt-1">Click to change</p>
                       </div>
                     ) : (
                       <>
@@ -425,31 +412,35 @@ export default function OrganiserTab() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4 my-4">
-                    <div className="flex-1 h-px bg-gray-200"></div>
-                    <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">OR USE URL</span>
-                    <div className="flex-1 h-px bg-gray-200"></div>
-                  </div>
+                  {!formData.logo && (
+                    <>
+                      <div className="flex items-center gap-4 my-4">
+                        <div className="flex-1 h-px bg-gray-200"></div>
+                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">OR USE URL</span>
+                        <div className="flex-1 h-px bg-gray-200"></div>
+                      </div>
 
-                  <input
-                    type="url"
-                    name="logo"
-                    value={formData.logo}
-                    onChange={handleInputChange}
-                    placeholder="https://example.com/logo.png"
-                    className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Paste a URL to your organisation's logo</p>
+                      <input
+                        type="text"
+                        name="logo"
+                        value={formData.logo}
+                        onChange={handleInputChange}
+                        placeholder="halalbrite.com/logo.png"
+                        className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Paste a URL to your organisation's logo</p>
+                    </>
+                  )}
                 </div>
 
                 <div>
                   <label className="block text-sm font-bold text-gray-800 mb-1">Website</label>
                   <input
-                    type="url"
+                    type="text"
                     name="website"
                     value={formData.website}
                     onChange={handleInputChange}
-                    placeholder="https://yourorganisation.com"
+                    placeholder="yourorganisation.com"
                     className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
                   />
                 </div>
@@ -531,27 +522,27 @@ export default function OrganiserTab() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiFacebook className="text-[#1877F2]" /> Facebook</label>
-                      <input type="url" name="facebook" value={formData.socialLinks.facebook} onChange={handleSocialChange} placeholder="https://facebook.com/yourpage" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="facebook" value={formData.socialLinks.facebook} onChange={handleSocialChange} placeholder="facebook.com/yourpage" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiInstagram className="text-[#E4405F]" /> Instagram</label>
-                      <input type="url" name="instagram" value={formData.socialLinks.instagram} onChange={handleSocialChange} placeholder="https://instagram.com/yourpage" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="instagram" value={formData.socialLinks.instagram} onChange={handleSocialChange} placeholder="instagram.com/yourpage" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiLinkedin className="text-[#0A66C2]" /> LinkedIn</label>
-                      <input type="url" name="linkedin" value={formData.socialLinks.linkedin} onChange={handleSocialChange} placeholder="https://linkedin.com/company/yourcompany" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="linkedin" value={formData.socialLinks.linkedin} onChange={handleSocialChange} placeholder="linkedin.com/company/yourcompany" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiTwitter className="text-[#1DA1F2]" /> Twitter</label>
-                      <input type="url" name="twitter" value={formData.socialLinks.twitter} onChange={handleSocialChange} placeholder="https://twitter.com/yourhandle" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="twitter" value={formData.socialLinks.twitter} onChange={handleSocialChange} placeholder="twitter.com/yourhandle" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiYoutube className="text-[#FF0000]" /> YouTube</label>
-                      <input type="url" name="youtube" value={formData.socialLinks.youtube} onChange={handleSocialChange} placeholder="https://youtube.com/@yourchannel" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="youtube" value={formData.socialLinks.youtube} onChange={handleSocialChange} placeholder="youtube.com/@yourchannel" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiLink className="text-gray-500" /> Other Website</label>
-                      <input type="url" name="otherWebsite" value={formData.socialLinks.otherWebsite} onChange={handleSocialChange} placeholder="https://yourwebsite.com" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="otherWebsite" value={formData.socialLinks.otherWebsite} onChange={handleSocialChange} placeholder="yourwebsite.com" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                   </div>
                 </div>
@@ -576,7 +567,7 @@ export default function OrganiserTab() {
                     <div className="w-14 h-14 flex flex-shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600 text-xl font-bold shadow-sm overflow-hidden">
                       {org.logo ? (
                         <img
-                          src={org.logo}
+                          src={getImageUrl(org.logo)}
                           alt=""
                           className="w-full h-full rounded-xl object-cover"
                           onError={(e) => {
@@ -672,28 +663,6 @@ export default function OrganiserTab() {
         </div>
       </div>
 
-      <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-white overflow-hidden w-full min-w-0">
-        <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div className="flex items-start gap-3">
-              <div className="mt-1 p-2 bg-red-50 text-red-600 rounded-lg">
-                <IoLockClosedOutline className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Change Password</h3>
-                <p className="text-sm text-gray-500 mt-1">Update your account password to keep your account secure</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowPasswordModal(true)}
-              data-slot="button"
-              className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 border bg-background hover:text-accent-foreground dark:bg-input/30 dark: dark:hover:bg-input/50 h-9 px-4 py-2 border-gray-200 text-gray-700 hover:bg-gray-50 w-full sm:w-auto rounded-md shadow-sm"
-            >
-              Change Password
-            </button>
-          </div>
-        </div>
-      </div>
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -737,82 +706,6 @@ export default function OrganiserTab() {
         </div>
       )}
 
-      {/* Change Password Modal */}
-      {showPasswordModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl transform animate-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-red-50 text-red-600 rounded-lg">
-                <IoLockClosedOutline className="w-5 h-5" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900">Change Password</h3>
-            </div>
-
-            <form onSubmit={handleChangePassword} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Current Password</label>
-                <input
-                  type="password"
-                  required
-                  value={passwordData.currentPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                  placeholder="••••••••"
-                  className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">New Password</label>
-                <input
-                  type="password"
-                  required
-                  minLength={6}
-                  value={passwordData.newPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                  placeholder="••••••••"
-                  className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">Confirm New Password</label>
-                <input
-                  type="password"
-                  required
-                  value={passwordData.confirmPassword}
-                  onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                  placeholder="••••••••"
-                  className="w-full border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-red-500 outline-none"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordModal(false)}
-                  className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-lg font-bold hover:bg-gray-50 transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUpdatingPassword}
-                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-all shadow-lg shadow-red-100 flex items-center justify-center gap-2 disabled:opacity-70"
-                >
-                  {isUpdatingPassword ? (
-                    <>
-                      <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                      Updating...
-                    </>
-                  ) : (
-                    "Update Password"
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Success Modal */}
       {showSuccessModal && (

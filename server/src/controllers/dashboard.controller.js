@@ -511,15 +511,31 @@ exports.getOrganizerEvents = async (req, res) => {
             .sort({ createdAt: -1 });
 
         // Add sold/total info for each event
-        const eventsWithStats = await Promise.all(events.map(async (event) => {
-            const bookings = await Booking.find({ event_id: event._id, payment_status: { $in: ['paid', 'free'] } });
-            const sold = bookings.reduce((acc, b) => acc + b.quantity, 0);
-            const revenue = bookings.reduce((acc, b) => acc + b.organizer_amount, 0);
+        const eventsWithStats = await Promise.all(events.map(async (eventDoc) => {
+            const bookings = await Booking.find({ 
+                event_id: eventDoc._id, 
+                payment_status: { $in: ['paid', 'free'] } 
+            }).lean();
+            
+            const sold = bookings.reduce((acc, b) => acc + (parseInt(b.quantity) || 0), 0);
+            const revenue = bookings.reduce((acc, b) => acc + (parseFloat(b.organizer_amount) || 0), 0);
+            
+            // Calculate total capacity
+            let totalCap = 0;
+            const ticketTypes = eventDoc.ticketTypes || [];
+            if (ticketTypes.length > 0) {
+                ticketTypes.forEach(t => {
+                    totalCap += (parseInt(t.quantity) || 0);
+                });
+            } else if (eventDoc.capacity) {
+                totalCap = parseInt(eventDoc.capacity) || 0;
+            }
 
             return {
-                ...event.toObject(),
+                ...eventDoc.toObject(),
                 ticketsSold: sold,
-                totalRevenue: revenue
+                totalRevenue: revenue,
+                totalCapacity: totalCap
             };
         }));
 

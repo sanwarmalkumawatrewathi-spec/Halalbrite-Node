@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
 import Link from "next/link";
+import { useCurrency } from "@/context/CurrencyContext";
 
 type MapEvent = {
   _id: string;
@@ -28,11 +29,8 @@ type MapComponentProps = {
   center?: [number, number]; // [lng, lat] from MongoDB
   events?: MapEvent[];
   onMarkerClick?: (eventId: string) => void;
-};
-
-const mapContainerStyle = {
-  width: "100%",
-  height: "500px",
+  height?: string;
+  containerClassName?: string;
 };
 
 const defaultCenter = {
@@ -84,7 +82,7 @@ export default function MapComponent(props: MapComponentProps) {
   return <GoogleMapLoader apiKey={apiKey} {...props} />;
 }
 
-function GoogleMapLoader({ apiKey, center, events, onMarkerClick }: MapComponentProps & { apiKey: string }) {
+function GoogleMapLoader({ apiKey, center, events, onMarkerClick, height = "500px", containerClassName = "rounded-2xl overflow-hidden shadow-xl max-w-7xl mx-auto border-4 border-white mb-20" }: MapComponentProps & { apiKey: string }) {
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: apiKey,
@@ -120,7 +118,7 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick }: MapComponent
 
   if (loadError) {
     return (
-      <div className="h-[500px] w-full bg-red-50 rounded-2xl flex flex-col items-center justify-center border-2 border-red-200 p-6 text-center mb-20 max-w-7xl mx-auto">
+      <div className={`w-full bg-red-50 rounded-2xl flex flex-col items-center justify-center border-2 border-red-200 p-6 text-center ${containerClassName}`} style={{ height }}>
         <div className="text-red-500 mb-4">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
         </div>
@@ -132,12 +130,12 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick }: MapComponent
     );
   }
 
-  if (!isLoaded) return <div className="h-[500px] w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center mb-20 max-w-7xl mx-auto">Loading Google Maps...</div>;
+  if (!isLoaded) return <div className={`w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center ${containerClassName}`} style={{ height }}>Loading Google Maps...</div>;
 
   return (
-    <div className="rounded-2xl overflow-hidden shadow-xl max-w-7xl mx-auto border-4 border-white mb-20">
+    <div className={containerClassName}>
       <GoogleMap
-        mapContainerStyle={mapContainerStyle}
+        mapContainerStyle={{ width: "100%", height }}
         center={mapCenter}
         zoom={center ? 13 : 6}
         onLoad={onLoad}
@@ -175,7 +173,7 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick }: MapComponent
           if (!coords || coords.length !== 2) return null;
 
           const position = { lat: coords[1], lng: coords[0] };
-          
+
           return (
             <Marker
               key={event._id}
@@ -199,9 +197,9 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick }: MapComponent
 
         {selectedEvent && (
           <InfoWindow
-            position={{ 
-              lat: selectedEvent.location!.geometry!.coordinates[1], 
-              lng: selectedEvent.location!.geometry!.coordinates[0] 
+            position={{
+              lat: selectedEvent.location!.geometry!.coordinates[1],
+              lng: selectedEvent.location!.geometry!.coordinates[0]
             }}
             onCloseClick={() => setSelectedEvent(null)}
           >
@@ -216,10 +214,10 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick }: MapComponent
                   {selectedEvent.category?.name || "Event"}
                 </div>
               </div>
-              
+
               <div className="p-3">
                 <h3 className="font-bold text-red-900 text-sm leading-tight mb-2 line-clamp-2">{selectedEvent.title}</h3>
-                
+
                 <div className="flex items-center gap-1.5 text-gray-500 text-[11px] mb-1.5">
                   <div className="w-3.5 h-3.5 rounded-full bg-red-50 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>

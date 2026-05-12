@@ -139,7 +139,16 @@ export default function EventCard({
         {/* Footer */}
         <div className="flex items-center justify-between pt-2 mt-auto">
           <span className="text-red-700 text-sm font-medium">
-            {priceLabel || (price === 0 ? 'Free' : displayPrice)}
+            {(() => {
+              if (priceLabel && typeof price === 'number') {
+                const isFrom = priceLabel.toLowerCase().startsWith('from ');
+                if (price === 0) {
+                  return isFrom ? 'From Free' : 'Free';
+                }
+                return isFrom ? `From ${displayPrice}` : displayPrice as string;
+              }
+              return priceLabel || (price === 0 ? 'Free' : displayPrice as string);
+            })()}
           </span>
 
           <button className="bg-red-600 text-white text-xs px-4 py-2 rounded-lg hover:bg-red-700 transition">

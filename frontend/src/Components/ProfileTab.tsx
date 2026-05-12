@@ -63,15 +63,54 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
     setShowUpgradeModal(true);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const imageUrl = URL.createObjectURL(file);
-      setAvatarPreview(imageUrl);
-      if (user) {
-        updateUser({ ...user, avatar: imageUrl });
+      
+      // 1. Immediate local preview
+      const localUrl = URL.createObjectURL(file);
+      setAvatarPreview(localUrl);
+
+      // 2. Upload to server
+      try {
+        const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+        const token = localStorage.getItem('token');
+        const formDataUpload = new FormData();
+        formDataUpload.append("image", file);
+
+        const response = await fetch(`${API_URL}/api/upload`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: formDataUpload,
+        });
+
+        const data = await response.json();
+        if (response.ok && data.url) {
+          // Update user profile with new avatar URL
+          const updateRes = await fetch(`${API_URL}/api/auth/update-profile`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ avatar: data.url })
+          });
+          if (updateRes.ok) {
+            const updatedUser = await updateRes.json();
+            updateUser(updatedUser.data || updatedUser);
+          }
+        }
+      } catch (error) {
+        console.error("Avatar upload failed:", error);
       }
     }
+  };
+
+  const getImageUrl = (url: string | undefined | null) => {
+    if (!url) return "";
+    if (url.startsWith('http') || url.startsWith('blob:')) return url;
+    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+    return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
   };
 
   const handleSaveProfile = async (e?: React.FormEvent) => {
@@ -153,7 +192,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
                   <img
                     data-slot="avatar-image"
                     className="aspect-square w-full h-full object-cover"
-                    src={avatarPreview || user.avatar}
+                    src={getImageUrl(avatarPreview || user.avatar)}
                     alt="Avatar"
                   />
                 ) : (

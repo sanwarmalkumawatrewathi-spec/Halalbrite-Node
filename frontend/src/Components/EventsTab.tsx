@@ -6,6 +6,7 @@ import { MdDeleteOutline, MdEvent } from "react-icons/md";
 import { IoAdd } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const statusStyles: any = {
   published: "bg-green-100 text-green-700",
@@ -23,6 +24,7 @@ export default function EventsTab() {
   const [eventToDelete, setEventToDelete] = useState<any>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const router = useRouter();
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     fetchEvents();
@@ -147,10 +149,10 @@ export default function EventsTab() {
                                 </span>
                               </td>
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">
-                                {e.ticketsSold} / {e.totalTickets || '∞'}
+                                {e.ticketsSold ?? 0} / {e.totalCapacity ?? 0}
                               </td>
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-red-700 whitespace-nowrap font-medium">
-                                €{(e.totalRevenue || 0).toFixed(2)}
+                                {formatPrice(e.totalRevenue || 0)}
                               </td>
                               <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-right">
                                 <div className="flex justify-end gap-2 whitespace-nowrap">

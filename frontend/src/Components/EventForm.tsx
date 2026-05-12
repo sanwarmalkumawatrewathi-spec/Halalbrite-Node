@@ -212,6 +212,13 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         fetchOrganisations();
     }, []);
 
+    const getImageUrl = (url: string) => {
+        if (!url) return "";
+        if (url.startsWith('http') || url.startsWith('blob:')) return url;
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+        return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
+
     const handleChange = (e: any) => {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
@@ -456,7 +463,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                         <label className="text-sm font-semibold text-gray-700">Event Banner</label>
                         {form.bannerPreview && (
                             <div className="mt-2 mb-4 relative group">
-                                <img src={form.bannerPreview} alt="Current banner" className="w-full h-48 object-cover rounded-2xl border border-gray-200 shadow-sm" />
+                                <img src={getImageUrl(form.bannerPreview)} alt="Current banner" className="w-full h-48 object-cover rounded-2xl border border-gray-200 shadow-sm" />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
                                     <span className="text-white text-xs font-bold px-3 py-1.5 bg-black/60 rounded-full">Current Banner</span>
                                 </div>
@@ -545,7 +552,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                 />
                                 {form.thumbnailPreview ? (
                                     <div className="flex flex-col items-center">
-                                        <img src={form.thumbnailPreview} alt="Thumbnail preview" className="w-20 h-20 object-cover rounded-lg mb-2 shadow-sm" />
+                                        <img src={getImageUrl(form.thumbnailPreview)} alt="Thumbnail preview" className="w-20 h-20 object-cover rounded-lg mb-2 shadow-sm" />
                                         <p className="text-xs font-medium text-red-600">Change thumbnail</p>
                                     </div>
                                 ) : (

@@ -99,8 +99,40 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
         }
     };
 
+    const getImageUrl = (url: string) => {
+        if (!url) return "";
+        if (url.startsWith('http') || url.startsWith('blob:')) return url;
+        const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+        return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Normalize URLs
+        const normalizeUrl = (url: string) => {
+            if (!url || url.trim() === "") return "";
+            const trimmed = url.trim();
+            if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/') || trimmed.startsWith('blob:')) {
+                return trimmed;
+            }
+            return `https://${trimmed}`;
+        };
+
+        const normalizedData = {
+            ...formData,
+            website: normalizeUrl(formData.website),
+            logo: normalizeUrl(formData.logo),
+            socialLinks: {
+                facebook: normalizeUrl(formData.socialLinks.facebook),
+                instagram: normalizeUrl(formData.socialLinks.instagram),
+                linkedin: normalizeUrl(formData.socialLinks.linkedin),
+                twitter: normalizeUrl(formData.socialLinks.twitter),
+                youtube: normalizeUrl(formData.socialLinks.youtube),
+                otherWebsite: normalizeUrl(formData.socialLinks.otherWebsite)
+            }
+        };
+
         setIsSaving(true);
         try {
             const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
@@ -111,7 +143,7 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(normalizedData)
             });
 
             const result = await response.json();
@@ -167,7 +199,7 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
                                 {isUploading ? (
                                     <div className="animate-spin h-6 w-6 text-red-600 mx-auto" />
                                 ) : formData.logo ? (
-                                    <img src={formData.logo} alt="Logo" className="w-16 h-16 object-cover rounded-lg mx-auto border border-gray-100 shadow-sm" />
+                                    <img src={getImageUrl(formData.logo)} alt="Logo" className="w-16 h-16 object-cover rounded-lg mx-auto border border-gray-100 shadow-sm" />
                                 ) : (
                                     <>
                                         <IoBusinessOutline className="text-3xl text-gray-400 mx-auto mb-1 group-hover:text-red-500" />
@@ -209,11 +241,11 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiFacebook className="text-[#1877F2]" /> Facebook</label>
-                                <input type="url" name="facebook" value={formData.socialLinks.facebook} onChange={handleSocialChange} placeholder="URL" className="w-full border border-gray-200 rounded-lg p-2 text-xs outline-none" />
+                                <input type="text" name="facebook" value={formData.socialLinks.facebook} onChange={handleSocialChange} placeholder="facebook.com/yourpage" className="w-full border border-gray-200 rounded-lg p-2 text-xs outline-none" />
                             </div>
                             <div>
                                 <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiInstagram className="text-[#E4405F]" /> Instagram</label>
-                                <input type="url" name="instagram" value={formData.socialLinks.instagram} onChange={handleSocialChange} placeholder="URL" className="w-full border border-gray-200 rounded-lg p-2 text-xs outline-none" />
+                                <input type="text" name="instagram" value={formData.socialLinks.instagram} onChange={handleSocialChange} placeholder="instagram.com/yourpage" className="w-full border border-gray-200 rounded-lg p-2 text-xs outline-none" />
                             </div>
                         </div>
                     </div>

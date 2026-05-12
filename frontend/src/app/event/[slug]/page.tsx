@@ -180,7 +180,9 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                       <h3 className="text-red-900 text-sm sm:text-base md:text-lg font-semibold truncate group-hover:text-red-600 transition-colors">
                         {event.organizerName || event.organizer?.username || "Organizer"}
                       </h3>
-                      <p className="text-gray-600 text-xs sm:text-sm">890 followers</p>
+                      <p className="text-gray-600 text-xs sm:text-sm">
+                        {event.organizer?.followers?.length || 0} followers
+                      </p>
                     </div>
                   </Link>
                 ) : (
@@ -211,7 +213,25 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                         return;
                       }
                       const orgId = typeof event.organizer === 'object' ? event.organizer._id : event.organizer;
-                      await toggleFollowOrganizer(orgId);
+                      const result = await toggleFollowOrganizer(orgId);
+                      
+                      if (result.success) {
+                        // Update local follower count
+                        setEvent((prev: any) => {
+                          if (!prev || !prev.organizer) return prev;
+                          const newFollowers = [...(prev.organizer.followers || [])];
+                          if (result.isFollowing) {
+                            if (!newFollowers.includes(user._id)) newFollowers.push(user._id);
+                          } else {
+                            const index = newFollowers.indexOf(user._id);
+                            if (index > -1) newFollowers.splice(index, 1);
+                          }
+                          return {
+                            ...prev,
+                            organizer: { ...prev.organizer, followers: newFollowers }
+                          };
+                        });
+                      }
                     }}
                     className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium transition-all px-6 py-2 border-2 text-sm sm:text-base h-10 sm:h-12 w-full sm:w-auto ${user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer)
                       ? "bg-red-600 text-white border-red-600 shadow-md"
@@ -345,8 +365,12 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
             <h4 className="text-lg font-semibold text-red-900 leading-none">Map</h4>
           </div>
           <div className="px-6 pb-6 mt-4">
-            <div className="h-64 rounded-xl overflow-hidden border border-gray-100">
-              <MapComponent center={event.location?.geometry?.coordinates} />
+            <div className="rounded-xl overflow-hidden border border-gray-100">
+              <MapComponent 
+                center={event.location?.geometry?.coordinates} 
+                height="400px" 
+                containerClassName="w-full" 
+              />
             </div>
           </div>
         </div>

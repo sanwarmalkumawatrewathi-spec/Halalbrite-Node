@@ -14,7 +14,7 @@ const maskKey = (key) => {
 exports.getSettings = async (req, res) => {
     try {
         let settings = await AppSetting.findOne();
-        
+
         // If no settings exist, create default ones
         if (!settings) {
             settings = await AppSetting.create({});
@@ -51,7 +51,7 @@ exports.getSettings = async (req, res) => {
 exports.updateSettings = async (req, res) => {
     try {
         let settings = await AppSetting.findOne();
-        
+
         const updateData = { ...req.body };
 
         // 1. Masking logic for secret keys
@@ -86,7 +86,7 @@ exports.updateSettings = async (req, res) => {
             });
             await settings.save();
         }
-        
+
         const maskedSettings = settings.toObject();
         if (maskedSettings.stripe) {
             maskedSettings.stripe.testSecretKey = maskKey(maskedSettings.stripe.testSecretKey);
@@ -114,7 +114,7 @@ exports.getActiveCurrencies = async (req, res) => {
     try {
         const settings = await AppSetting.findOne();
         if (!settings) return res.status(404).json({ message: 'Settings not found' });
-        
+
         const activeCurrencies = (settings.currencies || []).filter(c => c.isActive).map(c => ({
             code: c.code,
             symbol: c.symbol,
@@ -122,7 +122,7 @@ exports.getActiveCurrencies = async (req, res) => {
             country: c.country,
             countryCode: c.countryCode
         }));
-        
+
         res.json({
             success: true,
             baseCurrency: settings.platform.currency || 'EUR',
@@ -141,7 +141,7 @@ exports.getPublicSocialSettings = async (req, res) => {
         if (!settings || !settings.socialLogin) {
             return res.status(404).json({ message: 'Social settings not found' });
         }
-        
+
         const social = settings.socialLogin;
         const publicSettings = {
             google: {
@@ -157,7 +157,7 @@ exports.getPublicSocialSettings = async (req, res) => {
                 isActive: social.apple.isActive
             }
         };
-        
+
         res.json({
             success: true,
             data: publicSettings
@@ -173,7 +173,7 @@ exports.getPublicFeeSettings = async (req, res) => {
     try {
         const settings = await AppSetting.findOne();
         if (!settings) return res.status(404).json({ message: 'Settings not found' });
-        
+
         res.json({
             success: true,
             data: {
