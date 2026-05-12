@@ -107,7 +107,11 @@ const appSettingSchema = new mongoose.Schema({
     lastCurrencySync: Date,
     // Webhook Settings
     webhookUrl: String,
-    webhookEvents: [String]
+    webhookEvents: [String],
+    // Map Settings
+    maps: {
+        googleMapsApiKey: String,
+    }
 }, { timestamps: true });
 
 // Ensure only one setting document exists (singleton)

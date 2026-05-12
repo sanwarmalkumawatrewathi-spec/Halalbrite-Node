@@ -119,13 +119,7 @@ export default function EventCard({
           {title}
         </h3>
 
-        {organizerId ? (
-          <Link href={`/organiser/${organizerSlug || organizerId}`} onClick={(e) => e.stopPropagation()}>
-            <p className="text-gray-600 mb-4 break-words">{organizer}</p>
-          </Link>
-        ) : (
-          <p className="text-gray-600 mb-4  break-words">{organizer}</p>
-        )}
+        <p className="text-gray-600 mb-4 break-words">{organizer}</p>
 
         {/* Date */}
         <div className="flex items-start gap-2 text-gray-500 text-[11px] leading-tight">

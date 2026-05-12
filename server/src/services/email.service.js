@@ -332,6 +332,87 @@ class EmailService {
             return false;
         }
     }
+    async sendWelcomeEmail(user) {
+        try {
+            const settings = await AppSetting.findOne();
+            const fromEmail = settings?.smtp?.fromEmail || process.env.EMAIL_FROM || 'noreply@halalbrite.com';
+            const fromName = settings?.smtp?.fromName || 'HalalBrite';
+            const transporter = await this.getTransporter();
+
+            const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; }
+                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+                    .header { padding: 30px; text-align: center; }
+                    .logo-img { height: 50px; margin-bottom: 5px; }
+                    .brand-name { font-weight: bold; font-size: 20px; color: #dc3545; vertical-align: middle; }
+                    .content { padding: 40px 30px; text-align: center; }
+                    .welcome-title { color: #821c2c; font-size: 28px; font-weight: bold; margin-bottom: 20px; }
+                    .greeting { font-size: 18px; color: #444; margin-bottom: 15px; }
+                    .message { font-size: 16px; line-height: 1.6; color: #666; margin-bottom: 30px; }
+                    .cta-button { display: inline-block; padding: 15px 35px; background-color: #dc3545; color: white !important; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; transition: background 0.3s; }
+                    .footer { background: #f8f9fa; padding: 30px; text-align: center; font-size: 12px; color: #999; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <img src="https://halalbrite.com/logo.png" class="logo-img" alt="Logo">
+                        <span class="brand-name">HalalBrite</span>
+                    </div>
+                    <div class="content">
+                        <h1 class="welcome-title">Welcome to HalalBrite!</h1>
+                        <p class="greeting">Hello ${user.username},</p>
+                        <p class="message">
+                            We're thrilled to have you join our community! HalalBrite is your go-to platform for discovering and booking amazing events that align with your values.
+                        </p>
+                        <a href="https://halalbrite.com" class="cta-button">Explore Events</a>
+                        <p class="message" style="margin-top: 30px;">
+                            Whether you're looking for conferences, workshops, or social gatherings, we've got you covered.
+                        </p>
+                    </div>
+                    <div class="footer">
+                        &copy; 2026 HalalBrite. All rights reserved.<br>
+                        Support: support@halalbrite.com | Web: www.halalbrite.com
+                    </div>
+                </div>
+            </body>
+            </html>
+            `;
+
+            await transporter.sendMail({
+                from: `"${fromName}" <${fromEmail}>`,
+                to: user.email,
+                subject: 'Welcome to HalalBrite!',
+                html: htmlContent
+            });
+
+            console.log('✅ Welcome Email Sent to: %s', user.email);
+
+            // Log Success
+            await EmailLog.create({
+                recipient: user.email,
+                role: 'attendee',
+                subject: 'Welcome to HalalBrite!',
+                status: 'sent'
+            });
+
+        } catch (error) {
+            console.error('❌ Welcome Email Error:', error);
+            try {
+                await EmailLog.create({
+                    recipient: user.email,
+                    role: 'attendee',
+                    subject: 'Welcome to HalalBrite!',
+                    status: 'failed',
+                    error: error.message
+                });
+            } catch (logErr) { console.error('Failed to log email error:', logErr); }
+        }
+    }
 }
 
 module.exports = new EmailService();

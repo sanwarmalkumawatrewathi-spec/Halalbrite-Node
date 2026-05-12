@@ -35,13 +35,14 @@ export default function Page() {
     fetchEvents();
   }, [selectedCities]);
 
+  const router = useRouter();
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+
   // Filter events for map based on active category
   const mapEvents = events.filter((event: any) => {
     return activeCategory === "All" ||
       event.category?.name?.toLowerCase() === activeCategory?.toLowerCase();
   });
-
-  const router = useRouter();
 
   return (
     <div className="bg-[#fef3f6]">
@@ -53,21 +54,32 @@ export default function Page() {
 
       <div className="max-w-7xl mx-auto pt-3">
         <CategoryTabs active={activeCategory} setActive={setActiveCategory} />
+        
+        {selectedEventId && (
+          <div className="max-w-7xl mx-auto px-6 mb-6 mt-4 flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-red-50">
+            <div className="text-gray-700 font-medium italic text-sm">
+              Showing selected event from map
+            </div>
+            <button
+              onClick={() => setSelectedEventId(null)}
+              className="text-red-600 font-bold hover:underline text-sm"
+            >
+              Show All Events
+            </button>
+          </div>
+        )}
+
         <FeaturedEvents
           activeCategory={activeCategory}
           selectedCities={selectedCities}
+          selectedEventId={selectedEventId}
         />
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-2">
-        <h2 className="text-2xl font-bold text-red-900 mb-2 d-none">
-          {selectedCities.length > 0 ? `Event Map: ${selectedCities.join(', ')}` : 'Event Map'}
-          {activeCategory !== 'All' && ` - ${activeCategory}`}
-        </h2>
-        <p className="text-gray-600 mb-6 d-none">Explore events happening near you</p>
         <MapComponent 
           events={mapEvents} 
-          onMarkerClick={(id) => router.push(`/events?eventId=${id}`)}
+          onMarkerClick={(id) => setSelectedEventId(id)}
         />
       </div>
 

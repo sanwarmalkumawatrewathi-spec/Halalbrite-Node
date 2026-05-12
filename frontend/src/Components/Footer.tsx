@@ -88,7 +88,7 @@ export default function Footer() {
                 </div>
 
                 <div className="border-t border-[#a30000] mt-8 pt-8 text-center text-red-100 text-sm">
-                    <p>© 2025 HalalBrite. All rights reserved.</p>
+                    <p>© 2026 HalalBrite. All rights reserved.</p>
                 </div>
             </div>
         </footer>

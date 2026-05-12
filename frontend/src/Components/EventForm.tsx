@@ -16,6 +16,8 @@ export default function EventForm({ editId }: { editId?: string | null }) {
     const router = useRouter();
     const isEditMode = !!editId;
     const [categories, setCategories] = useState<any[]>([]);
+    const [organisations, setOrganisations] = useState<any[]>([]);
+    const [isLoadingOrganisations, setIsLoadingOrganisations] = useState(false);
     
     // Modal states
     const [showReview, setShowReview] = useState(false);
@@ -28,6 +30,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         category: string;
         description: string;
         organizer: string;
+        organizerProfile: string;
         organizerName: string;
         startDate: string;
         endDate: string;
@@ -44,11 +47,13 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         country: string;
         meetingLink: string;
         bannerPreview: string;
+        thumbnailPreview: string;
     }>({
         title: "",
         category: "",
         description: "",
         organizer: user?._id || "",
+        organizerProfile: "",
         organizerName: user?.username || "",
         startDate: "",
         endDate: "",
@@ -66,6 +71,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         country: "UK",
         meetingLink: "",
         bannerPreview: "",
+        thumbnailPreview: "",
     });
 
     const [tickets, setTickets] = useState([
@@ -128,6 +134,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                         category: ev.category?._id || ev.category || '',
                         description: ev.description || '',
                         organizer: ev.organizer?._id || ev.organizer || prev.organizer,
+                        organizerProfile: ev.organizerProfile || '',
                         organizerName: ev.organizerName || prev.organizerName,
                         startDate: toDateStr(startD),
                         endDate: toDateStr(endD),
@@ -141,6 +148,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                         country: ev.location?.country || 'UK',
                         meetingLink: ev.meetingLink || '',
                         bannerPreview: ev.banner || '',
+                        thumbnailPreview: ev.thumbnail || '',
                     }));
 
                     // Pre-fill tickets if available
@@ -180,8 +188,28 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         }
     };
 
+    const fetchOrganisations = async () => {
+        try {
+            setIsLoadingOrganisations(true);
+            const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+            const token = localStorage.getItem("token");
+            const res = await fetch(`${baseUrl}/api/dashboard/organizer/organisations`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const result = await res.json();
+            if (result.success) {
+                setOrganisations(result.data);
+            }
+        } catch (error) {
+            console.error("❌ Failed to fetch organisations:", error);
+        } finally {
+            setIsLoadingOrganisations(false);
+        }
+    };
+
     useEffect(() => {
         fetchCategories();
+        fetchOrganisations();
     }, []);
 
     const handleChange = (e: any) => {
@@ -208,9 +236,79 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         return data.url;
     };
 
+    const validateForm = () => {
+        const required = [
+            { field: 'title', label: 'Event Title' },
+            { field: 'category', label: 'Category' },
+            { field: 'description', label: 'Description' },
+            { field: 'startDate', label: 'Start Date' },
+            { field: 'endDate', label: 'End Date' },
+            { field: 'startTime', label: 'Start Time' },
+            { field: 'endTime', label: 'End Time' },
+        ];
+
+        const missing = required.filter(r => !form[r.field as keyof typeof form]);
+        
+        if (missing.length > 0) {
+            setStatus({ type: "error", message: `Please complete the following fields: ${missing.map(m => m.label).join(', ')}` });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+
+        if (form.eventType === 'in-person') {
+            if (!form.venue || !form.address || !form.city || !form.postcode) {
+                setStatus({ type: "error", message: "Please complete all location fields for in-person events." });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return false;
+            }
+        } else if (form.eventType === 'online' && !form.meetingLink) {
+            setStatus({ type: "error", message: "Please provide a meeting link for online events." });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+
+        if (!form.bannerPreview && !form.banner) {
+            setStatus({ type: "error", message: "Please upload an event banner image." });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+
+        if (tickets.length === 0) {
+            setStatus({ type: "error", message: "Please add at least one ticket type." });
+            return false;
+        }
+
+        for (const ticket of tickets) {
+            if (!ticket.name || ticket.price === undefined || ticket.quantity === undefined) {
+                setStatus({ type: "error", message: "Please complete all ticket details (Name, Price, Quantity)." });
+                return false;
+            }
+        }
+
+        return true;
+    };
+
     const handleSubmit = async (e: any) => {
         if (e) e.preventDefault();
+        if (!validateForm()) return;
         setShowReview(true);
+    };
+
+    const handlePreview = () => {
+        if (!validateForm()) return;
+
+        const previewData = {
+            ...form,
+            banner: form.bannerPreview,
+            thumbnail: form.thumbnailPreview,
+            ticketTypes: tickets,
+            organizer: user,
+            organizerName: form.organizerName,
+            category: categories.find(c => c._id === form.category)
+        };
+
+        sessionStorage.setItem("event_preview", JSON.stringify(previewData));
+        window.open(`/event/preview?preview=true`, "_blank");
     };
 
     const confirmPublish = async (isBypassingRoleCheck = false) => {
@@ -235,10 +333,8 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             let thumbnailUrl = "";
 
             // 1. Handle Banner Upload (if file is selected)
-            const bannerFileInput = (document.getElementsByName("banner")[0] as HTMLInputElement);
-            const bannerFile = bannerFileInput?.files?.[0];
-            if (bannerFile) {
-                bannerUrl = await handleUpload(bannerFile);
+            if (form.banner instanceof File) {
+                bannerUrl = await handleUpload(form.banner);
             }
 
             // 2. Handle Thumbnail Upload
@@ -372,6 +468,17 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                 type="file"
                                 accept="image/*"
                                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        const previewUrl = URL.createObjectURL(file);
+                                        setForm(prev => ({
+                                            ...prev,
+                                            banner: file,
+                                            bannerPreview: previewUrl
+                                        }));
+                                    }
+                                }}
                             />
                             <div className="flex flex-col items-center">
                                 <div className="p-3 bg-red-50 rounded-full mb-3 group-hover:scale-110 transition-transform">
@@ -419,24 +526,36 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                         </div>
 
                         {form.thumbnailType === "different" && (
-                            <div className="mt-4 border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:bg-white transition-all cursor-pointer relative">
+                            <div className="mt-4 border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:bg-white transition-all cursor-pointer relative group">
                                 <input
                                     type="file"
                                     accept="image/*"
                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    onChange={(e) =>
-                                        setForm((prev) => ({
-                                            ...prev,
-                                            thumbnail: e.target.files?.[0] || null,
-                                        }))
-                                    }
+                                    onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                            const previewUrl = URL.createObjectURL(file);
+                                            setForm(prev => ({
+                                                ...prev,
+                                                thumbnail: file,
+                                                thumbnailPreview: previewUrl
+                                            }));
+                                        }
+                                    }}
                                 />
-                                <div className="flex flex-col items-center">
-                                    <div className="p-2 bg-gray-100 rounded-full mb-2">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                {form.thumbnailPreview ? (
+                                    <div className="flex flex-col items-center">
+                                        <img src={form.thumbnailPreview} alt="Thumbnail preview" className="w-20 h-20 object-cover rounded-lg mb-2 shadow-sm" />
+                                        <p className="text-xs font-medium text-red-600">Change thumbnail</p>
                                     </div>
-                                    <p className="text-xs font-medium text-gray-600">Upload thumbnail image</p>
-                                </div>
+                                ) : (
+                                    <div className="flex flex-col items-center">
+                                        <div className="p-2 bg-gray-100 rounded-full mb-2 group-hover:scale-110 transition-transform">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                        </div>
+                                        <p className="text-xs font-medium text-gray-600">Upload thumbnail image</p>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -478,19 +597,51 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                     <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-700">Event Organiser (Optional)</label>
                         <div className="relative">
-                            <input
-                                type="text"
-                                name="organizerName"
-                                value={form.organizerName}
-                                onChange={handleChange}
-                                placeholder="Ahmed Hassan"
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
-                            />
+                            <select
+                                name="organizerProfile"
+                                value={form.organizerProfile}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    const selectedOrg = organisations.find(o => o._id === val);
+                                    setForm(prev => ({
+                                        ...prev,
+                                        organizerProfile: val,
+                                        organizerName: selectedOrg ? selectedOrg.name : (user?.username || "")
+                                    }));
+                                }}
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all appearance-none"
+                            >
+                                <option value="">No organiser (your name will show)</option>
+                                {organisations.map(org => (
+                                    <option key={org._id} value={org._id}>{org.name}</option>
+                                ))}
+                                <option value="new" className="text-red-600 font-bold">+ Create New Organisation Profile</option>
+                            </select>
                             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
                             </div>
                         </div>
-                        <p className="text-[10px] text-gray-400 mt-1 px-1 italic">Leave blank to show \"Ahmed Hassan\" as the organizer</p>
+
+                        {form.organizerProfile === "new" && (
+                            <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                <p className="text-xs text-gray-500 mb-2">You will be redirected to create a new organisation profile</p>
+                                <button
+                                    type="button"
+                                    onClick={() => router.push('/organizer-dashboard?tab=Organiser')}
+                                    className="w-full py-3 px-4 border border-red-200 bg-white rounded-xl text-red-600 font-semibold flex items-center justify-center gap-2 hover:bg-red-50 transition-all group"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 group-hover:scale-110 transition-transform"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path></svg>
+                                    Go to Create Organisation Profile
+                                </button>
+                            </div>
+                        )}
+
+                        {form.organizerProfile === "" && (
+                            <p className="text-[10px] text-gray-400 mt-1 px-1 italic">Leave blank to show "{user?.username || 'Ahmed Hassan'}" as the organizer</p>
+                        )}
+                        {form.organizerProfile !== "" && form.organizerProfile !== "new" && (
+                            <p className="text-[10px] text-red-600 mt-1 px-1 italic font-medium">Selected: {form.organizerName}</p>
+                        )}
                     </div>
 
                     {/* Date and Time Grid */}
@@ -586,6 +737,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                 <div className="flex items-center justify-end gap-4 pt-4">
                     <button
                         type="button"
+                        onClick={handlePreview}
                         className="px-6 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
                     >
                         Preview Event
@@ -628,7 +780,13 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                 onConvert={handleConvertAndPublish}
             />
 
-            {showSuccess && <PublishSuccess eventId={publishedEventId} slug={publishedEventSlug} />}
+            {showSuccess && (
+                <PublishSuccess 
+                    onClose={() => setShowSuccess(false)}
+                    eventId={publishedEventId} 
+                    slug={publishedEventSlug} 
+                />
+            )}
         </div>
     );
 }

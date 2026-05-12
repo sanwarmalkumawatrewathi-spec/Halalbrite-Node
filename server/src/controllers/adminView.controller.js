@@ -149,6 +149,10 @@ exports.getSettings = async (req, res) => {
             };
         }
 
+        if (!settings.maps) {
+            settings.maps = { googleMapsApiKey: '' };
+        }
+
         res.render('pages/settings', {
             activePage: 'settings',
             admin: req.user,
@@ -196,6 +200,13 @@ exports.updateSettings = async (req, res) => {
                     }
                 }
             });
+        }
+
+        if (updateData.maps) {
+            if (!settings.maps) settings.maps = {};
+            settings.maps.googleMapsApiKey = updateData.maps.googleMapsApiKey;
+            settings.markModified('maps');
+            delete updateData.maps;
         }
 
         // Handle Currencies

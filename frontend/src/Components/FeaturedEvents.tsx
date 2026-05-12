@@ -6,9 +6,10 @@ import EventCard from "./EventCard";
 type Props = {
   activeCategory: string;
   selectedCities?: string[];
+  selectedEventId?: string | null;
 };
 
-export default function FeaturedEvents({ activeCategory, selectedCities = [] }: Props) {
+export default function FeaturedEvents({ activeCategory, selectedCities = [], selectedEventId }: Props) {
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -44,6 +45,11 @@ export default function FeaturedEvents({ activeCategory, selectedCities = [] }: 
 
   // ✅ FILTER LOGIC
   const filteredEvents = events.filter((event) => {
+    // If an event is selected from the map, only show that one
+    if (selectedEventId) {
+      return event._id === selectedEventId;
+    }
+
     const categoryMatch = activeCategory === "All" ||
       event.category?.name?.toLowerCase() === activeCategory?.toLowerCase();
 
@@ -51,7 +57,7 @@ export default function FeaturedEvents({ activeCategory, selectedCities = [] }: 
       selectedCities.some(city => event.location?.city?.toLowerCase() === city.toLowerCase());
 
     return categoryMatch && cityMatch;
-  });
+  }).slice(0, 10);
 
   if (loading) return <div className="p-6 text-center">Loading events...</div>;
 

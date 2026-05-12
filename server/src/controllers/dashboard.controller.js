@@ -450,10 +450,23 @@ exports.getOrganizerStats = async (req, res) => {
         console.log("[DEBUG] Event Distribution Data:", JSON.stringify(eventDistribution, null, 2));
 
         let stripeBalance = { available: 0, pending: 0 };
+
+        // Auto-sync Stripe status if connected but not fully enabled
+        if (user.stripeConnectedId && (!user.charges_enabled || !user.payouts_enabled)) {
+            console.log(`🔄 Dashboard: Auto-syncing Stripe for ${user.email}...`);
+            await stripeService.syncUserStripeStatus(user._id);
+            // Refresh user object after sync
+            const updatedUser = await User.findById(user._id);
+            user.charges_enabled = updatedUser.charges_enabled;
+            user.payouts_enabled = updatedUser.payouts_enabled;
+            user.verification_status = updatedUser.verification_status;
+            user.requirements = updatedUser.requirements;
+        }
+
         if (stripeConnected) {
             try {
                 const balance = await stripeService.getAccountBalance(user.stripeConnectedId);
-                // Sum up available and pending balances across all currencies (assuming main currency for simplicity)
+                // Sum up available and pending balances across all currencies
                 stripeBalance.available = balance.available.reduce((acc, b) => acc + (b.amount / 100), 0);
                 stripeBalance.pending = balance.pending.reduce((acc, b) => acc + (b.amount / 100), 0);
             } catch (err) {
@@ -465,6 +478,10 @@ exports.getOrganizerStats = async (req, res) => {
             success: true,
             data: {
                 stripeConnected,
+                chargesEnabled: user.charges_enabled,
+                payoutsEnabled: user.payouts_enabled,
+                verificationStatus: user.verification_status,
+                requirements: user.requirements || [],
                 stats: {
                     availableBalance: stripeBalance.available,
                     pendingBalance: stripeBalance.pending,

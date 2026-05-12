@@ -34,10 +34,10 @@ class StripeService {
      */
     async getConnectUrl(user, dynamicBaseUrl = null) {
         const stripeInstance = await this.getStripeInstance();
-        
+
         // 1. Create a new Express account if they don't have one
         let accountId = user.stripeConnectedId;
-        
+
         if (!accountId) {
             const account = await stripeInstance.accounts.create({
                 type: 'express',
@@ -51,14 +51,14 @@ class StripeService {
                 }
             });
             accountId = account.id;
-            
+
             // Save immediately
             await User.findByIdAndUpdate(user._id, { stripeConnectedId: accountId });
         }
 
         // 2. Generate Account Link
         const baseUrl = dynamicBaseUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
-        
+
         const accountLink = await stripeInstance.accountLinks.create({
             account: accountId,
             refresh_url: `${baseUrl}/organizer-dashboard?status=stripe_refresh`,
@@ -114,6 +114,48 @@ class StripeService {
     async createLoginLink(accountId) {
         const stripeInstance = await this.getStripeInstance();
         return await stripeInstance.accounts.createLoginLink(accountId);
+    }
+
+    /**
+     * Fetch the full account object from Stripe to check capabilities and verification status.
+     */
+    async getAccountStatus(accountId) {
+        const stripeInstance = await this.getStripeInstance();
+        return await stripeInstance.accounts.retrieve(accountId);
+    }
+
+    /**
+     * Sync the local user model with the latest Stripe account status.
+     */
+    async syncUserStripeStatus(userId) {
+        const user = await User.findById(userId);
+        if (!user || !user.stripeConnectedId) return null;
+
+        console.log(`🔌 Fetching Stripe Account for sync: ${user.stripeConnectedId}`);
+        const stripeAccount = await this.getAccountStatus(user.stripeConnectedId);
+
+        console.log(`📡 Stripe API Response for ${user.stripeConnectedId}:
+            charges_enabled: ${stripeAccount.charges_enabled}
+            payouts_enabled: ${stripeAccount.payouts_enabled}
+            details_submitted: ${stripeAccount.details_submitted}
+            capabilities: ${JSON.stringify(stripeAccount.capabilities)}`);
+
+        user.charges_enabled = stripeAccount.charges_enabled;
+        user.payouts_enabled = stripeAccount.payouts_enabled;
+        user.account_country = stripeAccount.country;
+        user.account_currency = stripeAccount.default_currency;
+        user.verification_status = stripeAccount.details_submitted ? 'verified' : 'pending';
+
+        // Update requirements
+        user.requirements = stripeAccount.requirements?.currently_due || [];
+
+        // Update capabilities summary
+        const enabledCaps = Object.keys(stripeAccount.capabilities || {})
+            .filter(cap => stripeAccount.capabilities[cap] === 'active');
+        user.capabilities = enabledCaps.join(', ');
+
+        await user.save();
+        return user;
     }
 
     /**
@@ -232,10 +274,10 @@ class StripeService {
             }
         }
 
-        return { 
-            syncedTransfers, 
-            syncedPayouts, 
-            organizersProcessed 
+        return {
+            syncedTransfers,
+            syncedPayouts,
+            organizersProcessed
         };
     }
 
@@ -257,16 +299,16 @@ class StripeService {
                 const data = await response.json();
                 return data.rates;
             }
-            
+
             if (!baseRates) {
                 // If stripe rates for EUR aren't found, try to get rates for other currencies and invert
                 const allRates = await stripeInstance.exchangeRates.list({ limit: 100 });
                 const rateToEur = allRates.data.find(r => r.id === 'eur');
                 if (rateToEur) return rateToEur.rates;
-                
+
                 throw new Error(`Could not find exchange rates for base currency: ${baseCurrency}`);
             }
-            
+
             return baseRates.rates;
         } catch (err) {
             console.error(`❌ Exchange Rate Error: ${err.message}`);

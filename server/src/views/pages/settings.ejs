@@ -57,6 +57,20 @@
                 </div>
             </div>
 
+            <!-- Google Maps Settings Section -->
+            <div class="section-card">
+                <h4 class="section-title"><i class="fa-solid fa-map-location-dot"></i> Google Maps Settings</h4>
+                <div class="grid-2-col">
+                    <div class="form-group">
+                        <label class="form-label">Google Maps JavaScript API Key</label>
+                        <input type="text" name="maps[googleMapsApiKey]" value="<%= settings.maps ? settings.maps.googleMapsApiKey : '' %>" class="form-control" placeholder="AIza...">
+                        <p class="text-muted" style="font-size: 0.75rem; margin-top: 0.5rem;">
+                            <i class="fa-solid fa-circle-info"></i> This key is used to render maps on the home page and event pages.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Apple Login Section -->
             <div class="section-card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">

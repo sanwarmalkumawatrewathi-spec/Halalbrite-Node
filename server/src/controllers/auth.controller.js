@@ -2,6 +2,7 @@ const User = require('../models/user.model');
 const Role = require('../models/role.model');
 const jwt = require('jsonwebtoken');
 const socialAuthService = require('../services/socialAuth.service');
+const emailService = require('../services/email.service');
 
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
@@ -35,6 +36,8 @@ exports.register = async (req, res) => {
         });
 
         if (user) {
+            // Send Welcome Email
+            emailService.sendWelcomeEmail(user);
             res.status(201).json({
                 message: 'User registered successfully',
                 data: {
@@ -124,6 +127,9 @@ exports.socialLogin = async (req, res) => {
                 status: 'active'
             });
             user = await user.populate('roles');
+            
+            // Send Welcome Email for new social user
+            emailService.sendWelcomeEmail(user);
         }
 
         res.json({
@@ -206,6 +212,9 @@ const handleSocialLogin = async (res, socialData, provider) => {
                 status: 'active'
             });
             user = await user.populate('roles');
+
+            // Send Welcome Email for new social user
+            emailService.sendWelcomeEmail(user);
         }
 
         res.json({

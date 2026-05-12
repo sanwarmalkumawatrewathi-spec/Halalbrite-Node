@@ -39,8 +39,41 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
 
   useEffect(() => {
     fetchStats();
-    refreshUser(); // Refresh global auth state to sync Stripe status
+
+    // Check if returning from Stripe
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get('status');
+
+    if (status === 'stripe_success' || status === 'stripe_connected') {
+      verifyStripeStatus();
+    } else {
+      refreshUser();
+    }
   }, []);
+
+  const verifyStripeStatus = async () => {
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${API_URL}/api/payments/connect/verify`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        // Refresh global user state to reflect new verification status
+        await refreshUser();
+        // Update local stats
+        fetchStats();
+        // Remove query param without reload
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+    } catch (error) {
+      console.error("Failed to verify Stripe status:", error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -80,12 +113,12 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
         const d = new Date(now);
         d.setDate(d.getDate() - i);
         const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-        
+
         // Try to find daily data if it exists, otherwise use monthly data proportional to days
-        const existingMonth = data?.chartData?.find((item: any) => 
+        const existingMonth = data?.chartData?.find((item: any) =>
           item._id.month === (d.getMonth() + 1) && item._id.year === d.getFullYear()
         );
-        
+
         // NOTE: This is a fallback distribution logic since backend currently returns monthly
         result.push({
           name: dateStr,
@@ -100,8 +133,8 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
         d.setDate(d.getDate() - i);
         // Show labels every 5 days for clarity
         const dateStr = i % 5 === 0 ? d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : '';
-        
-        const existingMonth = data?.chartData?.find((item: any) => 
+
+        const existingMonth = data?.chartData?.find((item: any) =>
           item._id.month === (d.getMonth() + 1) && item._id.year === d.getFullYear()
         );
 
@@ -239,7 +272,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
   return (
     <div className="max-w-full mx-auto p-0 space-y-6">
       {/* Stripe Alert */}
-      {!data?.stripeConnected && (
+      {!data?.stripeConnected ? (
         <div data-slot="card" className="text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-2 border-amber-200 bg-amber-50">
           <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-start gap-4">
@@ -249,19 +282,17 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               <div className="flex-1 min-w-0 w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
                   <h3 className="text-amber-900 break-words font-semibold text-lg">Stripe Connect Required</h3>
-                  <span data-slot="badge" className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap shrink-0 [&amp;>svg]:size-3 gap-1 [&amp;>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent text-primary-foreground [a&amp;]:hover:bg-primary/90 bg-amber-500 w-fit text-white">Not Connected</span>
+                  <span data-slot="badge" className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap shrink-0 bg-amber-500 text-white">Not Connected</span>
                 </div>
                 <p className="text-amber-800 mb-3 text-sm sm:text-base">Connect your Stripe account to receive payouts. Don't worry - you can still create events and sell tickets!</p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button onClick={handleConnectStripe} data-slot="button" className="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 w-full sm:w-auto text-white">Connect Stripe Account</button>
+                  <button onClick={handleConnectStripe} className="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 h-9 px-4 py-2 text-white">Connect Stripe Account</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      )}
-
-      {data?.stripeConnected && (
+      ) : data?.chargesEnabled && data?.payoutsEnabled ? (
         <div data-slot="card" className="text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-2 border-green-200 bg-green-50">
           <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row items-start gap-4">
@@ -270,13 +301,48 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               </div>
               <div className="flex-1 min-w-0 w-full">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                  <h3 className="text-green-500 break-words">Stripe Connected</h3>
-                  <span data-slot="badge" className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap shrink-0 [&amp;>svg]:size-3 gap-1 [&amp;>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent text-primary-foreground [a&amp;]:hover:bg-primary/90 bg-green-500 w-fit text-white">Active</span>
+                  <h3 className="text-green-900 font-semibold text-lg">Stripe Connected</h3>
+                  <span data-slot="badge" className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap shrink-0 bg-green-500 text-white">Active</span>
                 </div>
-                <p className="text-green-800 mb-3 text-sm sm:text-base">Your Stripe account is linked. You can now receive payouts from ticket sales.</p>
+                <p className="text-green-800 mb-3 text-sm sm:text-base">Your Stripe account is linked and fully verified. You can now receive payouts from ticket sales.</p>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <button onClick={handleManageStripe} data-slot="button" className="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 w-full sm:w-auto text-white">Manage Stripe Account</button>
-                  <button onClick={handleDisconnectStripe} data-slot="button" className="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive border border-green-600 bg-transparent hover:bg-green-100 text-green-700 h-9 px-4 py-2 has-[>svg]:px-3 w-full sm:w-auto">Disconnect Account</button>
+                  <button onClick={handleManageStripe} className="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 h-9 px-4 py-2 text-white">Manage Stripe Account</button>
+                  <button onClick={handleDisconnectStripe} className="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border border-green-600 bg-transparent hover:bg-green-100 text-green-700 h-9 px-4 py-2">Disconnect Account</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div data-slot="card" className="text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-2 border-blue-200 bg-blue-50">
+          <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row items-start gap-4">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-blue-100">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-info w-6 h-6 text-blue-600"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="16" y2="12"></line><line x1="12" x2="12.01" y1="8" y2="8"></line></svg>
+              </div>
+              <div className="flex-1 min-w-0 w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                  <h3 className="text-blue-900 font-semibold text-lg">
+                    {data?.verificationStatus === 'verified' ? 'Verification in Progress' : 'Action Required'}
+                  </h3>
+                  <span data-slot="badge" className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium whitespace-nowrap shrink-0 bg-blue-500 text-white">
+                    {data?.verificationStatus === 'verified' ? 'Processing' : 'Pending'}
+                  </span>
+                </div>
+                <p className="text-blue-800 mb-3 text-sm sm:text-base">
+                  {data?.verificationStatus === 'verified'
+                    ? "You've submitted your details! Stripe is currently verifying your account. This usually takes a few minutes."
+                    : "You've connected your account, but Stripe needs more information to enable payouts. Please complete the onboarding process."
+                  }
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button onClick={handleConnectStripe} className="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 h-9 px-4 py-2 text-white">
+                    {data?.verificationStatus === 'verified' ? 'Update Details' : 'Complete Onboarding'}
+                  </button>
+                  {data?.stripeConnected && (
+                    <button onClick={handleManageStripe} className="inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all border border-blue-600 bg-transparent hover:bg-blue-100 text-blue-700 h-9 px-4 py-2">Manage Stripe</button>
+                  )}
                 </div>
               </div>
             </div>
@@ -347,7 +413,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               <div>
                 <h4 data-slot="card-title" className="leading-none text-red-900">Revenue & Sales Overview</h4>
                 <p data-slot="card-description" className="text-muted-foreground mt-1 text-sm">
-                  {timeFilter === 'Custom' && customDates.start 
+                  {timeFilter === 'Custom' && customDates.start
                     ? `${new Date(customDates.start).toLocaleDateString()} - ${new Date(customDates.end).toLocaleDateString()}`
                     : `Last ${timeFilter}`}
                 </p>
@@ -493,10 +559,10 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
                 </ResponsiveContainer>
               </div>
             )}
-            
+
             {timeFilter === 'Custom' && customDates.start && customDates.end && (
               <div className="mt-4 flex justify-center">
-                <button 
+                <button
                   onClick={() => setCustomDates({ start: '', end: '' })}
                   className="text-xs text-red-600 font-bold hover:underline flex items-center gap-1"
                 >

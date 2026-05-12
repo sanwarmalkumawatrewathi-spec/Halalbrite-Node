@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function TicketSection({ tickets, setTickets }: { tickets: any[], setTickets: any }) {
     const [settings, setSettings] = useState<any>(null);
+    const { currentCurrency } = useCurrency();
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -128,9 +130,9 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     <div className="space-y-1.5">
-                                        <label className="text-sm font-semibold text-gray-700">Price (£)</label>
+                                        <label className="text-sm font-semibold text-gray-700">Price ({currentCurrency.symbol})</label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">£</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">{currentCurrency.symbol}</span>
                                             <input
                                                 type="number"
                                                 value={t.price}
@@ -217,20 +219,20 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                 {Number(t.price) > 0 ? (
                                     <div className="space-y-2 text-xs">
                                         <div className="flex justify-between text-gray-600">
-                                            <span>Platform Fee ({settings?.feePercentage ?? 0}% + £{settings?.fixedFee ?? 0})</span>
-                                            <span>£{fees.platform}</span>
+                                            <span>Platform Fee ({settings?.feePercentage ?? 0}% + {currentCurrency.symbol}{settings?.fixedFee ?? 0})</span>
+                                            <span>{currentCurrency.symbol}{fees.platform}</span>
                                         </div>
                                         <div className="flex justify-between text-gray-600">
                                             <span>VAT on Platform Fee ({settings?.vatRate ?? 0}%)</span>
-                                            <span>£{fees.vat}</span>
+                                            <span>{currentCurrency.symbol}{fees.vat}</span>
                                         </div>
                                         <div className="flex justify-between text-gray-600">
-                                            <span>Stripe Processing Fee ({settings?.stripeFeePercentage ?? 3}% + £{settings?.fixedStripeFee ?? 0.3})</span>
-                                            <span>£{fees.stripe}</span>
+                                            <span>Stripe Processing Fee ({settings?.stripeFeePercentage ?? 3}% + {currentCurrency.symbol}{settings?.fixedStripeFee ?? 0.3})</span>
+                                            <span>{currentCurrency.symbol}{fees.stripe}</span>
                                         </div>
                                         <div className="flex justify-between font-bold text-gray-900 border-t border-red-100 pt-2 mt-1">
                                             <span>Total Fees</span>
-                                            <span>£{fees.total}</span>
+                                            <span>{currentCurrency.symbol}{fees.total}</span>
                                         </div>
                                     </div>
                                 ) : (
@@ -238,22 +240,31 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                 )}
                             </div>
 
-                            {/* Fee Toggle Switch */}
-                            <div className="flex items-center justify-between bg-white/80 rounded-2xl p-4 border border-red-50">
-                                <div>
-                                    <p className="text-sm font-bold text-gray-800">Pass Fees to Attendee</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">
-                                        {t.chargeCustomer ? 'Attendees will pay the fees' : 'You will absorb the fees from the ticket price'}
-                                    </p>
-                                </div>
+                            {/* Fee Payment Toggle Section */}
+                            <div className="bg-[#fffbeb] rounded-2xl p-5 space-y-4 border border-[#fef3c7]">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-bold text-[#92400e]">Fee Payment</p>
+                                        <p className="text-xs text-[#b45309] mt-0.5">
+                                            {t.chargeCustomer ? 'Attendees pay the fees' : 'You cover the fees'}
+                                        </p>
+                                    </div>
 
-                                <button
-                                    type="button"
-                                    onClick={() => handleChange(i, "chargeCustomer", !t.chargeCustomer)}
-                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${t.chargeCustomer ? 'bg-red-600' : 'bg-gray-200'}`}
-                                >
-                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${t.chargeCustomer ? 'translate-x-6' : 'translate-x-1'}`} />
-                                </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleChange(i, "chargeCustomer", !t.chargeCustomer)}
+                                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${!t.chargeCustomer ? 'bg-[#ea580c]' : 'bg-gray-200'}`}
+                                    >
+                                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${!t.chargeCustomer ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    </button>
+                                </div>
+                                <p className="text-sm font-bold text-[#92400e]">
+                                    Customer will pay: {currentCurrency.symbol}
+                                    {t.chargeCustomer 
+                                        ? (Number(t.price || 0) + Number(fees.total)).toFixed(2) 
+                                        : Number(t.price || 0).toFixed(2)
+                                    }
+                                </p>
                             </div>
                         </div>
                     );

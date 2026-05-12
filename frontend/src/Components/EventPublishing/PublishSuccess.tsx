@@ -7,6 +7,7 @@ import { FiEye, FiLayout, FiHome, FiUser, FiArrowRight } from 'react-icons/fi';
 interface PublishSuccessProps {
   eventId: string;
   slug?: string;
+  onClose?: () => void;
 }
 
 export default function PublishSuccess({ eventId, slug }: PublishSuccessProps) {

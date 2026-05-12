@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from 'next/dynamic';
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState, use } from "react";
 import { useAuth } from "@/context/authContext";
 import Footer from "@/Components/Footer";
@@ -15,6 +15,7 @@ import ShareModal from "@/Components/ShareModal";
 
 export default function EventDetails({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { user, toggleFollowOrganizer, toggleSavedEvent } = useAuth();
   const [event, setEvent] = useState<any>(null);
@@ -23,6 +24,21 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   useEffect(() => {
+    const isPreview = searchParams.get("preview") === "true";
+    if (isPreview) {
+      const savedEvent = sessionStorage.getItem("event_preview");
+      if (savedEvent) {
+        try {
+          const parsed = JSON.parse(savedEvent);
+          setEvent(parsed);
+          setLoading(false);
+          return;
+        } catch (e) {
+          console.error("Failed to parse preview event:", e);
+        }
+      }
+    }
+
     const fetchEvent = async () => {
       try {
         const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
@@ -41,14 +57,14 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
       }
     };
     if (slug) fetchEvent();
-  }, [slug]);
+  }, [slug, searchParams]);
 
   const formatDate = (dateStr: string) => {
     try {
       const date = new Date(dateStr);
       return date.toLocaleDateString('en-GB', {
         day: 'numeric',
-        month: 'long',
+        month: 'short',
         year: 'numeric'
       });
     } catch (e) {
@@ -82,6 +98,14 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
 
   return (
     <div className="bg-[#fef3f6] ">
+      {searchParams.get("preview") === "true" && (
+        <div className="bg-amber-100 border-b border-amber-200 py-2 px-4 text-center sticky top-0 z-[110]">
+          <p className="text-amber-800 text-sm font-bold flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            Preview Mode: This event is not yet published.
+          </p>
+        </div>
+      )}
       <Header />
 
       <section>
@@ -120,14 +144,14 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
               {event.title}
             </h1>
 
-            <div className="flex flex-wrap gap-4 text-white">
+            <div className="flex flex-col gap-2 text-white">
               <div className="flex items-center gap-2">
-                <Calendar size={18} className="text-white-400" />
-                <span> {formatDate(event.startDate)} @ {event.startTime || "TBA"}</span>
+                <Calendar size={18} className="text-white opacity-80" />
+                <span className="font-medium"> <span className="opacity-80">Start:</span> {formatDate(event.startDate)} • {event.startTime || "TBA"}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock size={18} className="text-white-400" />
-                <span> {formatDate(event.endDate)} @ {event.endTime || "TBA"}</span>
+                <Calendar size={18} className="text-white opacity-80" />
+                <span className="font-medium"> <span className="opacity-80">End:</span> {formatDate(event.endDate)} • {event.endTime || "TBA"}</span>
               </div>
             </div>
           </div>
@@ -238,19 +262,19 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
               </div>
               <div className="px-6 pb-6 space-y-6">
                 {/* Date & Time */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="flex items-start gap-3">
                     <Calendar size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
-                      <p className="font-bold text-gray-900">Date</p>
-                      <p className="text-gray-600">{formatDate(event.startDate)} - {formatDate(event.endDate)}</p>
+                      <p className="font-bold text-gray-900">Start</p>
+                      <p className="text-gray-600">{formatDate(event.startDate)} • {event.startTime || "TBA"}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <Clock size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
+                    <Calendar size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
-                      <p className="font-bold text-gray-900">Time</p>
-                      <p className="text-gray-600">{event.startTime || "TBA"} - {event.endTime || "End"}</p>
+                      <p className="font-bold text-gray-900">End</p>
+                      <p className="text-gray-600">{formatDate(event.endDate)} • {event.endTime || "TBA"}</p>
                     </div>
                   </div>
                 </div>
@@ -340,27 +364,31 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
       {/* Image Popup / Lightbox */}
       {isPopupOpen && (
         <div
-          className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300"
+          className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300"
           onClick={() => setIsPopupOpen(false)}
         >
-          <div className="relative max-w-5xl w-full flex flex-col items-center">
-            {/* Close Button - Circular like reference */}
+          <div 
+            className="relative bg-black w-full max-w-[500px] h-full max-h-[700px] rounded-[30px] shadow-2xl flex flex-col items-center justify-center overflow-hidden animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button - Top Right inside the modal */}
             <button
-              className="absolute -top-12 right-0 md:-right-12 w-10 h-10 rounded-full border-2 border-white flex items-center justify-center text-white hover:bg-white/10 transition-all z-[110]"
+              className="absolute top-6 right-6 w-10 h-10 rounded-full border-2 border-white/80 flex items-center justify-center text-white hover:bg-white/10 transition-all z-[110]"
               onClick={(e) => {
                 e.stopPropagation();
                 setIsPopupOpen(false);
               }}
             >
-              <span className="text-2xl font-light leading-none">✕</span>
+              <span className="text-xl font-light leading-none">✕</span>
             </button>
 
-            <img
-              src={bannerImage}
-              alt={event.title}
-              className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300"
-              onClick={(e) => e.stopPropagation()}
-            />
+            <div className="p-4 w-full h-full flex items-center justify-center">
+              <img
+                src={bannerImage}
+                alt={event.title}
+                className="max-w-full max-h-full object-contain rounded-xl"
+              />
+            </div>
           </div>
         </div>
       )}

@@ -2,7 +2,8 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import OverviewTab from "../Components/OverviewTab";
 import CustomersTab from "../Components/CustomersTab";
 import EventsTab from "../Components/EventsTab";
@@ -12,8 +13,17 @@ import { FiBarChart2, FiUsers, FiCalendar, FiDollarSign, FiHome } from "react-ic
 import { FiTrendingUp } from "react-icons/fi";
 
 export default function DashboardTab() {
-  const [activeTab, setActiveTab] = useState("Overview");
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab") || "Overview";
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [isTabLoading, setIsTabLoading] = useState(false);
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [searchParams]);
 
   const handleTabChange = (tabName: string) => {
     if (tabName === activeTab) return;

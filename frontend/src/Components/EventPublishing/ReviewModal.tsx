@@ -3,6 +3,7 @@
 import React from 'react';
 import { FiCalendar, FiTag, FiArrowRight, FiCheck } from 'react-icons/fi';
 import { LocationIcon } from '../Icons';
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface ReviewModalProps {
 }
 
 export default function ReviewModal({ isOpen, onClose, onPublish, eventData, tickets }: ReviewModalProps) {
+  const { currentCurrency } = useCurrency();
   if (!isOpen) return null;
 
   const formatDate = (dateStr: string, timeStr: string) => {
@@ -74,7 +76,7 @@ export default function ReviewModal({ isOpen, onClose, onPublish, eventData, tic
                 <div className="mt-1 space-y-1">
                   {tickets.map((t, i) => (
                     <p key={i} className="text-xs text-gray-500">
-                      {t.name}: €{t.price} ({t.quantity} available)
+                      {t.name}: {currentCurrency.symbol}{t.price} ({t.quantity} available)
                     </p>
                   ))}
                 </div>

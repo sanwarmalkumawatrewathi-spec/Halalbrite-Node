@@ -98,6 +98,10 @@ const eventSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    organizerProfile: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Organizer'
+    },
     organizerName: String, // Denormalized for faster listing
     capacity: Number,
     attendees: [{

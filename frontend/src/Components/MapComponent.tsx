@@ -1,27 +1,8 @@
 "use client";
-// @ts-nocheck
 
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup, Tooltip } from "react-leaflet";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { GoogleMap, useJsApiLoader, Marker, InfoWindow } from "@react-google-maps/api";
 import Link from "next/link";
-
-// Custom Location Icon for Map
-const createLocationIcon = () => {
-  return L.divIcon({
-    html: `
-      <div style="color: #dc2626; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
-        </svg>
-      </div>
-    `,
-    className: 'custom-location-marker',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-  });
-};
 
 type MapEvent = {
   _id: string;
@@ -35,129 +16,233 @@ type MapEvent = {
     };
   };
   priceLabel?: string;
+  price?: number;
   banner?: string;
   thumbnail?: string;
+  category?: { name: string };
+  startDate?: string | Date;
+  startTime?: string;
 };
 
 type MapComponentProps = {
-  center?: [number, number]; // [lat, lng] or [lng, lat] depending on usage
+  center?: [number, number]; // [lng, lat] from MongoDB
   events?: MapEvent[];
   onMarkerClick?: (eventId: string) => void;
 };
 
-export default function MapComponent({ center, events, onMarkerClick }: MapComponentProps) {
-  // Determine map center
-  let mapCenter: [number, number] = [54.5, -2]; // Default UK center
-  let zoom = 6;
+const mapContainerStyle = {
+  width: "100%",
+  height: "500px",
+};
 
-  if (center && center.length === 2) {
-    // MongoDB stores [lng, lat], Leaflet needs [lat, lng]
-    mapCenter = [center[1], center[0]];
-    zoom = 13;
-  } else if (events && events.length > 0) {
-    // Try to center on the first event with coordinates
-    const firstWithCoords = events.find(e => e.location?.geometry?.coordinates);
-    if (firstWithCoords) {
-      const coords = firstWithCoords.location!.geometry!.coordinates;
-      mapCenter = [coords[1], coords[0]];
-    }
+const defaultCenter = {
+  lat: 54.5,
+  lng: -2,
+};
+
+export default function MapComponent(props: MapComponentProps) {
+  const [apiKey, setApiKey] = useState(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "");
+  const [isSettingsLoading, setIsSettingsLoading] = useState(!apiKey);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+        const res = await fetch(`${baseUrl}/api/admin/settings/public`);
+        const result = await res.json();
+        if (result.data?.maps?.googleMapsApiKey) {
+          setApiKey(result.data.maps.googleMapsApiKey);
+        }
+      } catch (error) {
+        console.error("Failed to fetch map settings:", error);
+      } finally {
+        setIsSettingsLoading(false);
+      }
+    };
+    if (!apiKey) fetchSettings();
+    else setIsSettingsLoading(false);
+  }, [apiKey]);
+
+  if (isSettingsLoading) {
+    return <div className="h-[500px] w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center mb-20 max-w-7xl mx-auto">Loading Map Settings...</div>;
   }
 
+  if (!apiKey) {
+    return (
+      <div className="h-[500px] w-full bg-amber-50 rounded-2xl flex flex-col items-center justify-center border-2 border-amber-200 p-6 text-center mb-20 max-w-7xl mx-auto">
+        <div className="text-amber-500 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <h3 className="text-amber-900 font-bold text-lg mb-2">Google Maps API Key Missing</h3>
+        <p className="text-amber-700 text-sm max-w-md">
+          Please provide a valid Google Maps API Key in your environment variables (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`) or in the admin settings.
+        </p>
+      </div>
+    );
+  }
+
+  return <GoogleMapLoader apiKey={apiKey} {...props} />;
+}
+
+function GoogleMapLoader({ apiKey, center, events, onMarkerClick }: MapComponentProps & { apiKey: string }) {
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: "google-map-script",
+    googleMapsApiKey: apiKey,
+  });
+
+  const [selectedEvent, setSelectedEvent] = useState<MapEvent | null>(null);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+
+  const onLoad = useCallback(function callback(map: google.maps.Map) {
+    setMap(map);
+  }, []);
+
+  const onUnmount = useCallback(function callback(map: google.maps.Map) {
+    setMap(null);
+  }, []);
+
+  // Determine map center
+  const getCenter = () => {
+    if (center && center.length === 2) {
+      return { lat: center[1], lng: center[0] };
+    } else if (events && events.length > 0) {
+      const firstWithCoords = events.find((e) => e.location?.geometry?.coordinates);
+      if (firstWithCoords) {
+        const coords = firstWithCoords.location!.geometry!.coordinates;
+        return { lat: coords[1], lng: coords[0] };
+      }
+    }
+    return defaultCenter;
+  };
+
+  const mapCenter = getCenter();
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
 
-  const MapContainerAny = MapContainer as any;
-  const TileLayerAny = TileLayer as any;
-  const MarkerAny = Marker as any;
-  const TooltipAny = Tooltip as any;
-  const PopupAny = Popup as any;
+  if (loadError) {
+    return (
+      <div className="h-[500px] w-full bg-red-50 rounded-2xl flex flex-col items-center justify-center border-2 border-red-200 p-6 text-center mb-20 max-w-7xl mx-auto">
+        <div className="text-red-500 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        </div>
+        <h3 className="text-red-900 font-bold text-lg mb-2">Map Load Error</h3>
+        <p className="text-red-700 text-sm max-w-md">
+          There was an error loading Google Maps. This usually happens if the API key is missing, invalid, or the Maps JavaScript API is not enabled in the Google Cloud Console.
+        </p>
+      </div>
+    );
+  }
+
+  if (!isLoaded) return <div className="h-[500px] w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center mb-20 max-w-7xl mx-auto">Loading Google Maps...</div>;
 
   return (
     <div className="rounded-2xl overflow-hidden shadow-xl max-w-7xl mx-auto border-4 border-white mb-20">
-      <MapContainerAny
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
         center={mapCenter}
-        zoom={zoom}
-        className="h-[500px] w-full"
-        scrollWheelZoom={false}
+        zoom={center ? 13 : 6}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+        options={{
+          disableDefaultUI: false,
+          zoomControl: true,
+          mapTypeControl: false,
+          scaleControl: true,
+          streetViewControl: false,
+          rotateControl: false,
+          fullscreenControl: true,
+          mapTypeId: 'roadmap' // Default view type
+        }}
       >
-        <TileLayerAny
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
-
         {/* Display single center marker if provided */}
         {center && (
-          <MarkerAny
+          <Marker
             position={mapCenter}
-            icon={createLocationIcon()}
+            icon={{
+              path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+              fillColor: "#dc2626",
+              fillOpacity: 1,
+              strokeWeight: 1,
+              strokeColor: "#ffffff",
+              scale: 1.5,
+              anchor: new google.maps.Point(12, 22),
+            }}
           />
         )}
 
         {/* Display all events markers if provided */}
-        {events && events.map((event, index) => {
+        {events && events.map((event) => {
           const coords = event.location?.geometry?.coordinates;
           if (!coords || coords.length !== 2) return null;
 
-          // Add a jitter to avoid perfect stacking for events at the same location
-          const jitterLat = (Math.random() - 0.5) * 0.01;
-          const jitterLng = (Math.random() - 0.5) * 0.01;
-          const position: [number, number] = [coords[1] + jitterLat, coords[0] + jitterLng];
-
-          const thumbUrl = event.thumbnail
-            ? (event.thumbnail.startsWith('http') ? event.thumbnail : `${baseUrl}${event.thumbnail}`)
-            : "/images/noimage.jpg";
-
-          const bannerUrl = event.banner
-            ? (event.banner.startsWith('http') ? event.banner : `${baseUrl}${event.banner}`)
-            : "/images/noimage.jpg";
-
+          const position = { lat: coords[1], lng: coords[0] };
+          
           return (
-            <MarkerAny
+            <Marker
               key={event._id}
               position={position}
-              icon={createLocationIcon()}
-              eventHandlers={{
-                click: () => onMarkerClick && onMarkerClick(event._id)
+              onClick={() => {
+                setSelectedEvent(event);
+                if (onMarkerClick) onMarkerClick(event._id);
               }}
-            >
-              <TooltipAny direction="top" offset={[0, -20]} opacity={1}>
-                <div className="flex items-center gap-3 p-2 min-w-[200px] max-w-[250px]">
-                  <img
-                    src={thumbUrl}
-                    alt=""
-                    className="w-12 h-12 rounded-lg flex-shrink-0 object-cover border border-gray-100"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="font-bold text-red-900 text-xs leading-tight mb-1 break-words">
-                      {event.title}
-                    </div>
-                    <div className="text-[10px] text-gray-500 truncate">
-                      {event.location?.venueName || event.location?.city}
-                    </div>
-                  </div>
-                </div>
-              </TooltipAny>
+              icon={{
+                path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+                fillColor: "#dc2626",
+                fillOpacity: 1,
+                strokeWeight: 1,
+                strokeColor: "#ffffff",
+                scale: 1.2,
+                anchor: new google.maps.Point(12, 22),
+              }}
+            />
+          );
+        })}
 
-              <PopupAny>
-                <div className="w-48 p-1">
-                  <img
-                    src={bannerUrl}
-                    alt={event.title}
-                    className="w-full h-24 object-cover rounded-lg mb-2"
-                  />
-                  <h3 className="font-bold text-red-900 text-sm leading-tight mb-1">{event.title}</h3>
-                  <p className="text-xs text-gray-600 mb-2">{event.location?.city}</p>
+        {selectedEvent && (
+          <InfoWindow
+            position={{ 
+              lat: selectedEvent.location!.geometry!.coordinates[1], 
+              lng: selectedEvent.location!.geometry!.coordinates[0] 
+            }}
+            onCloseClick={() => setSelectedEvent(null)}
+          >
+            <div className="w-64 p-0 bg-white rounded-lg overflow-hidden shadow-2xl border border-gray-100">
+              <div className="relative h-32 w-full">
+                <img
+                  src={selectedEvent.banner ? (selectedEvent.banner.startsWith('http') ? selectedEvent.banner : `${baseUrl}${selectedEvent.banner}`) : "/images/noimage.jpg"}
+                  alt={selectedEvent.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur px-2 py-0.5 rounded-full text-[10px] font-bold text-red-700 shadow-sm">
+                  {selectedEvent.category?.name || "Event"}
+                </div>
+              </div>
+              
+              <div className="p-3">
+                <h3 className="font-bold text-red-900 text-sm leading-tight mb-2 line-clamp-2">{selectedEvent.title}</h3>
+                
+                <div className="flex items-center gap-1.5 text-gray-500 text-[11px] mb-1.5">
+                  <div className="w-3.5 h-3.5 rounded-full bg-red-50 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                  </div>
+                  <span>{selectedEvent.startDate ? new Date(selectedEvent.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : "TBA"} • {selectedEvent.startTime || ""}</span>
+                </div>
+
+                <div className="flex items-center justify-between mt-3">
+                  <span className="text-red-700 font-bold text-sm">
+                    {selectedEvent.priceLabel || (selectedEvent.price === 0 ? 'Free' : `£${selectedEvent.price}`)}
+                  </span>
                   <Link
-                    href={`/event/${event.slug || event._id}`}
-                    className="block text-center bg-red-600 text-white text-xs font-bold py-2 rounded hover:bg-red-700 transition"
+                    href={`/event/${selectedEvent.slug || selectedEvent._id}`}
+                    className="bg-red-600 text-white text-[10px] font-bold px-3 py-1.5 rounded hover:bg-red-700 transition"
                   >
                     View Details
                   </Link>
                 </div>
-              </PopupAny>
-            </MarkerAny>
-          );
-        })}
-      </MapContainerAny>
+              </div>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
     </div>
   );
 }

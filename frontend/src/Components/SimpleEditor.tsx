@@ -125,10 +125,33 @@ export default function SimpleEditor({
       </div>
 
       {/* Editor */}
-      <EditorContent
-        editor={editor}
-        className="p-4 min-h-[150px] text-sm outline-none"
-      />
+      <div 
+        onClick={() => editor.chain().focus().run()}
+        className="cursor-text min-h-[150px]"
+      >
+        <EditorContent
+          editor={editor}
+          className="p-4 text-sm prose max-w-none focus:outline-none"
+        />
+      </div>
+      
+      <style jsx global>{`
+        .tiptap p.is-editor-empty:first-child::before {
+          color: #adb5bd;
+          content: attr(data-placeholder);
+          float: left;
+          height: 0;
+          pointer-events: none;
+        }
+        .tiptap {
+          outline: none !important;
+          min-height: 150px;
+        }
+        .ProseMirror {
+          min-height: 150px;
+          outline: none !important;
+        }
+      `}</style>
     </div>
   );
 }

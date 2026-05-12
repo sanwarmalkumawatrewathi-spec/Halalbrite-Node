@@ -101,7 +101,27 @@ exports.getOrganizerStats = async (req, res) => {
 
         const result = stats[0] || { totalRevenue: 0, organizerEarnings: 0, platformFees: 0, ticketCount: 0 };
 
-        res.json({ success: true, data: result });
+        // Include stripe status
+        let user = await User.findById(organizerId);
+
+        // Auto-sync if connected but not fully enabled (to ensure dashboard is fresh)
+        if (user.stripeConnectedId && (!user.charges_enabled || !user.payouts_enabled)) {
+            console.log(`🔄 Auto-syncing Stripe for ${user.email} during stats fetch...`);
+            await stripeService.syncUserStripeStatus(user._id);
+            user = await User.findById(organizerId); // Reload
+        }
+
+        res.json({
+            success: true,
+            data: {
+                ...result,
+                stripeConnected: !!user.stripeConnectedId,
+                chargesEnabled: user.charges_enabled,
+                payoutsEnabled: user.payouts_enabled,
+                verificationStatus: user.verification_status,
+                requirements: user.requirements || []
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -155,6 +175,38 @@ exports.getOrganizerTransactions = async (req, res) => {
     }
 };
 
+// @desc    Verify and Sync Stripe Connect Status
+// @route   POST /api/payments/connect/verify
+// @access  Private/Organizer
+exports.verifyConnectStatus = async (req, res) => {
+    try {
+        console.log(`🔍 Verifying Stripe status for user: ${req.user.email}`);
+        const user = await stripeService.syncUserStripeStatus(req.user._id);
+
+        if (!user) {
+            console.log(`❌ No Stripe account found for user: ${req.user.email}`);
+            return res.status(400).json({ success: false, message: 'Stripe account not connected' });
+        }
+
+        console.log(`✅ User ${user.email} Sync Result: 
+            stripeConnectedId: ${user.stripeConnectedId}
+            verificationStatus: ${user.verification_status}
+            chargesEnabled: ${user.charges_enabled}
+            payoutsEnabled: ${user.payouts_enabled}`);
+
+        res.json({
+            success: true,
+            isConnected: !!user.stripeConnectedId,
+            verificationStatus: user.verification_status,
+            chargesEnabled: user.charges_enabled,
+            payoutsEnabled: user.payouts_enabled
+        });
+    } catch (error) {
+        console.error(`❌ Stripe Verify Error for ${req.user.email}:`, error.message);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 // @desc    Handle Stripe Webhooks
 // @route   POST /api/payments/webhook
 // @access  Public (Stripe Signature Verified)
@@ -184,7 +236,11 @@ exports.handleWebhook = async (req, res) => {
             break;
         case 'account.updated':
             const account = event.data.object;
-            // Handle account update (verification status change)
+            const user = await User.findOne({ stripeConnectedId: account.id });
+            if (user) {
+                await stripeService.syncUserStripeStatus(user._id);
+                console.log(`✅ Webhook: Synced Stripe status for ${user.email}`);
+            }
             break;
         default:
             console.log(`Unhandled event type ${event.type}`);
@@ -338,7 +394,7 @@ exports.createCheckoutSession = async (req, res) => {
             const platformUnit = ticket.price * (feePercentage / 100) + fixedFee;
             const vatUnit = platformUnit * (vatRate / 100);
             const stripeUnit = ticket.price * (stripePercentage / 100) + fixedStripe;
-            
+
             const itemFeesBase = platformUnit + vatUnit + stripeUnit;
             const itemTotalBase = event.feePayment === true ? ticket.price : ticket.price + itemFeesBase;
 
@@ -408,7 +464,7 @@ exports.createCheckoutSession = async (req, res) => {
             amount_total: finalTotal,
             base_amount_total: finalTotalBase,
             organizer_amount: organizerEarnings,
-            platform_fee: platformFee, 
+            platform_fee: platformFee,
             stripe_fee: stripeFee,
             exchange_rate: exchangeRate,
             currency: requestedCurrency,
@@ -478,7 +534,7 @@ exports.createCheckoutSession = async (req, res) => {
 // Helper: Process Ticket Delivery (PDF + Email)
 exports.handleTicketDelivery = async function (booking) {
     console.log(`📦 Processing delivery for booking: ${booking.booking_reference}`);
-    
+
     try {
         // 1. Deduct Inventory (IMPORTANT: Do this first or ensure it happens)
         const event = await Event.findById(booking.event_id);
@@ -495,10 +551,10 @@ exports.handleTicketDelivery = async function (booking) {
 
         // 2. Generate PDF
         const pdfBuffer = await pdfService.generateTicketPdf(booking);
-        
+
         // 3. Send Tickets to Customer (Attendee)
         await emailService.sendTicketEmail(booking, pdfBuffer, booking.customer_email, 'attendee');
-        
+
         // 4. Send Notification to Organizer
         const organizer = await User.findById(booking.organizer_id);
         if (organizer && organizer.email) {
@@ -508,7 +564,7 @@ exports.handleTicketDelivery = async function (booking) {
         // 5. Send Notification to Platform Admin
         const adminUser = await User.findOne({ role: 'admin' });
         const adminEmail = adminUser?.email || process.env.ADMIN_EMAIL;
-        
+
         if (adminEmail) {
             await emailService.sendTicketEmail(booking, pdfBuffer, adminEmail, 'admin');
         }
@@ -526,7 +582,7 @@ async function handleCheckoutSessionCompleted(session) {
 
     const stripeInstance = await stripeService.getStripeInstance();
     const paymentIntentId = session.payment_intent;
-    
+
     if (paymentIntentId) {
         const paymentIntent = await stripeInstance.paymentIntents.retrieve(paymentIntentId);
         // Mark as processed by session to avoid double processing in handleWebhook
@@ -544,7 +600,7 @@ exports.downloadTicket = async (req, res) => {
         if (!booking) return res.status(404).json({ message: 'Booking not found' });
 
         const pdfBuffer = await pdfService.generateTicketPdf(booking);
-        
+
         res.set({
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename=Ticket-${booking.booking_reference}.pdf`,
@@ -603,7 +659,7 @@ exports.verifyBookingPayment = async (req, res) => {
 
                 // Trigger Delivery (Deducts inventory and sends emails)
                 await exports.handleTicketDelivery(booking);
-                
+
                 console.log("✅ Booking finalized via fallback verification");
                 return res.json({ success: true, status: 'paid' });
             }

@@ -32,6 +32,10 @@ exports.getSettings = async (req, res) => {
             maskedSettings.smtp.pass = maskKey(maskedSettings.smtp.pass);
         }
 
+        if (!maskedSettings.maps) {
+            maskedSettings.maps = { googleMapsApiKey: '' };
+        }
+
         res.json({
             message: 'Settings fetched successfully',
             data: maskedSettings

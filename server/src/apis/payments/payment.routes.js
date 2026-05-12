@@ -10,13 +10,15 @@ const {
     getOrganizerStats,
     getOrganizerBalance,
     getOrganizerTransactions,
-    createLoginLink
+    createLoginLink,
+    verifyConnectStatus
 } = require('../../controllers/payment.controller');
 const { protect, authorize, optionalProtect } = require('../../middlewares/auth.middleware');
 
 // Organizer Stripe Connect & Dashboard APIs
 router.get('/stripe-login', protect, authorize('publish_events'), createLoginLink);
 router.get('/connect', protect, authorize('publish_events'), connectStripe);
+router.post('/connect/verify', protect, authorize('publish_events'), verifyConnectStatus);
 router.get('/connect/status', protect, authorize('publish_events'), getConnectStatus);
 router.post('/connect/disconnect', protect, authorize('publish_events'), disconnectStripe);
 router.get('/callback', stripeCallback); // Public callback handled by Stripe
