@@ -7,6 +7,7 @@ import { FiMail } from "react-icons/fi";
 import { MdOutlineReplay } from "react-icons/md";
 import { IoRefreshOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
+import { getImageUrl } from "@/utils/imageUtils";
 
 export default function CustomersTab() {
   const [loading, setLoading] = useState(true);
@@ -207,7 +208,7 @@ export default function CustomersTab() {
                                 <div className="flex items-center gap-3 whitespace-nowrap">
                                   <span data-slot="avatar" className="relative flex size-10 shrink-0 overflow-hidden rounded-full">
                                     {booking.user_id?.avatar ? (
-                                      <img src={booking.user_id.avatar} alt="" className="w-full h-full rounded-full object-cover" />
+                                      <img src={getImageUrl(booking.user_id.avatar)} alt="" className="w-full h-full rounded-full object-cover" />
                                     ) : (
                                       <span data-slot="avatar-fallback" className="flex size-full items-center justify-center rounded-full bg-red-100 text-red-700">{initials}</span>
                                     )}

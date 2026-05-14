@@ -12,6 +12,7 @@ import Link from "next/link";
 import { Share2, Heart, Calendar, Clock, Users } from "lucide-react";
 import { LocationIcon } from "@/Components/Icons";
 import ShareModal from "@/Components/ShareModal";
+import { getImageUrl } from "@/utils/imageUtils";
 
 export default function EventDetails({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
@@ -94,7 +95,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
   );
 
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-  const bannerImage = event.banner ? (event.banner.startsWith('http') ? event.banner : `${baseUrl}${event.banner}`) : "/images/noimage.jpg";
+  const bannerImage = event.banner ? getImageUrl(event.banner) : "/images/noimage.jpg";
 
   return (
     <div className="bg-[#fef3f6] ">
@@ -168,11 +169,23 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                   <Link href={`/organiser/${event.organizer.slug || (typeof event.organizer === 'object' ? event.organizer._id : event.organizer)}`} className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0 group">
                     <div className="relative flex-shrink-0">
                       <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 border-red-100 shadow-lg bg-white">
-                        <div className="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
-                          <span className="text-red-700 text-base sm:text-lg md:text-xl font-bold">
-                            {event.organizerName?.substring(0, 2) || event.organizer?.username?.substring(0, 2) || "OR"}
-                          </span>
-                        </div>
+                        {event.organizer?.avatar ? (
+                          <img
+                            src={getImageUrl(event.organizer.avatar)}
+                            alt={event.organizerName || event.organizer?.username}
+                            className="w-full h-full object-cover"
+                            onError={(e: any) => {
+                              e.target.onerror = null;
+                              e.target.parentElement.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center"><span class="text-red-700 text-base sm:text-lg md:text-xl font-bold">${event.organizerName?.substring(0, 2) || event.organizer?.username?.substring(0, 2) || "OR"}</span></div>`;
+                            }}
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
+                            <span className="text-red-700 text-base sm:text-lg md:text-xl font-bold">
+                              {event.organizerName?.substring(0, 2) || event.organizer?.username?.substring(0, 2) || "OR"}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -279,17 +292,17 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
               <div className="px-6 pb-6 space-y-6">
                 {/* Date & Time */}
                 <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <Calendar size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm">
-                      <p className="font-bold text-gray-900">Start</p>
+                  <div className="flex items-center gap-3">
+                    <Calendar size={18} className="text-red-600 flex-shrink-0" />
+                    <div className="text-sm flex flex-wrap items-center gap-x-2">
+                      <p className="font-bold text-gray-900">Start -</p>
                       <p className="text-gray-600">{formatDate(event.startDate)} • {event.startTime || "TBA"}</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3">
-                    <Calendar size={18} className="text-red-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm">
-                      <p className="font-bold text-gray-900">End</p>
+                  <div className="flex items-center gap-3">
+                    <Calendar size={18} className="text-red-600 flex-shrink-0" />
+                    <div className="text-sm flex flex-wrap items-center gap-x-2">
+                      <p className="font-bold text-gray-900">End -</p>
                       <p className="text-gray-600">{formatDate(event.endDate)} • {event.endTime || "TBA"}</p>
                     </div>
                   </div>
@@ -369,6 +382,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
             <div className="rounded-xl overflow-hidden border border-gray-100">
               <MapComponent
                 center={event.location?.geometry?.coordinates}
+                events={[event]}
                 height="400px"
                 containerClassName="w-full"
               />

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaCalendarAlt, FaMapMarkerAlt, FaHeart } from "react-icons/fa";
 import { useAuth } from "@/context/authContext";
+import { getImageUrl } from "@/utils/imageUtils";
 
 type SavedEvent = {
   _id: string;
@@ -114,7 +115,7 @@ export default function SavedEvents() {
                     {/* Banner */}
                     <div className="h-40 overflow-hidden relative">
                       <img
-                        src={event.banner ? (event.banner.startsWith('http') ? event.banner : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '')}${event.banner}`) : "/images/noimage.jpg"}
+                        src={event.banner ? getImageUrl(event.banner) : "/images/noimage.jpg"}
                         alt={event.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                         onError={(e: any) => {
@@ -186,7 +187,7 @@ export default function SavedEvents() {
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 rounded-full bg-red-100 text-red-600 flex items-center justify-center font-bold text-xl uppercase shrink-0">
                         {org.avatar ? (
-                          <img src={org.avatar} alt={org.username} className="w-full h-full rounded-full object-cover" />
+                          <img src={getImageUrl(org.avatar)} alt={org.username} className="w-full h-full rounded-full object-cover" />
                         ) : (
                           org.username.substring(0, 2)
                         )}

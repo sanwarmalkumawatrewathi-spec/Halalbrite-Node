@@ -52,12 +52,17 @@ function EventTypeContent({
           postcode = place.address_components.find(c => c.types.includes("postal_code"))?.long_name || "";
           country = place.address_components.find(c => c.types.includes("country"))?.long_name || "";
 
+          const lat = place.geometry?.location?.lat();
+          const lng = place.geometry?.location?.lng();
+
           setForm((prev: any) => ({
             ...prev,
             address: address || prev.address,
             city: city || prev.city,
             postcode: postcode || prev.postcode,
-            country: country || prev.country
+            country: country || prev.country,
+            lat: lat !== undefined ? lat : prev.lat,
+            lng: lng !== undefined ? lng : prev.lng
           }));
         }
       });

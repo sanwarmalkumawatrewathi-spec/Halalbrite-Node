@@ -30,9 +30,9 @@ exports.getOrganizerProfile = async (req, res) => {
         // Check if user has organizer role
         const organizerRole = await Role.findOne({ slug: 'organizer' });
         const isAdmin = await Role.findOne({ slug: 'administrator' });
-        
-        const isOrg = organizer.roles?.some(roleId => 
-            roleId.toString() === organizerRole?._id?.toString() || 
+
+        const isOrg = organizer.roles?.some(roleId =>
+            roleId.toString() === organizerRole?._id?.toString() ||
             roleId.toString() === isAdmin?._id?.toString()
         );
 
@@ -74,8 +74,8 @@ exports.getOrganizerEvents = async (req, res) => {
 
         const { type } = req.query; // 'upcoming' or 'past'
         const now = new Date();
-        
-        let query = { 
+
+        let query = {
             organizer: organizer._id,
             status: 'published'
         };
@@ -133,7 +133,7 @@ exports.toggleFollow = async (req, res) => {
 
         await Promise.all([organizer.save(), user.save()]);
 
-        res.json({ 
+        res.json({
             message: isFollowing ? 'Unfollowed successfully' : 'Followed successfully',
             isFollowing: !isFollowing,
             followersCount: organizer.followers.length

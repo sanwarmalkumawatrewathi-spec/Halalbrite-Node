@@ -5,6 +5,7 @@ import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
 import { FaGlobe, FaFacebook, FaInstagram, FaTwitter, FaUsers, FaCalendarAlt, FaEnvelope } from "react-icons/fa";
 import Link from "next/link";
+import { getImageUrl } from "@/utils/imageUtils";
 
 interface Organiser {
   _id: string;
@@ -109,7 +110,7 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
             <div className="relative">
               <div className="w-48 h-48 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 text-6xl font-bold border-4 border-white shadow-xl overflow-hidden">
                 {organiser.avatar ? (
-                  <img src={organiser.avatar} alt={displayName} className="w-full h-full object-cover" />
+                  <img src={getImageUrl(organiser.avatar)} alt={displayName} className="w-full h-full object-cover" />
                 ) : (
                   initials
                 )}
@@ -203,7 +204,7 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
               events.map((event) => (
                 <Link href={`/event/${event.slug || event._id}`} key={event._id} className="group bg-white border border-gray-100 rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-300">
                   <div className="relative h-56">
-                    <img src={event.thumbnail || event.banner} alt={event.title} className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
+                    <img src={getImageUrl(event.thumbnail || event.banner)} alt={event.title} className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
                     <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-red-600 shadow-sm">
                       {event.category?.name || "Community"}
                     </div>

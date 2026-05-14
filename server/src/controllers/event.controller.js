@@ -8,17 +8,18 @@ const User = require('../models/user.model');
 // @access  Public
 exports.getEvents = async (req, res) => {
     try {
-        const { 
-            category, 
-            eventType, 
-            search, 
-            city, 
+        const {
+            category,
+            eventType,
+            search,
+            city,
             upcoming,
             startDate,
             endDate,
             minPrice,
             maxPrice
         } = req.query;
+        console.log('🔍 GET /api/events - Query Params:', req.query);
 
         let query = { status: 'published' };
 
@@ -53,10 +54,12 @@ exports.getEvents = async (req, res) => {
             const parsedMax = (maxPrice && maxPrice !== "") ? parseFloat(maxPrice) : null;
 
             if (parsedMin !== null && !isNaN(parsedMin)) {
-                query.price = { $gte: parsedMin };
+                // Show events that have at least one ticket >= minPrice
+                query.maxPrice = { $gte: parsedMin };
             }
             if (parsedMax !== null && !isNaN(parsedMax)) {
-                query.maxPrice = { $lte: parsedMax };
+                // Show events that have at least one ticket <= maxPrice
+                query.price = { ...query.price, $lte: parsedMax };
             }
         }
 
@@ -80,6 +83,7 @@ exports.getEvents = async (req, res) => {
             }
         }
 
+        console.log('📂 Final MongoDB Query:', JSON.stringify(query));
         const events = await Event.find(query)
             .populate('organizer', 'username avatar')
             .populate('category', 'name slug icon')
@@ -141,7 +145,7 @@ exports.createEvent = async (req, res) => {
         let minPrice = Infinity;
         let maxPrice = 0;
         let hasTickets = ticketTypes && ticketTypes.length > 0;
-        
+
         let calculatedPrice = 0;
         let calculatedLabel = 'Free';
 
@@ -152,7 +156,7 @@ exports.createEvent = async (req, res) => {
                 if (ticketPrice > maxPrice) maxPrice = ticketPrice;
             });
             calculatedPrice = minPrice === Infinity ? 0 : minPrice;
-            
+
             if (ticketTypes.length > 1) {
                 calculatedLabel = calculatedPrice === 0 ? 'From Free' : `From ${currencySymbol}${calculatedPrice}`;
             } else {
@@ -214,7 +218,7 @@ exports.updateEvent = async (req, res) => {
                     const finalPrice = minPrice === Infinity ? 0 : minPrice;
                     req.body.price = finalPrice;
                     req.body.maxPrice = maxPrice;
-                    
+
                     if (ticketTypes.length > 1) {
                         req.body.priceLabel = finalPrice === 0 ? 'From Free' : `From ${currencySymbol}${finalPrice}`;
                     } else {

@@ -2,6 +2,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import { useState, useRef } from "react";
 import CustomModal from "./CustomModal";
+import { getImageUrl } from "@/utils/imageUtils";
 
 export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
   const router = useRouter();
@@ -106,12 +107,6 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
     }
   };
 
-  const getImageUrl = (url: string | undefined | null) => {
-    if (!url) return "";
-    if (url.startsWith('http') || url.startsWith('blob:')) return url;
-    const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-    return `${API_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-  };
 
   const handleSaveProfile = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -221,7 +216,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
             </div>
             <div className="mt-3 sm:mt-4 text-center w-full">
               <p className="text-gray-900 text-base sm:text-lg font-semibold">
-                {user.firstName ? `${user.firstName} ${user.lastName}` : user.username}
+                {user.username}
               </p>
               <p className="text-xs sm:text-sm text-gray-500 break-all">{user.email}</p>
               <span data-slot="badge" className="inline-flex items-center justify-center rounded-md border px-2 py-0.5 font-medium w-fit whitespace-nowrap overflow-hidden border-transparent mt-2 bg-red-600 text-white text-xs sm:text-sm uppercase tracking-wider">
@@ -260,13 +255,13 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
             <form className="space-y-3 sm:space-y-4" onSubmit={handleSaveProfile}>
               <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                 <div className="space-y-1.5 sm:space-y-2">
-                  <label data-slot="label" className="flex items-center gap-2 font-medium text-sm text-gray-700" htmlFor="name">Full Name</label>
+                  <label data-slot="label" className="flex items-center gap-2 font-medium text-sm text-gray-700" htmlFor="username">Username</label>
                   <input
                     data-slot="input"
                     className="flex h-9 w-full min-w-0 rounded-md border border-gray-300 px-3 py-1 bg-white outline-none focus-visible:ring-2 focus-visible:ring-red-500 text-sm sm:text-base text-gray-900"
-                    id="name"
-                    value={formData.firstName}
-                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    id="username"
+                    value={formData.username}
+                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   />
                 </div>
                 <div className="space-y-1.5 sm:space-y-2">

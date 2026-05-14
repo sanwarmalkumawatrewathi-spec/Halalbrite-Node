@@ -12,6 +12,8 @@ import { useAuth } from "@/context/authContext";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useRouter } from "next/navigation";
 
+import { getImageUrl } from "@/utils/imageUtils";
+
 export default function Header() {
   const [open, setOpen] = useState(false);
   const [openCurrency, setOpenCurrency] = useState(false);
@@ -128,7 +130,7 @@ export default function Header() {
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                 >
                   {user.avatar ? (
-                    <img src={user.avatar} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+                    <img src={getImageUrl(user.avatar)} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <div className="w-10 h-10 text-[18px] cursor-pointer sm:w-9 sm:h-9 sm:text-[15px] bg-red-100  flex items-center justify-center rounded-full text-red-600 font-bold">
                       {user.username.charAt(0).toUpperCase()}

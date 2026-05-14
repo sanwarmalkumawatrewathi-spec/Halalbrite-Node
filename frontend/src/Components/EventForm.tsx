@@ -7,9 +7,11 @@ import EventType from "@/Components/EventType";
 import TicketSection from "@/Components/TicketSection";
 import { useAuth } from "@/context/authContext";
 import ReviewModal from "./EventPublishing/ReviewModal";
+import FullEventPreview from "./EventPublishing/FullEventPreview";
 import BecomeOrganizerModal from "./EventPublishing/BecomeOrganizerModal";
 import PublishSuccess from "./EventPublishing/PublishSuccess";
 import { useRouter } from "next/navigation";
+import CreateOrganisationModal from "@/Components/CreateOrganisationModal";
 
 export default function EventForm({ editId }: { editId?: string | null }) {
     const { user, isOrganizer, becomeOrganizer, isStripeConnected } = useAuth();
@@ -25,6 +27,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
     const [showSuccess, setShowSuccess] = useState(false);
     const [publishedEventId, setPublishedEventId] = useState("");
     const [publishedEventSlug, setPublishedEventSlug] = useState("");
+    const [showCreateOrg, setShowCreateOrg] = useState(false);
     const [form, setForm] = useState<{
         title: string;
         category: string;
@@ -48,6 +51,8 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         meetingLink: string;
         bannerPreview: string;
         thumbnailPreview: string;
+        lat?: number;
+        lng?: number;
     }>({
         title: "",
         category: "",
@@ -72,6 +77,8 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         meetingLink: "",
         bannerPreview: "",
         thumbnailPreview: "",
+        lat: undefined as number | undefined,
+        lng: undefined as number | undefined,
     });
 
     const [tickets, setTickets] = useState([
@@ -87,6 +94,33 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             chargeCustomer: true,
         },
     ]);
+
+    // Load saved form data from localStorage on mount
+    useEffect(() => {
+        if (isEditMode) return;
+        const savedForm = localStorage.getItem('event_form_draft');
+        const savedTickets = localStorage.getItem('event_tickets_draft');
+        
+        if (savedForm) {
+            try {
+                const parsed = JSON.parse(savedForm);
+                setForm(prev => ({ ...prev, ...parsed }));
+            } catch (e) { console.error("Error loading saved form", e); }
+        }
+        
+        if (savedTickets) {
+            try {
+                setTickets(JSON.parse(savedTickets));
+            } catch (e) { console.error("Error loading saved tickets", e); }
+        }
+    }, [isEditMode]);
+
+    // Save form data to localStorage whenever it changes
+    useEffect(() => {
+        if (isEditMode) return;
+        localStorage.setItem('event_form_draft', JSON.stringify(form));
+        localStorage.setItem('event_tickets_draft', JSON.stringify(tickets));
+    }, [form, tickets, isEditMode]);
 
     useEffect(() => {
         if (user) {
@@ -149,6 +183,8 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                         meetingLink: ev.meetingLink || '',
                         bannerPreview: ev.banner || '',
                         thumbnailPreview: ev.thumbnail || '',
+                        lat: ev.location?.geometry?.coordinates?.[1],
+                        lng: ev.location?.geometry?.coordinates?.[0],
                     }));
 
                     // Pre-fill tickets if available
@@ -205,6 +241,15 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         } finally {
             setIsLoadingOrganisations(false);
         }
+    };
+
+    const handleOrgSuccess = (newOrg: any) => {
+        setOrganisations(prev => [...prev, newOrg]);
+        setForm(prev => ({
+            ...prev,
+            organizerProfile: newOrg._id,
+            organizerName: newOrg.name
+        }));
     };
 
     useEffect(() => {
@@ -374,7 +419,11 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                     address: form.address,
                     city: form.city,
                     postcode: form.postcode,
-                    country: form.country
+                    country: form.country,
+                    geometry: form.lat && form.lng ? {
+                        type: "Point",
+                        coordinates: [form.lng, form.lat]
+                    } : undefined
                 }
             };
 
@@ -404,6 +453,10 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                 setPublishedEventId(event._id);
                 setPublishedEventSlug(event.slug || event._id);
                 setShowSuccess(true);
+                
+                // Clear drafts
+                localStorage.removeItem('event_form_draft');
+                localStorage.removeItem('event_tickets_draft');
             }
 
         } catch (error: any) {
@@ -609,16 +662,21 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                 value={form.organizerProfile}
                                 onChange={(e) => {
                                     const val = e.target.value;
+                                    if (val === "new") {
+                                        setShowCreateOrg(true);
+                                        return;
+                                    }
                                     const selectedOrg = organisations.find(o => o._id === val);
                                     setForm(prev => ({
                                         ...prev,
                                         organizerProfile: val,
-                                        organizerName: selectedOrg ? selectedOrg.name : (user?.username || "")
+                                        organizerName: selectedOrg ? selectedOrg.name : ""
                                     }));
                                 }}
                                 className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all appearance-none"
+                                required
                             >
-                                <option value="">No organiser (your name will show)</option>
+                                <option value="" disabled>Select an Organisation Profile</option>
                                 {organisations.map(org => (
                                     <option key={org._id} value={org._id}>{org.name}</option>
                                 ))}
@@ -629,25 +687,12 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                             </div>
                         </div>
 
-                        {form.organizerProfile === "new" && (
-                            <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                <p className="text-xs text-gray-500 mb-2">You will be redirected to create a new organisation profile</p>
-                                <button
-                                    type="button"
-                                    onClick={() => router.push('/organizer-dashboard?tab=Organiser')}
-                                    className="w-full py-3 px-4 border border-red-200 bg-white rounded-xl text-red-600 font-semibold flex items-center justify-center gap-2 hover:bg-red-50 transition-all group"
-                                >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-600 group-hover:scale-110 transition-transform"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"></path><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"></path><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"></path></svg>
-                                    Go to Create Organisation Profile
-                                </button>
-                            </div>
-                        )}
 
                         {form.organizerProfile === "" && (
-                            <p className="text-[10px] text-gray-400 mt-1 px-1 italic">Leave blank to show "{user?.username || 'Ahmed Hassan'}" as the organizer</p>
+                            <p className="text-[10px] text-red-500 mt-1 px-1 italic">Please select or create an organisation profile to list this event.</p>
                         )}
                         {form.organizerProfile !== "" && form.organizerProfile !== "new" && (
-                            <p className="text-[10px] text-red-600 mt-1 px-1 italic font-medium">Selected: {form.organizerName}</p>
+                            <p className="text-[10px] text-green-600 mt-1 px-1 italic font-medium">Professional Listing: {form.organizerName}</p>
                         )}
                     </div>
 
@@ -770,7 +815,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                 </div>
             </form>
 
-            <ReviewModal
+            <FullEventPreview
                 isOpen={showReview}
                 onClose={() => setShowReview(false)}
                 onPublish={confirmPublish}
@@ -779,12 +824,19 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                     categoryName: categories.find(c => c._id === form.category)?.name
                 }}
                 tickets={tickets}
+                organisations={organisations}
             />
 
             <BecomeOrganizerModal
                 isOpen={showBecomeOrganizer}
                 onClose={() => setShowBecomeOrganizer(false)}
                 onConvert={handleConvertAndPublish}
+            />
+
+            <CreateOrganisationModal
+                isOpen={showCreateOrg}
+                onClose={() => setShowCreateOrg(false)}
+                onSuccess={handleOrgSuccess}
             />
 
             {showSuccess && (

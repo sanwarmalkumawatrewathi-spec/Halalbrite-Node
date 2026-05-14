@@ -86,6 +86,7 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, height = "500p
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: apiKey,
+    libraries: ['places'] as any,
   });
 
   const [selectedEvent, setSelectedEvent] = useState<MapEvent | null>(null);
@@ -151,8 +152,8 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, height = "500p
           mapTypeId: 'roadmap' // Default view type
         }}
       >
-        {/* Display single center marker if provided */}
-        {center && (
+        {/* Display single center marker if provided AND no events are provided */}
+        {center && (!events || events.length === 0) && (
           <Marker
             position={mapCenter}
             icon={{
@@ -162,7 +163,7 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, height = "500p
               strokeWeight: 1,
               strokeColor: "#ffffff",
               scale: 1.5,
-              anchor: new google.maps.Point(12, 22),
+              anchor: typeof google !== 'undefined' ? new google.maps.Point(12, 22) : undefined,
             }}
           />
         )}
