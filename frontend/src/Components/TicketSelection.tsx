@@ -150,29 +150,32 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-baseline md:justify-end gap-2">
-                  <span className=" text-xl text-gray-900">
-                    {formatPrice(ticket.price)}
-                  </span>
-                  {showFees && (
-                    <span className="text-xs text-gray-400 font-medium">
-                      + fees (incl. VAT) {formatPrice(feeData.totalFees)}
+
+                <div className="mt-1">
+                  <div className="flex  items-baseline md:justify-end gap-2">
+                    <span className="flex justify-end text-xl text-gray-900">
+                      {formatPrice(ticket.price)}
                     </span>
-                  )}
-                </div>
-                <div className="flex items-center md:justify-end gap-1.5 mt-1">
-                  {(ticket.quantity - count) <= 5 && (ticket.quantity - count) > 0 ? (
-                    <div className="flex items-center gap-1 text-orange-600 font-bold text-[11px] uppercase tracking-wide">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                      Only {ticket.quantity - count} left
-                    </div>
-                  ) : (
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">
-                      {ticket.quantity - count} Left
-                    </p>
-                  )}
+                    {showFees && (
+                      <span className="flex justify-end text-xs text-gray-400 font-medium">
+                        + fees (incl. VAT) {formatPrice(feeData.totalFees)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="justify-start flex">
+                    {(ticket.quantity - count) <= 5 && (ticket.quantity - count) > 0 ? (
+                      <div className="flex  items-center gap-1 text-orange-600 font-bold text-[14px] uppercase tracking-wide">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        Only {ticket.quantity - count} left
+                      </div>
+                    ) : (
+                      <p className="text-[14px] text-gray-600 uppercase tracking-wider">
+                        {ticket.quantity - count} Left
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -225,8 +228,8 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
 
                 {/* TOTAL SUMMARY IF QTY > 0 */}
                 {count > 0 && showFees && (
-                  <div className="bg-red-50/50 border border-red-100 rounded-2xl px-6 py-3.5 flex flex-col items-center justify-center">
-                    <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest mb-0.5">Total + fees</span>
+                  <div className="flex gap-2 bg-red-50/50 border border-red-100 rounded-2xl px-6 py-3.5 items-center justify-center">
+                    <span className="text-[14px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">Total + fees</span>
                     <span className="font-bold text-lg text-gray-900">
                       {formatPrice(feeData.grandTotal * count)}
                     </span>
@@ -241,18 +244,18 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
       {/* SUMMARY BAR */}
       {selectedTicketTypes.length > 1 && (
         <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="bg-white border-2 border-red-500 rounded-2xl p-4 md:p-6 shadow-xl shadow-red-100 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="bg-red-50 border-2 border-red-500 rounded-2xl p-4 md:p-6 shadow-xl shadow-red-100 flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-gray-900">
+              <span className="text-gray-900 text-sm sm:text-base leading-snug">
                 {selectedTicketTypes.length} Ticket Type{selectedTicketTypes.length > 1 ? 's' : ''} Selected
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs sm:text-sm text-gray-600 line-clamp-1">
                 {selectedTicketTypes.map(t => `${qty[t._id]}x ${t.name}`).join(', ')}
               </span>
             </div>
 
             <div className="flex items-center gap-4 w-full md:w-auto">
-              <div className="text-right hidden sm:block">
+              <div className="bg-white rounded-lg p-2.5 sm:p-3 flex items-center justify-between sm:justify-start gap-2">
                 <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total + fees</span>
                 <span className="text-xl font-bold text-red-600">{formatPrice(overallTotal)}</span>
               </div>

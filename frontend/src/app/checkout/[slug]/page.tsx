@@ -356,8 +356,7 @@ function CheckoutContent() {
                                                 value={formData.fullName}
                                                 onChange={e => setFormData({ ...formData, fullName: e.target.value })}
                                                 placeholder="Enter your full name"
-                                                className="w-full bg-[#f5f6f7] border border-gray-300 rounded-xl px-4 py-3 outline-none 
-               focus:border-gray-400 focus:bg-white transition-all text-sm"
+                                                className="w-full bg-[#f5f6f7] borborder border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-gray-400 focus:bg-white transition-all text-sm"
                                             />
 
                                             {/* Helper Text */}
@@ -382,7 +381,7 @@ function CheckoutContent() {
                                                         setAttendeeNames(newNames);
                                                     }}
                                                     placeholder={`Enter name for ticket ${idx + 2}`}
-                                                    className="w-full bg-gray-50 border-2 border-gray-50 rounded-2xl px-6 py-4 outline-none focus:border-red-500 focus:bg-white transition-all font-medium text-lg"
+                                                    className="w-full bg-gray-50 borborder  border-2 border-gray-50 rounded-2xl px-6 py-4 outline-none focus:border-red-500 focus:bg-white transition-all font-medium text-lg"
                                                 />
                                             </div>
                                         ))}
@@ -403,7 +402,7 @@ function CheckoutContent() {
                                                 value={formData.email}
                                                 onChange={e => setFormData({ ...formData, email: e.target.value })}
                                                 placeholder="your@email.com"
-                                                className="w-full bg-[#f5f6f7] border border-gray-300 rounded-xl px-4 py-3 outline-none 
+                                                className="w-full bg-[#f5f6f7] borborder border border-gray-300 rounded-xl px-4 py-3 outline-none 
                focus:border-gray-400 focus:bg-white transition-all text-sm"
                                             />
 
@@ -431,7 +430,7 @@ function CheckoutContent() {
                                                     value={formData.phone}
                                                     onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                                     placeholder="+44 7000 000000"
-                                                    className="w-full bg-[#f5f6f7] border border-gray-300 rounded-xl pl-10 pr-4 py-3 outline-none 
+                                                    className="w-full bg-[#f5f6f7] borborder border border-gray-300 rounded-xl pl-10 pr-4 py-3 outline-none 
                  focus:border-gray-400 focus:bg-white transition-all text-sm"
                                                 />
                                             </div>

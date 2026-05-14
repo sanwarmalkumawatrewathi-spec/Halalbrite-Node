@@ -214,7 +214,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                       }
                       const orgId = typeof event.organizer === 'object' ? event.organizer._id : event.organizer;
                       const result = await toggleFollowOrganizer(orgId);
-                      
+
                       if (result.success) {
                         // Update local follower count
                         setEvent((prev: any) => {
@@ -266,11 +266,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
               </div>
             </div>
 
-            {/* TICKETS SECTION */}
-            <div id="tickets" className="px-0 pb-6">
-              <TicketSelection tickets={event.ticketTypes} eventId={event._id} />
-              <p className="text-center text-gray-500 text-sm mt-4">Secure payment powered by Stripe</p>
-            </div>
+
           </div>
 
           {/* RIGHT SIDEBAR */}
@@ -356,6 +352,11 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
             </div>
           </div>
         </div>
+        {/* TICKETS SECTION */}
+        <div id="tickets" className="px-0 pb-6 mt-6">
+          <TicketSelection tickets={event.ticketTypes} eventId={event._id} />
+          <p className="text-center text-gray-500 text-sm mt-4">Secure payment powered by Stripe</p>
+        </div>
       </section>
 
       {/* Map Section */}
@@ -366,10 +367,10 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
           </div>
           <div className="px-6 pb-6 mt-4">
             <div className="rounded-xl overflow-hidden border border-gray-100">
-              <MapComponent 
-                center={event.location?.geometry?.coordinates} 
-                height="400px" 
-                containerClassName="w-full" 
+              <MapComponent
+                center={event.location?.geometry?.coordinates}
+                height="400px"
+                containerClassName="w-full"
               />
             </div>
           </div>
@@ -391,7 +392,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
           className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-300"
           onClick={() => setIsPopupOpen(false)}
         >
-          <div 
+          <div
             className="relative bg-black w-full max-w-[500px] h-full max-h-[700px] rounded-[30px] shadow-2xl flex flex-col items-center justify-center overflow-hidden animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}
           >

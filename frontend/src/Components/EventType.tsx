@@ -6,18 +6,18 @@ import { FiInstagram, FiYoutube, FiLink } from "react-icons/fi";
 const LIBRARIES: Libraries = ["places"];
 
 // Internal component that uses the Google Maps loader
-function EventTypeContent({ 
-  apiKey, 
-  form, 
-  setForm, 
-  onlyToggle, 
-  onlyLocation 
-}: { 
-  apiKey: string, 
-  form: any, 
-  setForm: any, 
-  onlyToggle?: boolean, 
-  onlyLocation?: boolean 
+function EventTypeContent({
+  apiKey,
+  form,
+  setForm,
+  onlyToggle,
+  onlyLocation
+}: {
+  apiKey: string,
+  form: any,
+  setForm: any,
+  onlyToggle?: boolean,
+  onlyLocation?: boolean
 }) {
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
 
@@ -46,9 +46,9 @@ function EventTypeContent({
           const route = place.address_components.find(c => c.types.includes("route"))?.long_name || "";
           address = `${streetNumber} ${route}`.trim() || place.name || "";
 
-          city = place.address_components.find(c => c.types.includes("locality"))?.long_name || 
-                 place.address_components.find(c => c.types.includes("postal_town"))?.long_name || 
-                 place.address_components.find(c => c.types.includes("administrative_area_level_2"))?.long_name || "";
+          city = place.address_components.find(c => c.types.includes("locality"))?.long_name ||
+            place.address_components.find(c => c.types.includes("postal_town"))?.long_name ||
+            place.address_components.find(c => c.types.includes("administrative_area_level_2"))?.long_name || "";
           postcode = place.address_components.find(c => c.types.includes("postal_code"))?.long_name || "";
           country = place.address_components.find(c => c.types.includes("country"))?.long_name || "";
 
@@ -120,7 +120,7 @@ function EventTypeContent({
           value={form.venue}
           onChange={handleChange}
           placeholder="e.g., Community Center Hall"
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+          className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
         />
       </div>
 
@@ -133,7 +133,7 @@ function EventTypeContent({
           value={form.address}
           onChange={handleChange}
           placeholder="123 Main Street (Autocomplete enabled)"
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+          className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
         />
         {isLoaded && <p className="text-[10px] text-green-600 font-medium px-1 italic">✓ Google Autocomplete enabled</p>}
       </div>
@@ -147,7 +147,7 @@ function EventTypeContent({
             value={form.city}
             onChange={handleChange}
             placeholder="London"
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+            className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
           />
         </div>
         <div className="space-y-1.5">
@@ -158,7 +158,7 @@ function EventTypeContent({
             value={form.postcode}
             onChange={handleChange}
             placeholder="SW1A 1AA"
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+            className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
           />
         </div>
         <div className="space-y-1.5">
@@ -169,7 +169,7 @@ function EventTypeContent({
             value={form.country}
             onChange={handleChange}
             placeholder="United Kingdom"
-            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+            className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
           />
         </div>
       </div>

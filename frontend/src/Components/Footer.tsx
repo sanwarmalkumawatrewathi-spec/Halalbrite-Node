@@ -28,10 +28,9 @@ export default function Footer() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                     <div className="sm:col-span-2 md:col-span-1">
                         <div className="flex items-center gap-2 mb-4 cursor-pointer hover:opacity-80 transition-opacity">
-                            <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar w-6 h-6 text-white"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path></svg>
-                            </div>
-                            <span>HalalBrite</span>
+                            <Link href="/" className="  logoside">
+                                <img src="/images/footer.png" alt="Logo" className="w-full img-fluid" />
+                            </Link>
                         </div>
                         <p className="text-red-100 text-sm">Connecting communities through meaningful halal events.</p>
                     </div>
@@ -65,7 +64,7 @@ export default function Footer() {
                     <div>
                         <h4 className="mb-4">Follow Us</h4>
                         <div className="flex gap-3 flex-wrap">
-                            <Link href="https://www.instagram.com/halalbrite/" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="Instagram">
+                            <Link href="https://www.instagram.com/Halalbrite/" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="Instagram">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram w-5 h-5 text-white/80"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line></svg>
                             </Link>
                             <Link href="https://www.facebook.com/people/Halalbrite/61567698940439/" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="Facebook">
@@ -77,7 +76,7 @@ export default function Footer() {
                             <Link href="#" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="Pinterest">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pin w-5 h-5 text-white/80"><path d="M12 17v5"></path><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"></path></svg>
                             </Link> */}
-                            <Link href="https://www.linkedin.com/company/halalbrite/" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="LinkedIn">
+                            <Link href="https://www.linkedin.com/company/Halalbrite/" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="LinkedIn">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-linkedin w-5 h-5 text-white/80"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect width="4" height="12" x="2" y="9"></rect><circle cx="4" cy="4" r="2"></circle></svg>
                             </Link>
                             {/* <Link href="#" className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors" aria-label="YouTube">
@@ -88,7 +87,7 @@ export default function Footer() {
                 </div>
 
                 <div className="border-t border-[#a30000] mt-8 pt-8 text-center text-red-100 text-sm">
-                    <p>© 2026 HalalBrite. All rights reserved.</p>
+                    <p>© 2026 Halalbrite. All rights reserved.</p>
                 </div>
             </div>
         </footer>

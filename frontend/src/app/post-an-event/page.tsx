@@ -18,7 +18,7 @@ function PostEventFormContent() {
       router.push('/login-register');
       return;
     }
-    
+
     if (!loading && user && !isOrganizer) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -63,9 +63,9 @@ function PostEventFormContent() {
               </div>
               <h3 className="text-2xl font-bold text-red-900 mb-2">Organiser Access Required</h3>
               <p className="text-gray-600 mb-6 leading-relaxed">
-                To create and publish events on HalalBrite, you need to upgrade your account to an Organiser profile.
+                To create and publish events on Halalbrite, you need to upgrade your account to an Organiser profile.
               </p>
-              <button 
+              <button
                 onClick={() => router.push('/myaccount')}
                 className="w-full bg-red-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-red-700 transition-all shadow-lg hover:shadow-red-200/50 flex items-center justify-center gap-2"
               >

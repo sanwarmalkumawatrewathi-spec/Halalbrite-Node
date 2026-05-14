@@ -71,7 +71,7 @@ export default function CustomersTab() {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `HalalBrite_Customers_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `Halalbrite_Customers_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -329,7 +329,7 @@ export default function CustomersTab() {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1">Recipient</label>
-                <div className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-gray-600 text-sm">
+                <div className="px-3 py-2 bg-gray-50 border borborder border-gray-200 rounded-lg text-gray-600 text-sm">
                   {selectedBooking?.customer_name} ({selectedBooking?.customer_email})
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function CustomersTab() {
                   type="text"
                   value={messageSubject}
                   onChange={(e) => setMessageSubject(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all text-sm"
+                  className="w-full px-4 py-2 borborder border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all text-sm"
                   placeholder="Enter subject..."
                 />
               </div>
@@ -351,7 +351,7 @@ export default function CustomersTab() {
                   rows={5}
                   value={messageContent}
                   onChange={(e) => setMessageContent(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all text-sm resize-none"
+                  className="w-full px-4 py-2 borborder border border-gray-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all text-sm resize-none"
                   placeholder="Write your message here..."
                 />
               </div>

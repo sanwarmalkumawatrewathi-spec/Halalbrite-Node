@@ -87,7 +87,7 @@ export default function SavedEvents() {
       {/* Header */}
       <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border mt-5">
         <div className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-4 sm:p-6">
-          <h1 className="text-xl font-bold text-gray-900">Saved Events</h1>
+          <h1 className="text-lg sm:text-xl">Saved Events</h1>
           <p className="text-sm text-gray-500">
             Events you're interested in
           </p>
@@ -109,51 +109,54 @@ export default function SavedEvents() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {savedEvents.map((event) => (
-                <div key={event._id} className="group relative flex flex-col bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition duration-300">
-                  {/* Banner */}
-                  <div className="h-40 overflow-hidden relative">
-                    <img
-                      src={event.banner ? (event.banner.startsWith('http') ? event.banner : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '')}${event.banner}`) : "/images/noimage.jpg"}
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                      onError={(e: any) => {
-                        e.target.onerror = null;
-                        e.target.src = "/images/noimage.jpg";
-                      }}
-                    />
-                    <div className="absolute top-3 right-3">
-                      <button
-                        onClick={() => unsaveEvent(event._id)}
-                        className="bg-white/90 backdrop-blur-sm p-2 rounded-full text-red-600 hover:bg-red-600 hover:text-white transition shadow-sm"
-                        title="Remove from saved"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
+                <Link href={`/event/${event.slug || event._id}`}>
+                  <div key={event._id} className="group relative flex flex-col bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:border-red-300 cursor-pointer transition duration-300">
+                    {/* Banner */}
+                    <div className="h-40 overflow-hidden relative">
+                      <img
+                        src={event.banner ? (event.banner.startsWith('http') ? event.banner : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '')}${event.banner}`) : "/images/noimage.jpg"}
+                        alt={event.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                        onError={(e: any) => {
+                          e.target.onerror = null;
+                          e.target.src = "/images/noimage.jpg";
+                        }}
+                      />
 
-                  {/* Info */}
-                  <div className="p-4 flex flex-col flex-grow">
-                    <div className="flex items-center gap-2 text-red-600 text-[10px] font-bold uppercase mb-2">
-                      <FaCalendarAlt />
-                      <span>{new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
-                    </div>
-                    <h3 className="font-bold text-gray-900 leading-tight mb-2 line-clamp-1">{event.title}</h3>
-                    <div className="flex items-center gap-2 text-gray-500 text-xs mb-4">
-                      <FaMapMarkerAlt />
-                      <span className="line-clamp-1">{event.location.venueName || event.location.city}</span>
                     </div>
 
-                    <div className="mt-auto flex items-center justify-between border-t border-gray-50 pt-3">
-                      <span className="font-bold text-gray-900 text-sm">{event.priceLabel}</span>
-                      <Link href={`/event/${event.slug || event._id}`} className="text-red-600 text-xs font-bold hover:underline">
-                        Details →
-                      </Link>
+                    {/* Info */}
+                    <div className="p-4 flex flex-col flex-grow">
+
+                      <h3 className="font-bold text-gray-900 leading-tight text-[18px] mb-2 line-clamp-1">{event.title}</h3>
+                      <div className="flex items-center gap-2 text-gray-600 text-[16px]  uppercase mb-0">
+                        <span>{new Date(event.startDate).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </div>
+                      <div className="text-gray-600 text-[16px] mb-4">
+                        <span className="line-clamp-1">{event.location.venueName || event.location.city}</span>
+                      </div>
+
+                      <div className="mt-auto flex gap-5 items-center justify-between border-t border-gray-50 pt-3">
+                        <Link href={`/event/${event.slug || event._id}`} className="text-white inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary-foreground rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 flex-1 bg-red-600 hover:bg-red-700 text-xs sm:text-sm h-8 sm:h-9">
+                          Get Tickets
+                        </Link>
+                        <div className=" ">
+                          <button
+                            onClick={() => unsaveEvent(event._id)}
+                            className="bg-white/90 backdrop-blur-sm p-2 cursor-pointer rounded-[5px] border-[1px solid #999999ff] text-red-600 hover:bg-red-600 hover:text-white transition shadow-sm"
+                            title="Remove from saved"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
-                </div>
+                </Link>
+
               ))}
             </div>
           )}

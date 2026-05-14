@@ -21,7 +21,7 @@ export default function RefundPolicy() {
             </div>
             <p className="text-red-100 max-w-2xl text-lg">We aim to ensure fairness for both attendees and organizers. Please read our refund terms carefully.</p>
           </div>
-          
+
           <div className="p-8 sm:p-12 space-y-10">
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -29,11 +29,11 @@ export default function RefundPolicy() {
                 General Policy
               </h2>
               <div className="prose prose-gray max-w-none text-gray-600">
-                <p className="mb-4">HalalBrite operates as a platform connecting event organizers with attendees. As such, refund policies may vary by event and are primarily set by the event organizer. However, we enforce a baseline standard to protect our community.</p>
-                <p>Tickets purchased on HalalBrite are generally non-refundable unless the event is cancelled, postponed, or materially altered.</p>
+                <p className="mb-4">Halalbrite operates as a platform connecting event organizers with attendees. As such, refund policies may vary by event and are primarily set by the event organizer. However, we enforce a baseline standard to protect our community.</p>
+                <p>Tickets purchased on Halalbrite are generally non-refundable unless the event is cancelled, postponed, or materially altered.</p>
               </div>
             </section>
-            
+
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <CircleAlert className="w-5 h-5 text-red-600" />
@@ -52,7 +52,7 @@ export default function RefundPolicy() {
                 </ul>
               </div>
             </section>
-            
+
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Refund Request Process</h2>
               <div className="space-y-4 text-gray-600">
@@ -63,10 +63,10 @@ export default function RefundPolicy() {
                   <li>Click "Request Refund" and select the reason.</li>
                   <li>The organizer will review your request within 5 business days.</li>
                 </ol>
-                <p className="text-sm text-gray-500 mt-4">Note: If an organizer does not respond within 7 days, you may escalate the issue to HalalBrite support.</p>
+                <p className="text-sm text-gray-500 mt-4">Note: If an organizer does not respond within 7 days, you may escalate the issue to Halalbrite support.</p>
               </div>
             </section>
-            
+
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <CircleHelp className="w-5 h-5 text-red-600" />

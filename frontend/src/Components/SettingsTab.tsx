@@ -105,7 +105,7 @@ export default function SettingsTab() {
         <div data-slot="card" className="text-gray-900 flex flex-col gap-6 rounded-xl border border-red-200 bg-gradient-to-br from-red-50 to-white shadow-sm">
           <div data-slot="card-header" className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-4 sm:p-6">
             <h4 data-slot="card-title" className="text-red-900 text-lg sm:text-xl">Become an Event Organiser</h4>
-            <p data-slot="card-description" className="text-gray-500 text-sm">Start hosting and managing your own events on HalalBrite</p>
+            <p data-slot="card-description" className="text-gray-500 text-sm">Start hosting and managing your own events on Halalbrite</p>
           </div>
           <div data-slot="card-content" className="[&:last-child]:pb-6 p-4 sm:p-6">
             <div className="space-y-3 sm:space-y-4">

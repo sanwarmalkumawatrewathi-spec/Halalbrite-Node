@@ -18,7 +18,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
     const [categories, setCategories] = useState<any[]>([]);
     const [organisations, setOrganisations] = useState<any[]>([]);
     const [isLoadingOrganisations, setIsLoadingOrganisations] = useState(false);
-    
+
     // Modal states
     const [showReview, setShowReview] = useState(false);
     const [showBecomeOrganizer, setShowBecomeOrganizer] = useState(false);
@@ -255,7 +255,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         ];
 
         const missing = required.filter(r => !form[r.field as keyof typeof form]);
-        
+
         if (missing.length > 0) {
             setStatus({ type: "error", message: `Please complete the following fields: ${missing.map(m => m.label).join(', ')}` });
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -453,7 +453,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                             value={form.title}
                             onChange={handleChange}
                             placeholder="e.g., Annual Islamic Conference 2025"
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+                            className="w-full border border-gray-200 borborder rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                             required
                         />
                     </div>
@@ -575,7 +575,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                 name="category"
                                 value={form.category}
                                 onChange={handleChange}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none appearance-none transition-all"
+                                className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none appearance-none transition-all"
                                 required
                             >
                                 <option value="">Select a category</option>
@@ -616,7 +616,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                         organizerName: selectedOrg ? selectedOrg.name : (user?.username || "")
                                     }));
                                 }}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all appearance-none"
+                                className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all appearance-none"
                             >
                                 <option value="">No organiser (your name will show)</option>
                                 {organisations.map(org => (
@@ -663,7 +663,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                 name="startDate"
                                 value={form.startDate}
                                 onChange={handleChange}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+                                className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                                 required
                             />
                         </div>
@@ -678,7 +678,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                 name="endDate"
                                 value={form.endDate}
                                 onChange={handleChange}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+                                className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                                 required
                             />
                         </div>
@@ -693,7 +693,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                 name="startTime"
                                 value={form.startTime}
                                 onChange={handleChange}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+                                className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                                 required
                             />
                         </div>
@@ -708,14 +708,14 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                 name="endTime"
                                 value={form.endTime}
                                 onChange={handleChange}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+                                className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                                 required
                             />
                         </div>
                     </div>
 
                     {/* Event Type Section (Part of Card 1 footer in image) */}
-                    <div className="pt-6 border-t border-gray-100">
+                    <div className=" border p-6 border-gray-100 borborder rounded-xl">
                         <EventType form={form} setForm={setForm} onlyToggle={true} />
                     </div>
                 </div>
@@ -788,10 +788,10 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             />
 
             {showSuccess && (
-                <PublishSuccess 
+                <PublishSuccess
                     onClose={() => setShowSuccess(false)}
-                    eventId={publishedEventId} 
-                    slug={publishedEventSlug} 
+                    eventId={publishedEventId}
+                    slug={publishedEventSlug}
                 />
             )}
         </div>

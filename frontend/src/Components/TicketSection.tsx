@@ -114,7 +114,7 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                         value={t.name}
                                         onChange={(e) => handleChange(i, "name", e.target.value)}
                                         placeholder="General Admission"
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
+                                        className="w-full border border-gray-200 borborder rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
                                     />
                                 </div>
 
@@ -124,7 +124,7 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                         value={t.description}
                                         onChange={(e) => handleChange(i, "description", e.target.value)}
                                         placeholder="Standard entry ticket"
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
+                                        className="w-full border border-gray-200 borborder rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
                                     />
                                 </div>
 
@@ -138,7 +138,7 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                                 value={t.price}
                                                 onChange={(e) => handleChange(i, "price", e.target.value)}
                                                 placeholder="25"
-                                                className="w-full border border-gray-200 rounded-xl pl-8 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
+                                                className="w-full border border-gray-200 borborder rounded-xl pl-8 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
                                             />
                                         </div>
                                     </div>
@@ -150,7 +150,7 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                             value={t.quantity}
                                             onChange={(e) => handleChange(i, "quantity", e.target.value)}
                                             placeholder="100"
-                                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
+                                            className="w-full border border-gray-200 borborder rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
                                         />
                                     </div>
                                 </div>
@@ -172,13 +172,13 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                                     type="date"
                                                     value={t.saleStartDate}
                                                     onChange={(e) => handleChange(i, "saleStartDate", e.target.value)}
-                                                    className="w-full border border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-red-100 outline-none bg-white"
+                                                    className="w-full border borborder border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-red-100 outline-none bg-white"
                                                 />
                                                 <input
                                                     type="time"
                                                     value={t.saleStartTime}
                                                     onChange={(e) => handleChange(i, "saleStartTime", e.target.value)}
-                                                    className="w-full border border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-red-100 outline-none bg-white"
+                                                    className="w-full border  borborder border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-red-100 outline-none bg-white"
                                                 />
                                             </div>
                                         </div>
@@ -192,13 +192,13 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                                     type="date"
                                                     value={t.saleEndDate}
                                                     onChange={(e) => handleChange(i, "saleEndDate", e.target.value)}
-                                                    className="w-full border border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-red-100 outline-none bg-white"
+                                                    className="w-full border borborder border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-red-100 outline-none bg-white"
                                                 />
                                                 <input
                                                     type="time"
                                                     value={t.saleEndTime}
                                                     onChange={(e) => handleChange(i, "saleEndTime", e.target.value)}
-                                                    className="w-full border border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-red-100 outline-none bg-white"
+                                                    className="w-full border borborder border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-red-100 outline-none bg-white"
                                                 />
                                             </div>
                                         </div>

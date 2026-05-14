@@ -21,7 +21,7 @@ export default function HalalStandards() {
             </div>
             <p className="text-emerald-100 max-w-2xl text-lg">Our commitment to ensuring all events on our platform adhere to Islamic principles.</p>
           </div>
-          
+
           <div className="p-8 sm:p-12 space-y-10">
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
@@ -29,10 +29,10 @@ export default function HalalStandards() {
                 Our Promise
               </h2>
               <div className="prose prose-gray max-w-none text-gray-600">
-                <p className="mb-4">HalalBrite is dedicated to providing a safe, inclusive, and shariah-compliant environment for our community. We vet all organizers and events to ensure they align with our core values.</p>
+                <p className="mb-4">Halalbrite is dedicated to providing a safe, inclusive, and shariah-compliant environment for our community. We vet all organizers and events to ensure they align with our core values.</p>
               </div>
             </section>
-            
+
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Info className="w-5 h-5 text-emerald-600" />
@@ -59,7 +59,7 @@ export default function HalalStandards() {
                 </ul>
               </div>
             </section>
-            
+
             <section>
               <h2 className="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <TriangleAlert className="w-5 h-5 text-emerald-600" />

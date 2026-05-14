@@ -135,7 +135,7 @@ function TicketPreviewContent() {
                                         <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                                     </div>
                                     <div className="min-w-0">
-                                        <h2 className="text-red-900 text-lg sm:text-xl font-normal">HalalBrite</h2>
+                                        <h2 className="text-red-900 text-lg sm:text-xl font-normal">Halalbrite</h2>
                                         <p className="text-red-600 text-xs sm:text-sm font-medium uppercase tracking-wider">Event Ticket</p>
                                     </div>
                                 </div>
@@ -270,7 +270,7 @@ function TicketPreviewContent() {
                             {/* Support Footer */}
                             <div className="mt-10 pt-6 border-t-2 border-red-200 text-center">
                                 <p className="text-gray-500 text-xs sm:text-sm mb-2 font-medium">
-                                    For support or inquiries, contact: <span className="text-red-600 font-bold">support@halalbrite.com</span>
+                                    For support or inquiries, contact: <span className="text-red-600 font-bold">support@Halalbrite.com</span>
                                 </p>
                                 <p className="text-gray-400 text-[10px] uppercase font-bold tracking-wider">
                                     This ticket is non-refundable but transferable. Valid for one-time entry only.

@@ -353,7 +353,7 @@ export default function OrganiserTab() {
         <div data-slot="card-content" className="px-6 [&amp;:last-child]:pb-6 p-6 pt-0">
 
           {isFormOpen && (
-            <form onSubmit={handleSubmit} className="mb-8 bg-red-50/40 border border-red-100 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
+            <form onSubmit={handleSubmit} className="mb-8 bg-red-50 border border-red-100 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
               <div>
                 <h3 className="text-lg font-bold text-red-900">{editingId ? 'Edit Organisation' : 'Add New Organisation'}</h3>
                 <p className="text-sm text-red-700/70">Organisation profiles can be linked to events when creating them</p>
@@ -369,7 +369,7 @@ export default function OrganiserTab() {
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="e.g., Islamic Conference Society"
-                    className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                    className="w-full border bg-white border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
                   />
                 </div>
 
@@ -414,6 +414,7 @@ export default function OrganiserTab() {
 
                   {!formData.logo && (
                     <>
+
                       <div className="flex items-center gap-4 my-4">
                         <div className="flex-1 h-px bg-gray-200"></div>
                         <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">OR USE URL</span>
@@ -425,8 +426,8 @@ export default function OrganiserTab() {
                         name="logo"
                         value={formData.logo}
                         onChange={handleInputChange}
-                        placeholder="halalbrite.com/logo.png"
-                        className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                        placeholder="Halalbrite.com/logo.png"
+                        className="w-full border bg-white border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
                       />
                       <p className="text-xs text-gray-500 mt-1">Paste a URL to your organisation's logo</p>
                     </>
@@ -441,7 +442,7 @@ export default function OrganiserTab() {
                     value={formData.website}
                     onChange={handleInputChange}
                     placeholder="yourorganisation.com"
-                    className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                    className="w-full border bg-white border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
                   />
                 </div>
 
@@ -454,7 +455,7 @@ export default function OrganiserTab() {
                     value={formData.bio}
                     onChange={handleInputChange}
                     placeholder="Tell attendees about your organisation..."
-                    className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
+                    className="w-full border bg-white border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"
                   />
                 </div>
 
@@ -484,7 +485,7 @@ export default function OrganiserTab() {
                             value={suggestedCategoryName}
                             onChange={(e) => setSuggestedCategoryName(e.target.value)}
                             placeholder="Enter custom category name..."
-                            className="flex-1 border border-red-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                            className="flex-1 border bg-white border-red-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-red-500 outline-none"
                             autoFocus
                           />
                           <button
@@ -522,27 +523,27 @@ export default function OrganiserTab() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiFacebook className="text-[#1877F2]" /> Facebook</label>
-                      <input type="text" name="facebook" value={formData.socialLinks.facebook} onChange={handleSocialChange} placeholder="facebook.com/yourpage" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="facebook" value={formData.socialLinks.facebook} onChange={handleSocialChange} placeholder="facebook.com/yourpage" className="w-full  bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiInstagram className="text-[#E4405F]" /> Instagram</label>
-                      <input type="text" name="instagram" value={formData.socialLinks.instagram} onChange={handleSocialChange} placeholder="instagram.com/yourpage" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="instagram" value={formData.socialLinks.instagram} onChange={handleSocialChange} placeholder="instagram.com/yourpage" className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiLinkedin className="text-[#0A66C2]" /> LinkedIn</label>
-                      <input type="text" name="linkedin" value={formData.socialLinks.linkedin} onChange={handleSocialChange} placeholder="linkedin.com/company/yourcompany" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="linkedin" value={formData.socialLinks.linkedin} onChange={handleSocialChange} placeholder="linkedin.com/company/yourcompany" className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiTwitter className="text-[#1DA1F2]" /> Twitter</label>
-                      <input type="text" name="twitter" value={formData.socialLinks.twitter} onChange={handleSocialChange} placeholder="twitter.com/yourhandle" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="twitter" value={formData.socialLinks.twitter} onChange={handleSocialChange} placeholder="twitter.com/yourhandle" className="w-full  bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiYoutube className="text-[#FF0000]" /> YouTube</label>
-                      <input type="text" name="youtube" value={formData.socialLinks.youtube} onChange={handleSocialChange} placeholder="youtube.com/@yourchannel" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="youtube" value={formData.socialLinks.youtube} onChange={handleSocialChange} placeholder="youtube.com/@yourchannel" className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiLink className="text-gray-500" /> Other Website</label>
-                      <input type="text" name="otherWebsite" value={formData.socialLinks.otherWebsite} onChange={handleSocialChange} placeholder="yourwebsite.com" className="w-full border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
+                      <input type="text" name="otherWebsite" value={formData.socialLinks.otherWebsite} onChange={handleSocialChange} placeholder="yourwebsite.com" className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-sm outline-none" />
                     </div>
                   </div>
                 </div>

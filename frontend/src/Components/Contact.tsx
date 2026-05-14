@@ -138,7 +138,7 @@ export default function Contact() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <h4 className="text-gray-900 mb-1 text-sm sm:text-base">Email</h4>
-                    <a href="mailto:contact@halalbrite.com" className="text-gray-600 hover:text-red-600 transition-colors text-sm sm:text-base break-all">contact@halalbrite.com</a>
+                    <a href="mailto:contact@Halalbrite.com" className="text-gray-600 hover:text-red-600 transition-colors text-sm sm:text-base break-all">contact@Halalbrite.com</a>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 sm:gap-4">
@@ -197,7 +197,7 @@ export default function Contact() {
         <div className="mb-12 sm:mb-16">
           <div className="text-center mb-8 sm:mb-10 md:mb-12 px-4">
             <h2 className="text-red-900 mb-3 sm:mb-4 text-xl sm:text-2xl md:text-3xl">Frequently Asked Questions</h2>
-            <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">Quick answers to common questions about HalalBrite</p>
+            <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">Quick answers to common questions about Halalbrite</p>
           </div>
           <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
             <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0">

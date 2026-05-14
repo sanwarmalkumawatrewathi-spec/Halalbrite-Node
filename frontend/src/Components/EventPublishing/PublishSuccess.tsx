@@ -17,11 +17,11 @@ export default function PublishSuccess({ eventId, slug }: PublishSuccessProps) {
         <div className="bg-red-600 p-12 text-center text-white relative">
           <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center mx-auto mb-6 rotate-12">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L15 8H21L16 12L18 18L12 14L6 18L8 12L3 8H9L12 2Z" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 2L15 8H21L16 12L18 18L12 14L6 18L8 12L3 8H9L12 2Z" fill="white" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <h2 className="text-4xl font-black mb-2 tracking-tight">Congratulations!</h2>
-          <p className="text-red-100 text-lg font-medium">Your event is now live on HalalBrite</p>
+          <p className="text-red-100 text-lg font-medium">Your event is now live on Halalbrite</p>
         </div>
 
         <div className="p-10 space-y-10">
@@ -38,7 +38,7 @@ export default function PublishSuccess({ eventId, slug }: PublishSuccessProps) {
             </p>
             <ul className="space-y-4">
               {[
-                "Your event is visible to all users on HalalBrite",
+                "Your event is visible to all users on Halalbrite",
                 "Tickets are available for purchase immediately",
                 "Track sales and analytics in your Organiser Dashboard",
                 "Connect Stripe to receive payouts from ticket sales"

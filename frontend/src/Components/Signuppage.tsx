@@ -15,13 +15,13 @@ import FacebookLogin from 'react-facebook-login/dist/facebook-login-render-props
 export default function Signuppage() {
   const [tab, setTab] = useState<TabType>("login");
   const [role, setRole] = useState<RoleType>("attendee");
-  
+
   // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [username, setUsername] = useState("");
-  
+
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -109,14 +109,14 @@ export default function Signuppage() {
   return (
     <div className="flex-1 flex items-center justify-center p-4 bg-gray-50 min-h-[80vh] w-full pb-20">
       <div className="w-full max-w-md">
-        
+
         {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4 cursor-pointer hover:opacity-80 transition-opacity">
             <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-32 h-32">
               <text x="50" y="60" textAnchor="middle" fill="#DC2626" fontSize="60" fontFamily="cursive, 'Apple Chancery', 'Comic Sans MS', fantasy" fontWeight="700" strokeWidth="2.5" stroke="#DC2626" paintOrder="stroke">H</text>
               <circle cx="50" cy="38" r="3" fill="#EF4444"></circle>
-              <text x="50" y="92" textAnchor="middle" fill="#DC2626" fontSize="24" fontFamily="'Trebuchet MS', 'Arial Rounded MT Bold', Verdana, sans-serif" fontWeight="700">HalalBrite</text>
+              <text x="50" y="92" textAnchor="middle" fill="#DC2626" fontSize="24" fontFamily="'Trebuchet MS', 'Arial Rounded MT Bold', Verdana, sans-serif" fontWeight="700">Halalbrite</text>
             </svg>
           </div>
           <p className="text-gray-600">Connect with your community</p>
@@ -127,15 +127,15 @@ export default function Signuppage() {
           <div className="flex flex-col gap-2 w-full">
             {/* Tabs List */}
             <div className="h-9 items-center justify-center rounded-xl grid w-full grid-cols-2 p-1 bg-red-50 rounded-t-2xl">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => { setTab("login"); setError(""); }}
                 className={`inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-all rounded-xl ${tab === "login" ? "bg-white text-red-700 shadow-sm" : "text-gray-500 hover:text-red-600"}`}
               >
                 Log In
               </button>
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={() => { setTab("signup"); setError(""); }}
                 className={`inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-all rounded-xl ${tab === "signup" ? "bg-white text-red-700 shadow-sm" : "text-gray-500 hover:text-red-600"}`}
               >
@@ -151,18 +151,18 @@ export default function Signuppage() {
               {/* Form Content */}
               {tab === "login" && (
                 <div className="space-y-4 mt-2">
-                  
+
                   {/* Social Buttons (Login) */}
                   <div className="space-y-3">
                     {socialSettings?.google?.isActive && (
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => googleLoginHandler()}
                         className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all h-9 px-4 py-2 w-full rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700"
                       >
                         <div className="w-5 h-5 mr-2 bg-red-500 rounded-full flex items-center justify-center">
                           <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
+                            <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
                           </svg>
                         </div>
                         Continue with Google
@@ -174,14 +174,14 @@ export default function Signuppage() {
                         appId={socialSettings.meta.clientId || ""}
                         callback={responseFacebook}
                         render={(renderProps: any) => (
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={renderProps.onClick}
                             className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all h-9 px-4 py-2 w-full rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700"
                           >
                             <div className="w-5 h-5 mr-2 bg-blue-600 rounded flex items-center justify-center">
                               <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                               </svg>
                             </div>
                             Continue with Meta
@@ -206,37 +206,37 @@ export default function Signuppage() {
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className="flex items-center gap-2 text-sm leading-none font-medium text-gray-700" htmlFor="login-email">Email</label>
-                      <input 
-                        type="email" 
-                        id="login-email" 
-                        placeholder="your@email.com" 
+                      <input
+                        type="email"
+                        id="login-email"
+                        placeholder="your@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1" 
+                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1"
                         required
                       />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-sm leading-none font-medium text-gray-700" htmlFor="login-password">Password</label>
-                      <input 
-                        type="password" 
-                        id="login-password" 
-                        placeholder="••••••••" 
+                      <input
+                        type="password"
+                        id="login-password"
+                        placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1" 
+                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1"
                         required
                       />
                     </div>
-                    
+
                     <div className="text-right">
                       <button type="button" className="text-sm font-medium transition-all text-red-600 hover:underline p-0 h-auto">
                         Forgot password?
                       </button>
                     </div>
-                    
-                    <button 
-                      type="submit" 
+
+                    <button
+                      type="submit"
                       disabled={loading}
                       className={`inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all text-white h-9 px-4 py-2 w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
                     >
@@ -255,8 +255,8 @@ export default function Signuppage() {
                       <div>
                         <label className="items-center gap-2 text-sm leading-none font-medium text-red-900 mb-3 block">Choose Account Type</label>
                         <div className="grid grid-cols-2 gap-3">
-                          
-                          <div 
+
+                          <div
                             onClick={() => setRole("attendee")}
                             className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${role === "attendee" ? "border-red-500 bg-red-50" : "border-gray-200 bg-white hover:border-red-300"}`}
                           >
@@ -271,7 +271,7 @@ export default function Signuppage() {
                             </div>
                           </div>
 
-                          <div 
+                          <div
                             onClick={() => setRole("organiser")}
                             className={`cursor-pointer rounded-xl border-2 p-4 transition-all ${role === "organiser" ? "border-red-500 bg-red-50" : "border-gray-200 bg-white hover:border-red-300"}`}
                           >
@@ -294,14 +294,14 @@ export default function Signuppage() {
                   {/* Social Buttons (Signup) */}
                   <div className="space-y-3">
                     {socialSettings?.google?.isActive && (
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         onClick={() => googleLoginHandler()}
                         className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all h-9 px-4 py-2 w-full rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700"
                       >
                         <div className="w-5 h-5 mr-2 bg-red-500 rounded-full flex items-center justify-center">
                           <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
+                            <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
                           </svg>
                         </div>
                         Continue with Google
@@ -313,14 +313,14 @@ export default function Signuppage() {
                         appId={socialSettings.meta.clientId || ""}
                         callback={responseFacebook}
                         render={(renderProps: any) => (
-                          <button 
-                            type="button" 
+                          <button
+                            type="button"
                             onClick={renderProps.onClick}
                             className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all h-9 px-4 py-2 w-full rounded-xl border-2 border-gray-200 hover:bg-gray-50 text-gray-700"
                           >
                             <div className="w-5 h-5 mr-2 bg-blue-600 rounded flex items-center justify-center">
                               <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                               </svg>
                             </div>
                             Continue with Meta
@@ -345,57 +345,57 @@ export default function Signuppage() {
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                       <label className="flex items-center gap-2 text-sm leading-none font-medium text-gray-700" htmlFor="signup-username">Username</label>
-                      <input 
-                        type="text" 
-                        id="signup-username" 
-                        placeholder="johndoe" 
+                      <input
+                        type="text"
+                        id="signup-username"
+                        placeholder="johndoe"
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
-                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1" 
+                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1"
                         required
                       />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-sm leading-none font-medium text-gray-700" htmlFor="signup-email">Email</label>
-                      <input 
-                        type="email" 
-                        id="signup-email" 
-                        placeholder="your@email.com" 
+                      <input
+                        type="email"
+                        id="signup-email"
+                        placeholder="your@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1" 
+                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1"
                         required
                       />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-sm leading-none font-medium text-gray-700" htmlFor="signup-password">Password</label>
-                      <input 
-                        type="password" 
-                        id="signup-password" 
-                        placeholder="••••••••" 
+                      <input
+                        type="password"
+                        id="signup-password"
+                        placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1" 
+                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1"
                         required
                       />
                     </div>
                     <div>
                       <label className="flex items-center gap-2 text-sm leading-none font-medium text-gray-700" htmlFor="confirm-password">Confirm Password</label>
-                      <input 
-                        type="password" 
-                        id="confirm-password" 
-                        placeholder="••••••••" 
+                      <input
+                        type="password"
+                        id="confirm-password"
+                        placeholder="••••••••"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1" 
+                        className="flex h-9 w-full min-w-0 border border-gray-300 px-3 py-1 text-base bg-white transition-all outline-none md:text-sm focus-visible:ring-2 focus-visible:ring-red-400 rounded-xl mt-1"
                         required
                       />
                     </div>
 
                     <p className="text-gray-500 text-sm">By signing up, you agree to our Terms of Service and Privacy Policy</p>
 
-                    <button 
-                      type="submit" 
+                    <button
+                      type="submit"
                       disabled={loading}
                       className={`inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-all text-white h-9 px-4 py-2 w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
                     >

@@ -54,7 +54,7 @@ export default function AccountTabs() {
   const [activeTab, setActiveTab] = useState("profile");
 
   return (
-    <div className="max-w-7xl mx-auto" suppressHydrationWarning>
+    <div className="max-w-7xl mx-auto max-w-7xl2" suppressHydrationWarning>
 
       {/* Heading */}
       <div className="mb-4 sm:mb-6">

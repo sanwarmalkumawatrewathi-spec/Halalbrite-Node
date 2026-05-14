@@ -680,7 +680,7 @@ export default function HowItWorks() {
                     className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                     <span className="text-red-600">2</span></div>
                   <h4 className="text-gray-900 mb-2">Platform Fee Deducted</h4>
-                  <p className="text-gray-600 text-sm">HalalBrite's platform fee is
+                  <p className="text-gray-600 text-sm">Halalbrite's platform fee is
                     automatically calculated</p>
                 </div>
                 <div className="text-center">

@@ -71,7 +71,7 @@ export default function Careers() {
           <section>
             <div className="text-center mb-8 sm:mb-10 md:mb-12 px-4">
               <h2 className="mb-3 sm:mb-4 text-gray-900 text-xl sm:text-2xl md:text-3xl">Our Values</h2>
-              <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">These principles guide everything we do at HalalBrite</p>
+              <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">These principles guide everything we do at Halalbrite</p>
             </div>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
 
@@ -274,7 +274,7 @@ export default function Careers() {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-5 md:p-6">
                   <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 text-lg sm:text-xl">4</div>
                   <h3 className="mb-1.5 sm:mb-2 text-sm sm:text-base md:text-lg font-medium">Offer</h3>
-                  <p className="text-red-100 text-xs sm:text-sm md:text-base">Join the HalalBrite family!</p>
+                  <p className="text-red-100 text-xs sm:text-sm md:text-base">Join the Halalbrite family!</p>
                 </div>
               </div>
 
