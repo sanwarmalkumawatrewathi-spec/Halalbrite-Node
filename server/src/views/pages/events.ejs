@@ -16,49 +16,88 @@
                 </tr>
             </thead>
             <tbody>
-                <% if (events.length === 0) { %>
-                    <tr><td colspan="6" class="text-center text-muted" style="padding: 3rem;">No events found.</td></tr>
-                <% } else { %>
-                    <% events.forEach(event => { %>
-                        <tr>
-                            <td>
-                                <div style="display: flex; gap: 12px; align-items: center;">
-                                    <img src="<%= event.thumbnail %>" style="width: 50px; height: 35px; border-radius: 6px; object-fit: cover; background: #f1f5f9;">
-                                    <div>
-                                        <span class="customer-name"><%= event.title %></span><br>
-                                        <span class="customer-email"><%= event.price === 0 ? 'Free' : 'From ' + formatPrice(event.price) %></span>
+                <% if (events.length===0) { %>
+                    <tr>
+                        <td colspan="6" class="text-center text-muted" style="padding: 3rem;">No events found.</td>
+                    </tr>
+                    <% } else { %>
+                        <% events.forEach(event=> { %>
+                            <tr>
+                                <td>
+                                    <div style="display: flex; gap: 12px; align-items: center;">
+                                        <img src="<%= event.thumbnail %>"
+                                            style="width: 50px; height: 35px; border-radius: 6px; object-fit: cover; background: #f1f5f9;">
+                                        <div>
+                                            <span class="customer-name">
+                                                <%= event.title %>
+                                            </span><br>
+                                            <span class="customer-email">
+                                                <%= event.price===0 ? 'Free' : 'From ' + formatPrice(event.price) %>
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td>
-                                <span class="customer-name"><%= event.organizer ? event.organizer.username : 'Deleted' %></span>
-                            </td>
-                            <td>
-                                <span class="badge" style="background: #fff7ed; color: #9a3412;">
-                                    <%= event.category ? event.category.name : 'Uncategorized' %>
-                                </span>
-                            </td>
-                            <td class="text-muted">
-                                <%= new Date(event.startDate).toLocaleDateString() %>
-                            </td>
-                            <td>
-                                <span class="badge <%= event.status === 'published' ? 'badge-success' : 'badge-warning' %>">
-                                    <%= event.status.charAt(0).toUpperCase() + event.status.slice(1) %>
-                                </span>
-                            </td>
-                            <td>
-                                <div style="display: flex; gap: 5px;">
-                                    <a href="/admin/events/view/<%= event._id %>" class="btn btn-sm btn-ghost" title="View"><i class="fa-solid fa-eye"></i></a>
-                                    <a href="/admin/events/edit/<%= event._id %>" class="btn btn-sm btn-ghost" title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
-                                    <form action="/admin/events/delete/<%= event._id %>" method="POST" onsubmit="return confirm('Delete event?')">
-                                        <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--danger);"><i class="fa-solid fa-trash"></i></button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    <% }) %>
-                <% } %>
+                                </td>
+                                <td>
+                                    <span class="customer-name">
+                                        <%= event.organizer ? event.organizer.username : 'Deleted' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background: #fff7ed; color: #9a3412;">
+                                        <%= event.category ? event.category.name : 'Uncategorized' %>
+                                    </span>
+                                </td>
+                                <td class="text-muted">
+                                    <%= new Date(event.startDate).toLocaleDateString() %>
+                                </td>
+                                <td>
+                                    <span
+                                        class="badge <%= event.status === 'published' ? 'badge-success' : 'badge-warning' %>">
+                                        <%= event.status.charAt(0).toUpperCase() + event.status.slice(1) %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; gap: 5px;">
+                                        <a href="/admin/events/view/<%= event._id %>" class="btn btn-sm btn-ghost"
+                                            title="View"><i class="fa-solid fa-eye"></i></a>
+                                        <a href="/admin/events/edit/<%= event._id %>" class="btn btn-sm btn-ghost"
+                                            title="Edit"><i class="fa-solid fa-pen-to-square"></i></a>
+                                        <form action="/admin/events/delete/<%= event._id %>" method="POST"
+                                            onsubmit="return confirm('Delete event?')">
+                                            <button type="submit" class="btn btn-sm btn-ghost"
+                                                style="color: var(--danger);"><i class="fa-solid fa-trash"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            <% }) %>
+                                <% } %>
             </tbody>
         </table>
     </div>
+
+    <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
+        <div class="card-footer" style="padding: 1.5rem; border-top: 1px solid #f1f5f9;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="text-muted text-sm">
+                    Showing <%= (typeof currentPage !== 'undefined' ? (currentPage - 1) * 20 + 1 : 1) %> to <%= Math.min((typeof currentPage !== 'undefined' ? currentPage * 20 : 20), (typeof totalRecords !== 'undefined' ? totalRecords : 0)) %> of <%= (typeof totalRecords !== 'undefined' ? totalRecords : 0) %> events
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <% if (typeof currentPage !== 'undefined' && currentPage > 1) { %>
+                        <a href="/admin/events?page=<%= currentPage - 1 %>" class="btn btn-outline btn-sm">Previous</a>
+                    <% } %>
+                    
+                    <% if (typeof currentPage !== 'undefined' && typeof totalPages !== 'undefined') { %>
+                        <% for(let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
+                            <a href="/admin/events?page=<%= i %>" class="btn btn-sm <%= i === currentPage ? 'btn-primary' : 'btn-outline' %>"><%= i %></a>
+                        <% } %>
+                    <% } %>
+                    
+                    <% if (typeof currentPage !== 'undefined' && typeof totalPages !== 'undefined' && currentPage < totalPages) { %>
+                        <a href="/admin/events?page=<%= currentPage + 1 %>" class="btn btn-outline btn-sm">Next</a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    <% } %>
 </div>

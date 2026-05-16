@@ -634,11 +634,14 @@ exports.createOrganisation = async (req, res) => {
 // @access  Private/Organizer
 exports.updateOrganisation = async (req, res) => {
     try {
-        const organisation = await Organizer.findOneAndUpdate(
-            { _id: req.params.id, user: req.user._id },
-            req.body,
-            { new: true, runValidators: true }
-        );
+        const organisation = await Organizer.findOne({ _id: req.params.id, user: req.user._id });
+        
+        if (!organisation) {
+            return res.status(404).json({ success: false, message: 'Organisation not found' });
+        }
+
+        Object.assign(organisation, req.body);
+        await organisation.save();
 
         if (!organisation) {
             return res.status(404).json({ success: false, message: 'Organisation not found' });

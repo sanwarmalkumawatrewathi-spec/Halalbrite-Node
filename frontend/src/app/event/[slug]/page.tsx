@@ -166,7 +166,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
               <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0">
                 {event.organizer ? (
-                  <Link href={`/organiser/${event.organizer.slug || (typeof event.organizer === 'object' ? event.organizer._id : event.organizer)}`} className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0 group">
+                  <Link href={`/organiser/${event.organizer.slug || (event.organizer && typeof event.organizer === 'object' ? event.organizer._id : event.organizer)}`} className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0 group">
                     <div className="relative flex-shrink-0">
                       <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 border-red-100 shadow-lg bg-white">
                         {event.organizer?.avatar ? (
@@ -225,7 +225,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                         router.push('/login-register');
                         return;
                       }
-                      const orgId = typeof event.organizer === 'object' ? event.organizer._id : event.organizer;
+                      const orgId = event.organizer && typeof event.organizer === 'object' ? event.organizer._id : event.organizer;
                       const result = await toggleFollowOrganizer(orgId);
 
                       if (result.success) {
@@ -246,12 +246,12 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                         });
                       }
                     }}
-                    className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium transition-all px-6 py-2 border-2 text-sm sm:text-base h-10 sm:h-12 w-full sm:w-auto ${user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer)
+                    className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium transition-all px-6 py-2 border-2 text-sm sm:text-base h-10 sm:h-12 w-full sm:w-auto ${(event.organizer && user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer))
                       ? "bg-red-600 text-white border-red-600 shadow-md"
                       : "border-red-500 text-red-700 hover:bg-red-50"
                       }`}
                   >
-                    {user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer) ? "Following" : "Follow"}
+                    {(event.organizer && user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer)) ? "Following" : "Follow"}
                   </button>
                 </div>
               )}

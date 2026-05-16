@@ -1,113 +1,333 @@
 <%- contentFor('style') %>
+<style>
+    /* Custom refined animations and utilities */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    
+    .glass-card {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .text-gradient {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 16px;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+    }
+
+    .ticket-card-hover {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .ticket-card-hover:hover {
+        transform: translateX(8px);
+        background: #fff;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+</style>
 
 <%- contentFor('body') %>
-<div class="view-container">
-    <div class="action-bar">
-        <a href="/admin/events" class="btn-premium btn-back"><i class="fa-solid fa-arrow-left"></i> Back</a>
-        <a href="/admin/events/edit/<%= event._id %>" class="btn-premium btn-edit"><i class="fa-solid fa-pen"></i> Edit Event</a>
-        <a href="/admin/orders?event=<%= event._id %>" class="btn-premium btn-sales"><i class="fa-solid fa-receipt"></i> View Sales</a>
-    </div>
 
-    <div class="view-hero">
-        <img src="<%= event.banner || '/images/default-banner.jpg' %>" class="hero-img">
-        <div class="hero-overlay-premium">
-            <span class="hero-badge"><%= event.category?.name || 'Event' %></span>
-            <h1 class="hero-title"><%= event.title %></h1>
+<% 
+    let totalCapacity = 0;
+    if (event.ticketTypes && event.ticketTypes.length > 0) {
+        totalCapacity = event.ticketTypes.reduce((sum, t) => sum + (t.quantity || 0), 0);
+    }
+    const capValue = totalCapacity || event.capacity || 0;
+    const progressPercent = capValue > 0 ? Math.min(Math.round((bookingsCount / capValue) * 100), 100) : 0;
+%>
+
+<div class="max-w-[1400px] mx-auto px-4 py-8 space-y-8 animate-fade-in">
+    <!-- Header Actions -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="space-y-1">
+            <div class="flex items-center gap-2 text-slate-400 text-sm font-medium">
+                <a href="/admin/events" class="hover:text-primary transition-colors">Events</a>
+                <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                <span class="text-slate-600">Event Details</span>
+            </div>
+            <h1 class="text-3xl font-black text-slate-900 tracking-tight">Event Overview</h1>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <a href="/admin/events" class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all shadow-sm">
+                <i class="fa-solid fa-arrow-left"></i> Back
+            </a>
+            <div class="h-10 w-px bg-slate-200 mx-2 hidden md:block"></div>
+            <a href="<%= process.env.FRONTEND_URL || 'http://localhost:3000' %>/event/<%= event.slug %>" target="_blank" class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-primary text-primary font-bold text-sm hover:bg-red-50 transition-all">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> View Live
+            </a>
+            <a href="/admin/orders?event=<%= event._id %>" class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all">
+                <i class="fa-solid fa-receipt"></i> View Sales
+            </a>
+            <a href="/admin/events/edit/<%= event._id %>" class="flex items-center gap-2 px-6 py-3 rounded-2xl bg-primary text-white font-bold text-sm hover:bg-red-700 transition-all shadow-lg shadow-red-200">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Event
+            </a>
         </div>
     </div>
 
-    <div class="content-grid">
-        <div class="left-col">
-            <div class="info-card">
-                <h3 class="card-title"><i class="fa-solid fa-align-left"></i> Description</h3>
-                <div class="description-text" style="line-height: 1.8; color: #4b5563;">
-                    <%- event.description %>
+    <!-- Main Layout Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Media & Core Info -->
+        <div class="lg:col-span-8 space-y-8">
+            
+            <!-- Hero Banner -->
+            <div class="relative h-[450px] rounded-[2.5rem] overflow-hidden shadow-2xl shadow-slate-200 group">
+                <img src="<%= event.banner || '/images/default-banner.jpg' %>" alt="<%= event.title %>" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" onerror="this.src='/images/default-banner.jpg'">
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent"></div>
+                <div class="absolute bottom-0 left-0 right-0 p-10">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span class="px-4 py-1.5 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 text-white text-[10px] font-bold uppercase tracking-widest">
+                            <%= event.category?.name || 'Event' %>
+                        </span>
+                        <span class="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white text-[10px] font-bold uppercase tracking-widest">
+                            <%= event.eventType %>
+                        </span>
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-black text-white leading-tight tracking-tight mb-2"><%= event.title %></h2>
+                    <div class="flex items-center gap-6 text-slate-300 text-sm font-medium">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-regular fa-calendar text-primary"></i>
+                            <%= new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                        </div>
+                        <% if (event.location && event.location.city) { %>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-location-dot text-primary"></i>
+                            <%= event.location.city %>, <%= event.location.country || 'UK' %>
+                        </div>
+                        <% } %>
+                    </div>
                 </div>
             </div>
 
-            <div class="info-card">
-                <h3 class="card-title"><i class="fa-solid fa-ticket"></i> Ticket Types</h3>
-                <div class="table-responsive">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="text-align: left; border-bottom: 2px solid #f3f4f6;">
-                                <th style="padding: 16px; font-size: 0.8rem; text-transform: uppercase; color: #94a3b8;">Type</th>
-                                <th style="padding: 16px; font-size: 0.8rem; text-transform: uppercase; color: #94a3b8;">Price</th>
-                                <th style="padding: 16px; font-size: 0.8rem; text-transform: uppercase; color: #94a3b8;">Quantity</th>
-                                <th style="padding: 16px; font-size: 0.8rem; text-transform: uppercase; color: #94a3b8;">Sales</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% event.ticketTypes.forEach(ticket => { %>
-                                <tr style="border-bottom: 1px solid #f3f4f6;">
-                                    <td style="padding: 16px;">
-                                        <div style="font-weight: 700; color: #1c1917;"><%= ticket.name %></div>
-                                        <div style="font-size: 0.75rem; color: #64748b;"><%- ticket.description || 'No description' %></div>
-                                    </td>
-                                    <td style="padding: 16px; font-weight: 600; color: #991b1b;">
-                                        <%= ticket.price === 0 ? 'Free' : formatPrice(ticket.price) %>
-                                    </td>
-                                    <td style="padding: 16px; color: #4b5563;"><%= ticket.quantity %></td>
-                                    <td style="padding: 16px;">
-                                        <span style="font-size: 0.8rem; background: #f1f5f9; padding: 4px 10px; border-radius: 9999px; color: #475569;">
-                                            Ends <%= new Date(ticket.saleEnd).toLocaleDateString() %>
-                                        </span>
-                                    </td>
-                                </tr>
-                            <% }) %>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
+            <!-- Content Tabs Style Sections -->
+            <div class="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-xl shadow-slate-200/40 space-y-10">
+                
+                <!-- Description -->
+                <section>
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-xl bg-red-50 text-primary flex items-center justify-center">
+                            <i class="fa-solid fa-align-left text-lg"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900">About this Event</h3>
+                    </div>
+                    <div class="prose prose-slate max-w-none text-slate-600 leading-relaxed">
+                        <%- event.description %>
+                    </div>
+                </section>
 
-        <div class="right-col">
-            <div class="stats-card">
-                <h3 class="card-title" style="margin-bottom: 1rem;"><i class="fa-solid fa-chart-line"></i> Quick Stats</h3>
-                <div class="stat-item">
-                    <span class="stat-label">Total Bookings</span>
-                    <span class="stat-value"><%= bookingsCount %></span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Status</span>
-                    <span class="stat-value" style="text-transform: capitalize;"><%= event.status %></span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Event Type</span>
-                    <span class="stat-value"><%= event.eventType %></span>
-                </div>
-            </div>
+                <div class="h-px bg-slate-100"></div>
 
-            <div class="info-card" style="margin-top: 1.5rem; padding: 24px;">
-                <h3 class="card-title" style="font-size: 1rem;"><i class="fa-solid fa-location-dot"></i> Logistics</h3>
-                <div style="font-size: 0.9rem; color: #4b5563;    margin-top: 12px;">
-                    <div style="margin-bottom: 12px; display: flex; gap: 10px;">
-                        <i class="fa-regular fa-calendar-check" style="color: #991b1b; margin-top: 3px;"></i>
-                        <div>
-                            <strong><%= new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) %></strong><br>
-                            <span style="font-size: 0.8rem;"><%= event.startTime %> - <%= event.endTime %></span>
+                <!-- Tickets -->
+                <section>
+                    <div class="flex items-center justify-between mb-8">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-red-50 text-primary flex items-center justify-center">
+                                <i class="fa-solid fa-ticket text-lg"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900">Ticket Inventory</h3>
+                        </div>
+                        <div class="px-4 py-1.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                            Fees: <span class="text-primary ml-1"><%= event.feePayment ? 'Absorbed by Organizer' : 'Passed to Buyer' %></span>
                         </div>
                     </div>
-                    <% if (event.location && event.location.venueName) { %>
-                        <div style="display: flex; gap: 10px;">
-                            <i class="fa-solid fa-map-pin" style="color: #991b1b; margin-top: 3px;"></i>
-                            <div>
-                                <strong><%= event.location.venueName %></strong><br>
-                                <span style="font-size: 0.8rem;"><%= event.location.address %>, <%= event.location.city %></span>
+
+                    <div class="grid gap-4">
+                        <% if (event.ticketTypes && event.ticketTypes.length > 0) { %>
+                            <% event.ticketTypes.forEach(ticket => { %>
+                                <div class="ticket-card-hover group flex flex-col md:flex-row md:items-center justify-between p-6 rounded-2xl bg-slate-50 border border-slate-100 transition-all">
+                                    <div class="space-y-1">
+                                        <h4 class="text-lg font-bold text-slate-900"><%= ticket.name %></h4>
+                                        <p class="text-sm text-slate-500 max-w-md"><%= ticket.description || 'No description' %></p>
+                                        <div class="flex items-center gap-4 mt-3">
+                                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase">
+                                                <i class="fa-solid fa-calculator text-primary/60"></i>
+                                                Fee: <%= formatPrice(ticket.totalFees || 0) %>
+                                            </div>
+                                            <div class="flex items-center gap-1.5 text-[11px] font-bold text-slate-400 uppercase">
+                                                <i class="fa-regular fa-clock text-primary/60"></i>
+                                                Ends: <%= ticket.saleEnd ? new Date(ticket.saleEnd).toLocaleDateString('en-GB') : 'N/A' %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 md:mt-0 text-right space-y-1">
+                                        <span class="text-2xl font-black text-primary"><%= ticket.price === 0 ? 'Free' : formatPrice(ticket.price) %></span>
+                                        <div class="flex flex-col items-end">
+                                            <span class="text-xs font-bold text-slate-500"><%= ticket.quantity %> Available</span>
+                                            <div class="w-24 h-1.5 bg-slate-200 rounded-full mt-1.5 overflow-hidden">
+                                                <div class="h-full bg-primary rounded-full" style="width: 100%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        <% } else { %>
+                            <div class="text-center py-10 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                                <i class="fa-solid fa-ticket-slash text-4xl text-slate-300 mb-3"></i>
+                                <p class="text-slate-500 font-medium">No ticket types defined</p>
+                            </div>
+                        <% } %>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Right Column: Sidebar Stats & Meta -->
+        <div class="lg:col-span-4 space-y-8">
+            
+            <!-- Quick Performance Card -->
+            <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden group">
+                <div class="absolute -top-12 -right-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700"></div>
+                
+                <div class="relative z-10 space-y-8">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold">Quick Performance</h3>
+                        <div class="status-pill <%= event.status === 'published' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-slate-700 text-slate-300' %>">
+                            <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse"></span>
+                            <%= event.status %>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="space-y-1">
+                            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Bookings</span>
+                            <p class="text-3xl font-black"><%= bookingsCount %></p>
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Capacity</span>
+                            <p class="text-3xl font-black"><%= capValue %></p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase">
+                            <span>Fulfillment</span>
+                            <span><%= progressPercent %>%</span>
+                        </div>
+                        <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                            <div class="h-full bg-primary rounded-full transition-all duration-1000" style="width: <%= progressPercent %>%"></div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-white/10 space-y-4">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">Event Format</span>
+                            <span class="font-bold"><%= event.eventType %></span>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-slate-400">Total Revenue</span>
+                            <span class="font-bold text-primary italic">Calculated in Sales</span>
+                        </div>
+                    </div>
+
+                    <a href="/admin/orders?event=<%= event._id %>" class="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 transition-all font-bold text-sm">
+                        <i class="fa-solid fa-list-check"></i> Manage Registrations
+                    </a>
+                </div>
+            </div>
+
+            <!-- Logistics & Location -->
+            <div class="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/40 space-y-8">
+                <h3 class="text-xl font-bold text-slate-900">Logistics</h3>
+                
+                <div class="space-y-6">
+                    <!-- Date/Time -->
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-red-50 text-primary flex items-center justify-center shrink-0">
+                            <i class="fa-regular fa-calendar-check text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Schedule</span>
+                            <div class="space-y-3 mt-2">
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Starts</p>
+                                    <p class="font-bold text-slate-800 leading-tight">
+                                        <%= new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                                    </p>
+                                    <p class="text-sm font-medium text-slate-500"><%= event.startTime %></p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ends</p>
+                                    <p class="font-bold text-slate-800 leading-tight">
+                                        <%= new Date(event.endDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) %>
+                                    </p>
+                                    <p class="text-sm font-medium text-slate-500"><%= event.endTime %></p>
+                                </div>
                             </div>
                         </div>
-                    <% } %>
-                    <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 16px 0;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; color: #991b1b;">
-                            <i class="fa-solid fa-user-tie"></i>
+                    </div>
+
+                    <!-- Venue -->
+                    <div class="flex gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-red-50 text-primary flex items-center justify-center shrink-0">
+                            <i class="fa-solid fa-map-location-dot text-xl"></i>
                         </div>
                         <div>
-                            <span style="font-size: 0.75rem; color: #94a3b8; display: block;">Organizer</span>
-                            <strong style="font-size: 0.85rem;"><%= event.organizer ? event.organizer.username : 'Admin' %></strong>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Location</span>
+                            <% if (event.location && event.location.venueName) { %>
+                                <p class="font-bold text-slate-800 leading-tight mt-1"><%= event.location.venueName %></p>
+                                <p class="text-sm font-medium text-slate-500 mt-1">
+                                    <%= event.location.address %><br>
+                                    <%= event.location.city %>, <%= event.location.postcode %>
+                                </p>
+                            <% } else { %>
+                                <p class="font-bold text-slate-800 leading-tight mt-1">Online Event</p>
+                                <% if (event.meetingLink) { %>
+                                    <a href="<%= event.meetingLink %>" target="_blank" class="text-xs text-primary font-bold hover:underline mt-1 inline-block">Join Session <i class="fa-solid fa-external-link text-[10px] ml-1"></i></a>
+                                <% } %>
+                            <% } %>
+                        </div>
+                    </div>
+
+                    <!-- Organizer -->
+                    <div class="pt-6 border-t border-slate-100">
+                        <div class="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                            <div class="w-10 h-10 rounded-xl bg-white border border-slate-200 text-primary flex items-center justify-center shrink-0">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </div>
+                            <div>
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Event Organizer</span>
+                                <p class="text-sm font-black text-slate-800"><%= event.organizerName || (event.organizer ? event.organizer.username : 'System Admin') %></p>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <!-- Thumbnail Card -->
+            <% if (event.thumbnail && event.thumbnail !== event.banner) { %>
+            <div class="bg-white rounded-[2.5rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40">
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-4 px-2">Listing Preview</span>
+                <div class="aspect-video rounded-3xl overflow-hidden border border-slate-100">
+                    <img src="<%= event.thumbnail %>" alt="Thumbnail" class="w-full h-full object-cover">
+                </div>
+            </div>
+            <% } %>
+
+            <!-- Footer Actions / Danger Zone -->
+            <div class="p-6 rounded-[2.5rem] bg-red-50/50 border border-red-100/50">
+                <h4 class="text-xs font-bold text-red-900 uppercase tracking-wider mb-3 px-2">Administrative Controls</h4>
+                <form action="/admin/events/delete/<%= event._id %>" method="POST" onsubmit="return confirm('CRITICAL: This will permanently delete the event and all associated ticket inventory. Continue?');">
+                    <button type="submit" class="w-full py-3 rounded-2xl bg-white text-red-600 font-bold text-sm border border-red-100 hover:bg-red-600 hover:text-white transition-all">
+                        <i class="fa-solid fa-trash-can mr-2"></i> Delete Event Permanently
+                    </button>
+                </form>
             </div>
         </div>
     </div>

@@ -7,6 +7,7 @@ export default function Contact() {
     name: '',
     email: '',
     subject: '',
+    customSubject: '',
     message: ''
   });
   const [status, setStatus] = useState({
@@ -17,7 +18,7 @@ export default function Contact() {
 
   const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
@@ -37,7 +38,7 @@ export default function Contact() {
         body: JSON.stringify({
           fullName: formData.name,
           email: formData.email,
-          subject: formData.subject,
+          subject: formData.subject === 'Other' ? formData.customSubject : formData.subject,
           message: formData.message
         })
       });
@@ -46,7 +47,7 @@ export default function Contact() {
 
       if (response.ok) {
         setStatus({ loading: false, success: true, error: '' });
-        setFormData({ name: '', email: '', subject: '', message: '' });
+        setFormData({ name: '', email: '', subject: '', customSubject: '', message: '' });
       } else {
         setStatus({ loading: false, success: false, error: data.message || 'Something went wrong. Please try again.' });
       }
@@ -96,20 +97,63 @@ export default function Contact() {
                   <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="name">Full Name *</label>
-                      <input type="text" data-slot="input" className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 border px-3 py-1 bg-input-background transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive rounded-lg sm:rounded-xl text-sm sm:text-base" id="name" name="name" required placeholder="Your name" value={formData.name} onChange={handleChange} />
+                      <input type="text" id="name" name="name" required placeholder="Your name" value={formData.name} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white" />
                     </div>
                     <div>
                       <label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="email">Email Address *</label>
-                      <input type="email" data-slot="input" className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 border px-3 py-1 bg-input-background transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive rounded-lg sm:rounded-xl text-sm sm:text-base" id="email" name="email" required placeholder="your@email.com" value={formData.email} onChange={handleChange} />
+                      <input type="email" id="email" name="email" required placeholder="your@email.com" value={formData.email} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white" />
                     </div>
                   </div>
-                  <div>
-                    <label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="subject">Subject *</label>
-                    <input type="text" data-slot="input" className="file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 border px-3 py-1 bg-input-background transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive rounded-lg sm:rounded-xl text-sm sm:text-base" id="subject" name="subject" required placeholder="How can we help you?" value={formData.subject} onChange={handleChange} />
+
+                  <div className="space-y-4 sm:space-y-6">
+                    <div>
+                      <label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="subject">Subject *</label>
+                    <div className="relative">
+                        <select 
+                          id="subject" 
+                          name="subject" 
+                          required 
+                          className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all appearance-none cursor-pointer bg-white"
+                          value={formData.subject} 
+                          onChange={handleChange}
+                        >
+                        <option value="" disabled>Select a subject</option>
+                        <option value="General Inquiry">General Inquiry</option>
+                        <option value="Sales & Pricing">Sales & Pricing</option>
+                        <option value="Partnerships & Collaborations">Partnerships & Collaborations</option>
+                        <option value="Become an Organiser">Become an Organiser</option>
+                        <option value="Technical Support">Technical Support</option>
+                        <option value="Billing & Payments">Billing & Payments</option>
+                        <option value="Refunds & Cancellations">Refunds & Cancellations</option>
+                        <option value="Feature Request">Feature Request</option>
+                        <option value="Feedback & Suggestions">Feedback & Suggestions</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                      </div>
+                    </div>
+                    </div>
+
+                    {formData.subject === 'Other' && (
+                      <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                        <label data-slot="label" className="items-center gap-2 font-medium select-none text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="customSubject">Please specify your subject *</label>
+                        <input 
+                          type="text" 
+                          id="customSubject" 
+                          name="customSubject" 
+                          required 
+                          placeholder="What is your inquiry about?" 
+                          className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white" 
+                          value={formData.customSubject} 
+                          onChange={handleChange} 
+                        />
+                      </div>
+                    )}
                   </div>
                   <div>
                     <label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="message">Message *</label>
-                    <textarea data-slot="textarea" className="border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full border bg-input-background px-3 py-2 transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm rounded-lg sm:rounded-xl resize-none text-sm sm:text-base" id="message" name="message" required rows={6} placeholder="Tell us more about your inquiry..." value={formData.message} onChange={handleChange}></textarea>
+                    <textarea id="message" name="message" required rows={6} placeholder="Tell us more about your inquiry..." value={formData.message} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all resize-none bg-white"></textarea>
                   </div>
                   <button data-slot="button" disabled={status.loading} className="inline-flex text-[#fff] items-center justify-center gap-2 whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary-foreground hover:bg-primary/90 h-10 px-6 has-[>svg]:px-4 w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg sm:rounded-xl text-sm sm:text-base" type="submit">
                     {status.loading ? (

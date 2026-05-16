@@ -15,6 +15,7 @@ export default function Footer() {
     ];
 
     const supportPages = [
+        { title: "Pricing", slug: "pricing" },
         { title: "Terms of Service", slug: "terms-of-service" },
         { title: "Refund Policy", slug: "refund-policy" },
         { title: "Halal Standards", slug: "halal-standards" },

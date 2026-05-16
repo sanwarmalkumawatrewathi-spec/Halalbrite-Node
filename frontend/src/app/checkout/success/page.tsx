@@ -18,34 +18,53 @@ function SuccessContent() {
         const fetchBooking = async () => {
             try {
                 const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
+                const token = localStorage.getItem("token");
+                const headers: Record<string, string> = token ? { "Authorization": `Bearer ${token}` } : {};
+
                 // 1. Fetch booking details
-                const res = await fetch(`${baseUrl}/api/bookings/${bookingId}`);
+                const res = await fetch(`${baseUrl}/api/bookings/${bookingId}`, { headers });
                 let result = await res.json();
                 let data = result.data || result;
 
-                // Nuclear Option: If event details are missing, fetch them directly
-                if (data && data.event_id && (!data.event_name || !data.event_date)) {
-                    console.log("Details missing, fetching event directly...");
-                    const eventId = typeof data.event_id === 'string' ? data.event_id : data.event_id._id;
-                    const eventRes = await fetch(`${baseUrl}/api/events/${eventId}`);
-                    const eventResult = await eventRes.json();
-                    const eventData = eventResult.data || eventResult;
-                    if (eventData) {
-                        data.event = eventData;
-                    }
-                }
-
-                // 2. If booking is still pending, trigger a verification with Stripe via our new endpoint
+                // 2. If booking is still pending, trigger a verification
                 if (data && data.payment_status === 'pending') {
-                    console.log("Booking is pending, verifying status with Stripe...");
-                    const verifyRes = await fetch(`${baseUrl}/api/payments/booking/${bookingId}/verify`, { method: 'POST' });
+                    const verifyRes = await fetch(`${baseUrl}/api/payments/booking/${bookingId}/verify`, { 
+                        method: 'POST',
+                        headers
+                    });
                     const verifyData = await verifyRes.json();
 
                     if (verifyData.success && verifyData.status === 'paid') {
-                        // Re-fetch or update local state to reflect 'paid' status
-                        const updatedRes = await fetch(`${baseUrl}/api/bookings/${bookingId}`);
+                        const updatedRes = await fetch(`${baseUrl}/api/bookings/${bookingId}`, { headers });
                         const updatedResult = await updatedRes.json();
                         data = updatedResult.data || updatedResult;
+                    }
+                }
+
+                // 3. Nuclear Option: If event details are missing, try to get them from populated event_id or direct fetch
+                if (data && data.event_id) {
+                    const isPopulated = typeof data.event_id === 'object';
+                    const eventObj = isPopulated ? data.event_id : null;
+                    
+                    if (!data.event_name && eventObj?.title) data.event_name = eventObj.title;
+                    if (!data.event_date && eventObj?.startDate) data.event_date = eventObj.startDate;
+                    if (!data.event_time && eventObj?.startTime) {
+                        data.event_time = eventObj.startTime + (eventObj.endTime ? ` - ${eventObj.endTime}` : '');
+                    }
+                    if (!data.event_venue && eventObj?.location?.venueName) data.event_venue = eventObj.location.venueName;
+                    if (!data.event_location && eventObj?.location?.city) {
+                        data.event_location = (eventObj.location.address ? eventObj.location.address + ', ' : '') + eventObj.location.city;
+                    }
+
+                    // Final fallback: direct fetch
+                    if (!data.event_name || !data.event_date) {
+                        const eventId = isPopulated ? data.event_id._id : data.event_id;
+                        const eventRes = await fetch(`${baseUrl}/api/events/${eventId}`);
+                        const eventResult = await eventRes.json();
+                        const eventData = eventResult.data || eventResult;
+                        if (eventData) {
+                            data.event = eventData;
+                        }
                     }
                 }
 
@@ -148,24 +167,29 @@ function SuccessContent() {
                         {/* EVENT DETAILS CARD */}
                         <div className="bg-[#fff5f6] rounded-3xl p-8 space-y-6">
                             <h2 className="text-xl font-bold text-red-800 leading-tight">
-                                {booking.event_name || booking.event?.title || booking.event_id?.title || "Event Confirmed"}
+                                {booking.event_name || 
+                                 booking.event?.title || 
+                                 (typeof booking.event_id === 'object' ? (booking.event_id as any)?.title : '') || 
+                                 "Event Confirmed"}
                             </h2>
 
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-1.5">
                                     <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Date</p>
                                     <p className="text-sm font-bold text-gray-700">
-                                        {(booking.event_date || booking.event?.startDate || booking.event_id?.startDate)
-                                          ? new Date(booking.event_date || booking.event?.startDate || booking.event_id?.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                                        {(booking.event_date || 
+                                          booking.event?.startDate || 
+                                          (typeof booking.event_id === 'object' ? (booking.event_id as any)?.startDate : null))
+                                          ? new Date(booking.event_date || booking.event?.startDate || (booking.event_id as any)?.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
                                           : 'N/A'}
                                     </p>
                                 </div>
                                 <div className="space-y-1.5">
                                     <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Time</p>
                                     <p className="text-sm font-bold text-gray-700">
-                                      {booking.event_time || 
+                                      {booking.event_time && booking.event_time !== "TBA" ? booking.event_time : 
                                        (booking.event?.startTime ? `${booking.event.startTime}${booking.event.endTime ? ' - ' + booking.event.endTime : ''}` : 
-                                       (booking.event_id?.startTime ? `${booking.event_id.startTime}${booking.event_id.endTime ? ' - ' + booking.event_id.endTime : ''}` : 'N/A'))}
+                                       (typeof booking.event_id === 'object' && (booking.event_id as any)?.startTime ? `${(booking.event_id as any).startTime}${(booking.event_id as any).endTime ? ' - ' + (booking.event_id as any).endTime : ''}` : 'N/A'))}
                                     </p>
                                 </div>
                             </div>
@@ -174,14 +198,17 @@ function SuccessContent() {
                                 <p className="text-[10px] font-black text-red-400 uppercase tracking-widest flex items-center gap-1">
                                     <LocationIcon size={12} /> Location
                                 </p>
-                                <p className="text-sm font-bold text-gray-700 leading-relaxed">
-                                    {booking.event_venue || booking.event?.location?.venueName || booking.event_id?.location?.venueName || "Venue Confirmed"}<br />
-                                    <span className="text-gray-500 font-medium">
+                                <div className="text-sm font-bold text-gray-700 leading-relaxed">
+                                    <p>{booking.event_venue || 
+                                       booking.event?.location?.venueName || 
+                                       (typeof booking.event_id === 'object' ? (booking.event_id as any)?.location?.venueName : '') || 
+                                       "Venue Confirmed"}</p>
+                                    <p className="text-gray-500 font-medium">
                                       {booking.event_location || 
                                        (booking.event?.location?.city ? `${booking.event.location.address ? booking.event.location.address + ', ' : ''}${booking.event.location.city}` : 
-                                       (booking.event_id?.location?.city ? `${booking.event_id.location.address ? booking.event_id.location.address + ', ' : ''}${booking.event_id.location.city}` : "Location Confirmed"))}
-                                    </span>
-                                </p>
+                                       (typeof booking.event_id === 'object' && (booking.event_id as any)?.location?.city ? `${(booking.event_id as any).location.address ? (booking.event_id as any).location.address + ', ' : ''}${(booking.event_id as any).location.city}` : "Location Confirmed"))}
+                                    </p>
+                                </div>
                             </div>
                         </div>
 

@@ -6,6 +6,7 @@ import { FiDollarSign } from "react-icons/fi";
 import { IoWarningOutline, IoCheckmarkCircleOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/authContext";
+import { useCurrency } from "@/context/CurrencyContext";
 
 import {
   BarChart,
@@ -36,6 +37,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
   const [customDates, setCustomDates] = useState({ start: '', end: '' });
 
   const { refreshUser } = useAuth();
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     fetchStats();
@@ -358,7 +360,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               <span className="text-purple-100">Available Balance</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-dollar-sign w-5 h-5"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <p className="text-white mb-1">€{stats.availableBalance.toFixed(2)}</p>
+            <p className="text-white mb-1 font-bold text-2xl">{formatPrice(stats.availableBalance, false)}</p>
             <div className="flex items-center gap-1 text-purple-100 text-sm">
               <span>{data?.stripeConnected ? 'Withdrawals processed via Stripe' : 'Connect Stripe to withdraw'}</span>
             </div>
@@ -397,7 +399,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
               <span className="text-red-100 font-medium">Total Revenue</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-dollar-sign w-5 h-5"><line x1="12" x2="12" y1="2" y2="22"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <p className="text-white mb-1">€{stats.totalRevenue.toFixed(2)}</p>
+            <p className="text-white mb-1 font-bold text-2xl">{formatPrice(stats.totalRevenue, false)}</p>
             <div className="flex items-center gap-1 text-red-100 text-sm">
               <span>{data?.stripeConnected ? 'Gross sales before platform fees' : 'Connect Stripe to see revenue'}</span>
             </div>
@@ -543,7 +545,7 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
                       axisLine={false}
                       tickLine={false}
                       tick={{ fill: '#6b7280', fontSize: 12 }}
-                      tickFormatter={(value) => `€${value}`}
+                      tickFormatter={(value) => formatPrice(value, false)}
                     />
                     <Tooltip
                       cursor={{ fill: '#fef2f2' }}

@@ -14,7 +14,7 @@ interface CurrencyContextType {
     currentCurrency: Currency;
     allCurrencies: Currency[];
     setCurrency: (code: string) => void;
-    formatPrice: (amount: number) => string;
+    formatPrice: (amount: number, showFree?: boolean) => string;
     convertPrice: (amount: number) => number;
     isLoading: boolean;
 }
@@ -82,8 +82,8 @@ export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return amount * currentCurrency.rate;
     };
 
-    const formatPrice = (amount: number) => {
-        if (amount === 0) return 'Free';
+    const formatPrice = (amount: number, showFree: boolean = true) => {
+        if (amount === 0 && showFree) return 'Free';
         const converted = convertPrice(amount);
         return `${currentCurrency.symbol}${converted.toLocaleString(undefined, {
             minimumFractionDigits: 2,

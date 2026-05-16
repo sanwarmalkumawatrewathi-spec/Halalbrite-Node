@@ -1,7 +1,7 @@
 <div class="form-header-premium">
     <div class="header-left">
         <h1 class="page-title">All Orders & Ticket Sales</h1>
-        <p class="page-subtitle">Total Transactions: <%= orders.length %>
+        <p class="page-subtitle">Total Transactions: <%= typeof totalRecords !== 'undefined' ? totalRecords : orders.length %>
         </p>
     </div>
 </div>
@@ -91,5 +91,30 @@
                 </tbody>
             </table>
         </div>
+
+        <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
+            <div class="card-footer-premium" style="padding: 1.5rem; background: #fff; border-top: 1px solid #f1f5f9; border-radius: 0 0 16px 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="text-slate-500 text-sm">
+                        Showing <%= (typeof currentPage !== 'undefined' ? (currentPage - 1) * 20 + 1 : 1) %> to <%= Math.min((typeof currentPage !== 'undefined' ? currentPage * 20 : 20), (typeof totalRecords !== 'undefined' ? totalRecords : 0)) %> of <%= (typeof totalRecords !== 'undefined' ? totalRecords : 0) %> orders
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <% if (typeof currentPage !== 'undefined' && currentPage > 1) { %>
+                            <a href="/admin/orders?page=<%= currentPage - 1 %>" class="btn btn-outline btn-sm">Previous</a>
+                        <% } %>
+                        
+                        <% if (typeof currentPage !== 'undefined' && typeof totalPages !== 'undefined') { %>
+                            <% for(let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
+                                <a href="/admin/orders?page=<%= i %>" class="btn btn-sm <%= i === currentPage ? 'btn-primary' : 'btn-outline' %>"><%= i %></a>
+                            <% } %>
+                        <% } %>
+                        
+                        <% if (typeof currentPage !== 'undefined' && typeof totalPages !== 'undefined' && currentPage < totalPages) { %>
+                            <a href="/admin/orders?page=<%= currentPage + 1 %>" class="btn btn-outline btn-sm">Next</a>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        <% } %>
     </div>
 </div>

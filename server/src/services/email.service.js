@@ -332,6 +332,228 @@ class EmailService {
             return false;
         }
     }
+
+    async sendSaleNotificationEmail(booking, recipientEmail, recipientRole = 'organizer') {
+        try {
+            const settings = await AppSetting.findOne();
+            const fromEmail = settings?.smtp?.fromEmail || process.env.EMAIL_FROM || 'noreply@halalbrite.com';
+            const fromName = settings?.smtp?.fromName || 'HalalBrite';
+            const transporter = await this.getTransporter();
+
+            const dateStr = new Date(booking.event_date).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; }
+                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+                    .header { padding: 30px; text-align: center; background: #821c2c; color: white; }
+                    .logo-img { height: 40px; margin-bottom: 10px; filter: brightness(0) invert(1); }
+                    .brand-name { font-weight: bold; font-size: 24px; display: block; }
+                    .content { padding: 30px; }
+                    .title { color: #821c2c; font-size: 22px; font-weight: bold; margin-bottom: 20px; text-align: center; }
+                    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
+                    .stat-card { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #dc3545; }
+                    .stat-label { font-size: 11px; color: #999; text-transform: uppercase; margin-bottom: 5px; }
+                    .stat-value { font-size: 18px; font-weight: bold; color: #333; }
+                    .detail-box { border: 1px solid #eee; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+                    .detail-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+                    .detail-label { color: #666; }
+                    .detail-value { font-weight: bold; color: #333; }
+                    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #999; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <img src="https://halalbrite.com/logo.png" class="logo-img" alt="Logo">
+                        <span class="brand-name">HalalBrite</span>
+                    </div>
+                    <div class="content">
+                        <h2 class="title">New Ticket Sale!</h2>
+                        <p>Congratulations! A new booking has been confirmed for your event.</p>
+                        
+                        <div class="stat-grid">
+                            <div class="stat-card">
+                                <div class="stat-label">Total Amount</div>
+                                <div class="stat-value">${booking.currency}${booking.amount_total.toFixed(2)}</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">${recipientRole === 'admin' ? 'Platform Fee' : 'Your Earnings'}</div>
+                                <div class="stat-value">${booking.currency}${recipientRole === 'admin' ? booking.platform_fee.toFixed(2) : booking.organizer_amount.toFixed(2)}</div>
+                            </div>
+                        </div>
+
+                        <div class="detail-box">
+                            <div class="detail-row">
+                                <span class="detail-label">Event</span>
+                                <span class="detail-value">${booking.event_name}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Date</span>
+                                <span class="detail-value">${dateStr}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Reference</span>
+                                <span class="detail-value">${booking.booking_reference}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Ticket</span>
+                                <span class="detail-value">${booking.ticket_name} (Qty: ${booking.quantity})</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Customer</span>
+                                <span class="detail-value">${booking.customer_name}</span>
+                            </div>
+                        </div>
+
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="https://halalbrite.com/organizer-dashboard" style="background: #dc3545; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">View Dashboard</a>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        &copy; 2026 HalalBrite. All rights reserved.
+                    </div>
+                </div>
+            </body>
+            </html>
+            `;
+
+            const info = await transporter.sendMail({
+                from: `"${fromName}" <${fromEmail}>`,
+                to: recipientEmail,
+                subject: `New Ticket Sale: ${booking.event_name}`,
+                html: htmlContent
+            });
+
+            console.log(`✅ Sale Notification Sent to ${recipientRole}: ${recipientEmail}`);
+
+            // Log to Database
+            await EmailLog.create({
+                booking_id: booking._id,
+                recipient: recipientEmail,
+                role: recipientRole,
+                subject: `New Ticket Sale: ${booking.event_name}`,
+                status: 'sent',
+                messageId: info.messageId
+            });
+        } catch (error) {
+            console.error('❌ Sale Notification Email Error:', error);
+            // Log Failure
+            try {
+                await EmailLog.create({
+                    booking_id: booking._id,
+                    recipient: recipientEmail,
+                    role: recipientRole,
+                    subject: `New Ticket Sale: ${booking.event_name}`,
+                    status: 'failed',
+                    error: error.message
+                });
+            } catch (logErr) {
+                console.error('❌ Failed to log email error:', logErr);
+            }
+        }
+    }
+
+    async sendEventPublishedEmail(event, organizer, recipientEmail, recipientRole = 'organizer') {
+        try {
+            const settings = await AppSetting.findOne();
+            const fromEmail = settings?.smtp?.fromEmail || process.env.EMAIL_FROM || 'noreply@halalbrite.com';
+            const fromName = settings?.smtp?.fromName || 'HalalBrite';
+            const transporter = await this.getTransporter();
+
+            const dateStr = new Date(event.startDate).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric'
+            });
+
+            const htmlContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; }
+                    .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+                    .header { padding: 30px; text-align: center; background: #821c2c; color: white; }
+                    .logo-img { height: 40px; margin-bottom: 10px; filter: brightness(0) invert(1); }
+                    .content { padding: 30px; text-align: center; }
+                    .title { color: #821c2c; font-size: 24px; font-weight: bold; margin-bottom: 20px; }
+                    .event-card { border: 1px solid #eee; border-radius: 12px; padding: 20px; margin: 20px 0; text-align: left; }
+                    .event-title { font-size: 18px; font-weight: bold; color: #dc3545; margin-bottom: 10px; }
+                    .detail-row { margin-bottom: 8px; font-size: 14px; color: #666; }
+                    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #999; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <img src="https://halalbrite.com/logo.png" class="logo-img" alt="Logo">
+                        <h1 style="margin:0; font-size: 24px;">HalalBrite</h1>
+                    </div>
+                    <div class="content">
+                        <h2 class="title">${recipientRole === 'admin' ? 'New Event Published' : 'Your Event is Live!'}</h2>
+                        <p>${recipientRole === 'admin' ? `A new event has been published by <b>${organizer.username}</b>.` : 'Congratulations! Your event is now live and ready for bookings.'}</p>
+                        
+                        <div class="event-card">
+                            <div class="event-title">${event.title}</div>
+                            <div class="detail-row">📅 ${dateStr}</div>
+                            <div class="detail-row">📍 ${event.location?.venueName || 'Venue TBA'}, ${event.location?.city || ''}</div>
+                            <div class="detail-row">💰 ${event.priceLabel}</div>
+                        </div>
+
+                        <div style="margin-top: 30px;">
+                            <a href="https://halalbrite.com/event/${event.slug}" style="background: #dc3545; color: white; padding: 12px 25px; text-decoration: none; border-radius: 50px; font-weight: bold;">View Event Page</a>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        &copy; 2026 HalalBrite. All rights reserved.
+                    </div>
+                </div>
+            </body>
+            </html>
+            `;
+
+            const info = await transporter.sendMail({
+                from: `"${fromName}" <${fromEmail}>`,
+                to: recipientEmail,
+                subject: recipientRole === 'admin' ? `New Event: ${event.title}` : `Live Now: ${event.title}`,
+                html: htmlContent
+            });
+
+            console.log(`✅ Event Published Notification Sent to ${recipientRole}: ${recipientEmail}`);
+
+            // Log to Database
+            await EmailLog.create({
+                recipient: recipientEmail,
+                role: recipientRole,
+                subject: recipientRole === 'admin' ? `New Event: ${event.title}` : `Live Now: ${event.title}`,
+                status: 'sent',
+                messageId: info.messageId
+            });
+        } catch (error) {
+            console.error('❌ Event Published Email Error:', error);
+            // Log Failure
+            try {
+                await EmailLog.create({
+                    recipient: recipientEmail,
+                    role: recipientRole,
+                    subject: recipientRole === 'admin' ? `New Event: ${event.title}` : `Live Now: ${event.title}`,
+                    status: 'failed',
+                    error: error.message
+                });
+            } catch (logErr) {
+                console.error('❌ Failed to log email error:', logErr);
+            }
+        }
+    }
+
     async sendWelcomeEmail(user) {
         try {
             const settings = await AppSetting.findOne();
@@ -411,6 +633,49 @@ class EmailService {
                     error: error.message
                 });
             } catch (logErr) { console.error('Failed to log email error:', logErr); }
+        }
+    }
+
+    async sendOrganizerContactEmail(organizerEmail, organizerName, senderInfo, subject, message) {
+        try {
+            const settings = await AppSetting.findOne();
+            const fromEmail = settings?.smtp?.fromEmail || process.env.EMAIL_FROM || 'noreply@halalbrite.com';
+            const fromName = settings?.smtp?.fromName || 'HalalBrite';
+            const transporter = await this.getTransporter();
+
+            const html = `
+                <div style="font-family: sans-serif; padding: 20px; color: #333; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h1 style="color: #dc3545; margin: 0;">HalalBrite</h1>
+                    </div>
+                    <h2 style="color: #821c2c; border-bottom: 2px solid #821c2c; padding-bottom: 10px;">New Inquiry for ${organizerName}</h2>
+                    <p>You have received a new message from a user on HalalBrite:</p>
+                    <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc3545;">
+                        <p><strong>From:</strong> ${senderInfo.fullName} (${senderInfo.email})</p>
+                        <p><strong>Subject:</strong> ${subject}</p>
+                        <p><strong>Message:</strong></p>
+                        <p style="white-space: pre-wrap; font-size: 15px; line-height: 1.6;">${message}</p>
+                    </div>
+                    <p style="background: #fff8f8; padding: 10px; border-radius: 4px; font-size: 13px; color: #821c2c; font-weight: bold; text-align: center;">
+                        Tip: You can reply directly to this email to contact the user.
+                    </p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                    <p style="font-size: 11px; color: #999; text-align: center;">&copy; 2026 HalalBrite. All rights reserved.</p>
+                </div>
+            `;
+
+            await transporter.sendMail({
+                from: `"${fromName}" <${fromEmail}>`,
+                to: organizerEmail,
+                replyTo: senderInfo.email,
+                subject: `[HalalBrite Inquiry] ${subject}`,
+                html
+            });
+
+            return true;
+        } catch (error) {
+            console.error('❌ Organizer Contact Email Error:', error);
+            return false;
         }
     }
 }

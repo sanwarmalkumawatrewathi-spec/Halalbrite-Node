@@ -262,11 +262,28 @@ exports.syncCurrencyRates = async (req, res) => {
 // @route   GET /admin/users
 exports.getUsers = async (req, res) => {
     try {
-        const users = await User.find().populate('roles').sort({ createdAt: -1 });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 20;
+        const skip = (page - 1) * limit;
+
+        const [users, total] = await Promise.all([
+            User.find()
+                .populate('roles')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            User.countDocuments()
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
         res.render('pages/users', {
             activePage: 'users',
             admin: req.user,
-            users
+            users,
+            currentPage: page,
+            totalPages,
+            totalRecords: total
         });
     } catch (error) {
         res.status(500).send(error.message);
@@ -300,7 +317,7 @@ exports.saveUser = async (req, res) => {
     try {
         console.log('📝 Saving user:', req.body);
         const { id, username, email, password, role, status } = req.body;
-        
+
         // Extract preferences
         const preferences = {
             eventUpdates: req.body.pref_eventUpdates === 'on',
@@ -366,11 +383,29 @@ exports.saveUser = async (req, res) => {
 // @route   GET /admin/events
 exports.getEvents = async (req, res) => {
     try {
-        const events = await Event.find().populate('category').populate('organizer', 'username').sort({ createdAt: -1 });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 20;
+        const skip = (page - 1) * limit;
+
+        const [events, total] = await Promise.all([
+            Event.find()
+                .populate('category')
+                .populate('organizer', 'username')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            Event.countDocuments()
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+
         res.render('pages/events', {
             activePage: 'events',
             admin: req.user,
-            events
+            events,
+            currentPage: page,
+            totalPages,
+            totalRecords: total
         });
     } catch (error) {
         res.status(500).send(error.message);
@@ -495,17 +530,32 @@ exports.getFAQs = async (req, res) => {
 exports.getOrders = async (req, res) => {
     console.log('📋 Admin: Fetching all orders...');
     try {
-        const orders = await Booking.find()
-            .populate('user_id', 'username email')
-            .populate('event_id', 'title')
-            .sort({ createdAt: -1 });
+        const page = parseInt(req.query.page) || 1;
+        const limit = 20;
+        const skip = (page - 1) * limit;
+
+        const [orders, total] = await Promise.all([
+            Booking.find()
+                .populate('user_id', 'username email')
+                .populate('event_id', 'title')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            Booking.countDocuments()
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
 
         // Auto-verify any pending orders found in the list
         await verifyPendingBookings(orders);
+        
         res.render('pages/orders', {
             activePage: 'orders',
             admin: req.user,
-            orders
+            orders,
+            currentPage: page,
+            totalPages,
+            totalRecords: total
         });
     } catch (error) {
         res.status(500).send(error.message);
@@ -519,7 +569,7 @@ exports.getOrderDetail = async (req, res) => {
         let order = await Booking.findById(req.params.id)
             .populate('user_id', 'username email')
             .populate('event_id', 'title');
-        
+
         if (!order) return res.status(404).send('Order not found');
 
         // On-the-fly verification for pending order
@@ -613,16 +663,16 @@ exports.getCMSForm = async (req, res) => {
 exports.saveCMS = async (req, res) => {
     try {
         const { id, title, slug, content, metaTitle, metaDescription, metaKeywords, showInMenu, menuLocation } = req.body;
-        const data = { 
-            title, 
-            slug, 
-            content, 
-            metaTitle, 
-            metaDescription, 
-            metaKeywords, 
+        const data = {
+            title,
+            slug,
+            content,
+            metaTitle,
+            metaDescription,
+            metaKeywords,
             showInMenu: showInMenu === 'on',
             menuLocation,
-            lastUpdatedBy: req.user._id 
+            lastUpdatedBy: req.user._id
         };
 
         if (id) {
@@ -846,8 +896,18 @@ exports.handleDelete = async (req, res) => {
             default: return res.status(400).send('Invalid resource');
         }
 
+        const resourceNames = {
+            'users': 'User',
+            'events': 'Event',
+            'categories': 'Category',
+            'cms': 'Page',
+            'faqs': 'FAQ',
+            'inquiries': 'Inquiry'
+        };
+        const resourceName = resourceNames[resource] || 'Item';
+
         await model.findByIdAndDelete(id);
-        res.redirect(`${redirectUrl}?success=Item deleted successfully`);
+        res.redirect(`${redirectUrl}?success=${resourceName} deleted successfully`);
     } catch (error) {
         res.status(500).send(error.message);
     }
@@ -1096,15 +1156,28 @@ exports.disconnectStripe = async (req, res) => {
 // @route   GET /admin/email-logs
 exports.getEmailLogs = async (req, res) => {
     try {
-        const logs = await EmailLog.find()
-            .populate('booking_id', 'booking_reference customer_name')
-            .sort({ createdAt: -1 })
-            .limit(100);
+        const page = parseInt(req.query.page) || 1;
+        const limit = 20;
+        const skip = (page - 1) * limit;
+
+        const [logs, total] = await Promise.all([
+            EmailLog.find()
+                .populate('booking_id', 'booking_reference customer_name')
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit),
+            EmailLog.countDocuments()
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
 
         res.render('pages/emailLogs', {
             activePage: 'email-logs',
             admin: req.user,
-            logs
+            logs,
+            currentPage: page,
+            totalPages,
+            totalRecords: total
         });
     } catch (error) {
         res.status(500).send(error.message);
@@ -1116,7 +1189,7 @@ exports.markOrderPaid = async (req, res) => {
     try {
         const booking = await Booking.findById(req.params.id);
         if (!booking) return res.status(404).send('Booking not found');
-        
+
         if (booking.payment_status === 'paid') {
             return res.redirect(`/admin/orders/view/${booking._id}?error=Already paid`);
         }
@@ -1180,9 +1253,9 @@ exports.getEditJob = async (req, res) => {
 exports.saveJob = async (req, res) => {
     try {
         const { id, title, department, location, type, status, applicationLink, description, requirements } = req.body;
-        
+
         // Convert requirements from string to array if it's a newline separated string
-        const requirementsArray = typeof requirements === 'string' 
+        const requirementsArray = typeof requirements === 'string'
             ? requirements.split('\n').map(r => r.trim()).filter(r => r !== '')
             : requirements;
 

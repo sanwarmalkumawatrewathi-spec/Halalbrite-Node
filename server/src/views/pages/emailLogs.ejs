@@ -13,12 +13,13 @@
                     <th>Subject</th>
                     <th>Booking Ref</th>
                     <th>Status</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <% if (logs.length === 0) { %>
                     <tr>
-                        <td colspan="6" class="text-center text-muted">No email logs found.</td>
+                        <td colspan="7" class="text-center text-muted">No email logs found.</td>
                     </tr>
                 <% } else { %>
                     <% logs.forEach(log => { %>
@@ -60,10 +61,42 @@
                                     </span>
                                 <% } %>
                             </td>
+                            <td>
+                                <form action="/admin/email-logs/delete/<%= log._id %>" method="POST" onsubmit="return confirm('Delete this log entry?')">
+                                    <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--danger);">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     <% }) %>
                 <% } %>
             </tbody>
         </table>
     </div>
+
+    <% if (typeof totalPages !== 'undefined' && totalPages > 1) { %>
+        <div class="card-footer" style="padding: 1.5rem; border-top: 1px solid #f1f5f9;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="text-muted text-sm">
+                    Showing <%= (typeof currentPage !== 'undefined' ? (currentPage - 1) * 20 + 1 : 1) %> to <%= Math.min((typeof currentPage !== 'undefined' ? currentPage * 20 : 20), (typeof totalRecords !== 'undefined' ? totalRecords : 0)) %> of <%= (typeof totalRecords !== 'undefined' ? totalRecords : 0) %> logs
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <% if (typeof currentPage !== 'undefined' && currentPage > 1) { %>
+                        <a href="/admin/email-logs?page=<%= currentPage - 1 %>" class="btn btn-outline btn-sm">Previous</a>
+                    <% } %>
+                    
+                    <% if (typeof currentPage !== 'undefined' && typeof totalPages !== 'undefined') { %>
+                        <% for(let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) { %>
+                            <a href="/admin/email-logs?page=<%= i %>" class="btn btn-sm <%= i === currentPage ? 'btn-primary' : 'btn-outline' %>"><%= i %></a>
+                        <% } %>
+                    <% } %>
+                    
+                    <% if (typeof currentPage !== 'undefined' && typeof totalPages !== 'undefined' && currentPage < totalPages) { %>
+                        <a href="/admin/email-logs?page=<%= currentPage + 1 %>" class="btn btn-outline btn-sm">Next</a>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    <% } %>
 </div>

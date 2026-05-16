@@ -8,7 +8,7 @@ const emailService = require('../services/email.service');
 exports.submitInquiry = async (req, res) => {
     try {
         const { fullName, email, subject, message } = req.body;
-
+        
         const inquiry = await Inquiry.create({
             fullName,
             email,

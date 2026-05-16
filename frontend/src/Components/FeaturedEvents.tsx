@@ -71,8 +71,8 @@ export default function FeaturedEvents({ activeCategory, selectedCities = [], se
             Featured Events
           </h2>
           <p className="text-gray-600 text-[15px] mb-3">
-            {selectedCities.length > 0 
-              ? `Discover upcoming events in ${selectedCities.join(', ')}` 
+            {selectedCities.length > 0
+              ? `Discover upcoming events in ${selectedCities.join(', ')}`
               : 'Discover upcoming events in your community'}
           </p>
         </div>
@@ -89,9 +89,9 @@ export default function FeaturedEvents({ activeCategory, selectedCities = [], se
               id={event._id}
               slug={event.slug}
               title={event.title}
-              organizer={event.organizerName || event.organizer?.username || "Organizer"}
-              organizerId={typeof event.organizer === 'object' ? event.organizer._id : event.organizer}
-              organizerSlug={event.organizer?.slug}
+              organizer={event.organizerProfile?.name || event.organizerName || event.organizer?.username || "Organizer"}
+              organizerId={event.organizerProfile?._id || (event.organizer && typeof event.organizer === 'object' ? event.organizer._id : (event.organizer || ''))}
+              organizerSlug={event.organizerProfile?.slug || event.organizer?.slug}
               startDate={event.startDate}
               endDate={event.endDate}
               startTime={event.startTime}

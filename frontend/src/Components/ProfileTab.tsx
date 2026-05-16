@@ -1,8 +1,10 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import CustomModal from "./CustomModal";
 import { getImageUrl } from "@/utils/imageUtils";
+import Cropper from 'react-easy-crop';
+import { getCroppedImg } from "@/utils/cropUtils";
 
 export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
   const router = useRouter();
@@ -15,10 +17,23 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
     lastName: user?.lastName || "",
     phone: user?.phone || "+44 7700 900000",
     bio: user?.bio || "",
-    username: user?.username || ""
+    username: user?.username || "",
+    country: user?.country || "IE"
   });
 
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar || null);
+
+  // Cropper State
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: any) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
 
   // Upgrade Modal State
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -67,43 +82,63 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      
-      // 1. Immediate local preview
-      const localUrl = URL.createObjectURL(file);
-      setAvatarPreview(localUrl);
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        setImageSrc(reader.result as string);
+        setShowCropper(true);
+      });
+      reader.readAsDataURL(file);
+    }
+  };
 
-      // 2. Upload to server
-      try {
-        const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-        const token = localStorage.getItem('token');
-        const formDataUpload = new FormData();
-        formDataUpload.append("image", file);
+  const handleCropConfirm = async () => {
+    if (!imageSrc || !croppedAreaPixels) return;
 
-        const response = await fetch(`${API_URL}/api/upload`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formDataUpload,
+    setIsUploadingAvatar(true);
+    try {
+      const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+      if (!croppedImageBlob) throw new Error("Failed to crop image");
+
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const token = localStorage.getItem('token');
+      const formDataUpload = new FormData();
+      formDataUpload.append("image", croppedImageBlob, "avatar.jpg");
+
+      // 1. Upload to server
+      const response = await fetch(`${API_URL}/api/upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formDataUpload,
+      });
+
+      const data = await response.json();
+      if (response.ok && data.url) {
+        // 2. Update user profile immediately
+        const updateRes = await fetch(`${API_URL}/api/auth/update-profile`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ avatar: data.url })
         });
-
-        const data = await response.json();
-        if (response.ok && data.url) {
-          // Update user profile with new avatar URL
-          const updateRes = await fetch(`${API_URL}/api/auth/update-profile`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ avatar: data.url })
-          });
-          if (updateRes.ok) {
-            const updatedUser = await updateRes.json();
-            updateUser(updatedUser.data || updatedUser);
-          }
+        if (updateRes.ok) {
+          const updatedUser = await updateRes.json();
+          updateUser(updatedUser.data || updatedUser);
+          setAvatarPreview(data.url);
+          setShowCropper(false);
+          showAlert("Success", "Profile photo updated successfully!", "success");
+        } else {
+          throw new Error("Failed to update profile with new avatar");
         }
-      } catch (error) {
-        console.error("Avatar upload failed:", error);
+      } else {
+        throw new Error(data.message || "Upload failed");
       }
+    } catch (error: any) {
+      console.error("Avatar update failed:", error);
+      showAlert("Error", error.message || "Failed to update profile photo", "error");
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
 
@@ -176,7 +211,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
     <div className="space-y-6" suppressHydrationWarning>
       <div className="grid gap-4 sm:gap-6 md:grid-cols-3 mb-20">
         {/* Profile Photo Card */}
-        <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border md:col-span-1">
+        <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-gray-200 md:col-span-1">
           <div data-slot="card-header" className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-4 sm:p-6">
             <h4 data-slot="card-title" className="text-lg sm:text-xl">Profile Photo</h4>
           </div>
@@ -246,7 +281,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
         </div>
 
         {/* Personal Information Card */}
-        <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border md:col-span-2">
+        <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-gray-200 md:col-span-2">
           <div data-slot="card-header" className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-4 sm:p-6">
             <h4 data-slot="card-title" className="text-lg sm:text-xl">Personal Information</h4>
             <p data-slot="card-description" className="text-gray-500 text-sm">Update your personal details</p>
@@ -258,7 +293,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
                   <label data-slot="label" className="flex items-center gap-2 font-medium text-sm text-gray-700" htmlFor="username">Username</label>
                   <input
                     data-slot="input"
-                    className="flex h-9 w-full min-w-0 rounded-md border border-gray-300 px-3 py-1 bg-white outline-none focus-visible:ring-2 focus-visible:ring-red-500 text-sm sm:text-base text-gray-900"
+                    className="w-full border borborder border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all text-gray-900 bg-white"
                     id="username"
                     value={formData.username}
                     onChange={(e) => setFormData({ ...formData, username: e.target.value })}
@@ -269,7 +304,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
                   <input
                     type="email"
                     data-slot="input"
-                    className="flex h-9 w-full min-w-0 rounded-md border border-gray-300 px-3 py-1 bg-gray-50 outline-none cursor-not-allowed text-sm sm:text-base text-gray-500"
+                    className="w-full border borborder border-gray-100 rounded-xl px-4 py-2 text-sm bg-gray-50 outline-none cursor-not-allowed text-gray-400 transition-all"
                     id="email"
                     value={user.email}
                     readOnly
@@ -281,7 +316,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
                 <input
                   type="tel"
                   data-slot="input"
-                  className="flex h-9 w-full min-w-0 rounded-md border border-gray-300 px-3 py-1 bg-white outline-none focus-visible:ring-2 focus-visible:ring-red-500 text-sm sm:text-base text-gray-900"
+                  className="w-full border borborder border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all text-gray-900 bg-white"
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -291,12 +326,49 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
                 <label data-slot="label" className="flex items-center gap-2 font-medium text-sm text-gray-700" htmlFor="bio">Bio</label>
                 <input
                   data-slot="input"
-                  className="flex h-9 w-full min-w-0 rounded-md border border-gray-300 px-3 py-1 bg-white outline-none focus-visible:ring-2 focus-visible:ring-red-500 text-sm sm:text-base text-gray-900"
+                  className="w-full border borborder border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all text-gray-900 bg-white"
                   id="bio"
                   placeholder="Tell us about yourself..."
                   value={formData.bio}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                 />
+              </div>
+              <div className="space-y-1.5 sm:space-y-2">
+                <label data-slot="label" className="flex items-center gap-2 font-medium text-sm text-gray-700" htmlFor="country">Country (for Stripe Connect)</label>
+                <select
+                  data-slot="select"
+                  className="w-full border borborder border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all text-gray-900 bg-white"
+                  id="country"
+                  value={formData.country}
+                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                >
+                  <optgroup label="Europe">
+                    <option value="IE">Ireland</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                    <option value="ES">Spain</option>
+                    <option value="IT">Italy</option>
+                    <option value="NL">Netherlands</option>
+                    <option value="AT">Austria</option>
+                    <option value="BE">Belgium</option>
+                    <option value="DK">Denmark</option>
+                    <option value="FI">Finland</option>
+                    <option value="NO">Norway</option>
+                    <option value="PT">Portugal</option>
+                    <option value="SE">Sweden</option>
+                    <option value="CH">Switzerland</option>
+                  </optgroup>
+                  <optgroup label="North America">
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                  </optgroup>
+                  <optgroup label="Oceania">
+                    <option value="AU">Australia</option>
+                    <option value="NZ">New Zealand</option>
+                  </optgroup>
+                </select>
+                <p className="text-xs text-gray-500">Only Stripe-supported payout countries are listed. This selection determines your financial onboarding region.</p>
               </div>
               <button
                 data-slot="button"
@@ -322,6 +394,73 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
         showCancel={modalConfig.showCancel}
         type={modalConfig.type}
       />
+
+      {/* Cropper Modal */}
+      {showCropper && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl">
+            <div className="p-4 sm:p-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900">Adjust Profile Photo</h3>
+              <button onClick={() => setShowCropper(false)} className="text-gray-400 hover:text-gray-600 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <div className="relative h-64 sm:h-80 w-full bg-gray-900">
+              {imageSrc && (
+                <Cropper
+                  image={imageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onCropComplete={onCropComplete}
+                  onZoomChange={setZoom}
+                  cropShape="round"
+                  showGrid={false}
+                />
+              )}
+            </div>
+
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Zoom</label>
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowCropper(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCropConfirm}
+                  disabled={isUploadingAvatar}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isUploadingAvatar ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Saving...
+                    </>
+                  ) : "Save Photo"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

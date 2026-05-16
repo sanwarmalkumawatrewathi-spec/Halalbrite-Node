@@ -8,10 +8,12 @@ import { MdOutlineReplay } from "react-icons/md";
 import { IoRefreshOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import { getImageUrl } from "@/utils/imageUtils";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function CustomersTab() {
   const [loading, setLoading] = useState(true);
   const [customers, setCustomers] = useState<any[]>([]);
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     fetchCustomers();
@@ -220,7 +222,7 @@ export default function CustomersTab() {
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">{booking.event_id?.title || 'Unknown Event'}</td>
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap text-center">{booking.quantity}</td>
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-red-700 whitespace-nowrap font-medium">
-                                {booking.currency === 'EUR' ? '€' : booking.currency === 'USD' ? '$' : '£'}{booking.amount_total?.toFixed(2) || '0.00'}
+                                {formatPrice(booking.amount_total || 0, false)}
                               </td>
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">{new Date(booking.createdAt).toLocaleDateString()}</td>
                               <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
@@ -291,7 +293,7 @@ export default function CustomersTab() {
                         <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">sarah.ahmed@example.com</td>
                         <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">Annual Islamic Conference 2025</td>
                         <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap text-center">2</td>
-                        <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-red-700 whitespace-nowrap font-medium">€50</td>
+                        <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-red-700 whitespace-nowrap font-medium">{formatPrice(50)}</td>
                         <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">Unable to attend</td>
                         <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600">
                           <div className="max-w-[250px] truncate" title="Family emergency - need to travel abroad on the event date. Would appreciate a full refund as per your policy.">Family emergency - need to travel abroad on the event date. Would appreciate a full refund as per your policy.</div>

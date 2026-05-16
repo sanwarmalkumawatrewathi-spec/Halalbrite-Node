@@ -67,7 +67,7 @@ export default function MyTickets() {
 
   return (
     <div className="space-y-6 mb-20" suppressHydrationWarning>
-      <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border">
+      <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-gray-200">
         <div data-slot="card-header" className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-4 sm:p-6">
           <h4 data-slot="card-title" className="text-lg sm:text-xl">My Tickets</h4>
           <p data-slot="card-description" className="text-gray-500 text-sm">View and manage your event tickets</p>

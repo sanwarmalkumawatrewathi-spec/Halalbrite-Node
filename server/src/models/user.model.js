@@ -53,6 +53,7 @@ const userSchema = new mongoose.Schema({
     avatar: String,
     phone: String,
     bio: String,
+    country: String,
     addresses: [{
         label: String, // e.g., "Home", "Office"
         street: String,

@@ -3,7 +3,7 @@
 import { useEffect, useState, use } from "react";
 import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
-import { FaGlobe, FaFacebook, FaInstagram, FaTwitter, FaUsers, FaCalendarAlt, FaEnvelope } from "react-icons/fa";
+import { FiGlobe, FiFacebook, FiInstagram, FiTwitter, FiYoutube, FiLinkedin, FiUsers, FiCalendar, FiMail, FiMapPin } from "react-icons/fi";
 import Link from "next/link";
 import { getImageUrl } from "@/utils/imageUtils";
 
@@ -25,6 +25,8 @@ interface Organiser {
     followersCount: number;
     totalEvents: number;
   };
+  categories?: string[];
+  country?: string;
 }
 
 export default function OrganiserProfile({ params }: { params: Promise<{ slug: string }> }) {
@@ -34,6 +36,15 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    fullName: "",
+    email: "",
+    subject: "",
+    message: ""
+  });
+  const [submittingContact, setSubmittingContact] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     fetchOrganiser();
@@ -77,17 +88,43 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
         alert("Please login to follow organisers");
         return;
       }
-      const res = await fetch(`${API_URL}/api/organizers/${slug}/follow`, {
+      const res = await fetch(`${API_URL}/api/organizers/${organiser?._id || slug}/follow`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
       if (res.ok) {
         setIsFollowing(data.isFollowing);
-        fetchOrganiser(); // Refresh stats
+        setOrganiser(prev => prev ? { ...prev, stats: { ...prev.stats!, followersCount: data.followersCount } } : null);
       }
     } catch (error) {
       console.error("Error toggling follow:", error);
+    }
+  };
+
+  const handleContactSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingContact(true);
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const res = await fetch(`${API_URL}/api/organizers/${organiser?._id || slug}/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(contactForm)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setShowSuccessModal(true);
+        setShowContactModal(false);
+        setContactForm({ fullName: "", email: "", subject: "", message: "" });
+      } else {
+        alert(data.message || "Failed to send message");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setSubmittingContact(false);
     }
   };
 
@@ -98,156 +135,271 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
   const initials = organiser.username.substring(0, 2).toUpperCase();
 
   return (
-    <div className=" bg-gray-50">
+    <div className="min-h-screen bg-gray-50" suppressHydrationWarning>
       <Header />
 
-      {/* Red Banner Section */}
-      <div className="bg-red-600 pt-16 pb-32 relative">
+      {/* Hero Section */}
+      <div className="bg-[#d32f2f] pt-12 pb-24 md:pb-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-
-            {/* Profile Image / Logo */}
-            <div className="relative">
-              <div className="w-48 h-48 bg-red-100 rounded-2xl flex items-center justify-center text-red-600 text-6xl font-bold border-4 border-white shadow-xl overflow-hidden">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
+            
+            {/* Organizer Logo */}
+            <div className="relative shrink-0">
+              <div className="w-40 h-40 md:w-48 md:h-48 bg-white/10 rounded-[2.5rem] border-[6px] border-white/20 shadow-2xl flex items-center justify-center text-white text-6xl font-bold overflow-hidden backdrop-blur-md">
                 {organiser.avatar ? (
                   <img src={getImageUrl(organiser.avatar)} alt={displayName} className="w-full h-full object-cover" />
                 ) : (
                   initials
                 )}
               </div>
-              <div className="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow-lg">
-                <div className="bg-red-50 p-2 rounded-full">
-                  <FaUsers className="text-red-600 text-xl" />
-                </div>
+              <div className="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow-lg border-4 border-[#d32f2f]">
+                <FiUsers className="text-[#d32f2f] text-xl" />
               </div>
             </div>
 
-            {/* Content Area */}
-            <div className="flex-1 text-center md:text-left text-white">
-              <h1 className="text-4xl font-bold mb-2">{displayName}</h1>
-
-              <div className="flex flex-wrap justify-center md:justify-start gap-6 text-sm opacity-90 mb-6">
+            {/* Organizer Details */}
+            <div className="flex-1 text-center md:text-left text-white pt-2">
+              <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">{displayName}</h1>
+              
+              <div className="flex flex-wrap justify-center md:justify-start items-center gap-x-6 gap-y-3 mb-6 text-sm font-medium text-white/90">
                 <div className="flex items-center gap-2">
-                  <FaUsers className="text-lg" />
-                  <span>{organiser.stats?.followersCount || 0} followers</span>
+                  <FiUsers className="text-lg" />
+                  <span>{organiser.stats?.followersCount?.toLocaleString() || 0} followers</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <FaCalendarAlt className="text-lg" />
-                  <span>{organiser.stats?.totalEvents || 0} events hosted</span>
-                </div>
+                {organiser.categories && organiser.categories.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <FiCalendar className="text-lg" />
+                    <span>{organiser.categories.join(", ")}</span>
+                  </div>
+                )}
               </div>
 
-              <p className="text-lg opacity-90 max-w-2xl mb-8 leading-relaxed">
-                {organiser.bio || "No description provided."}
+              <p className="text-lg text-white/90 max-w-3xl mb-8 leading-relaxed font-medium">
+                {organiser.bio || "Welcome to our organiser profile. We host amazing events for the community."}
               </p>
 
-              {/* Social Buttons */}
-              <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
+              {/* Social Pills */}
+              <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-8">
                 {organiser.socialLinks?.website && (
-                  <a href={organiser.socialLinks.website} target="_blank" className="flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-semibold hover:bg-opacity-90 transition">
-                    <FaGlobe className="text-red-600" /> Website
+                  <a href={organiser.socialLinks.website} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
+                    <FiGlobe className="text-[#d32f2f] text-sm" /> Website
                   </a>
                 )}
                 {organiser.socialLinks?.facebook && (
-                  <a href={organiser.socialLinks.facebook} target="_blank" className="flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-semibold hover:bg-opacity-90 transition">
-                    <FaFacebook className="text-blue-600" /> Facebook
+                  <a href={organiser.socialLinks.facebook} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
+                    <FiFacebook className="text-[#d32f2f] text-sm" /> Facebook
+                  </a>
+                )}
+                {organiser.socialLinks?.twitter && (
+                  <a href={organiser.socialLinks.twitter} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
+                    <FiTwitter className="text-[#d32f2f] text-sm" /> Twitter
                   </a>
                 )}
                 {organiser.socialLinks?.instagram && (
-                  <a href={organiser.socialLinks.instagram} target="_blank" className="flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-full text-sm font-semibold hover:bg-opacity-90 transition">
-                    <FaInstagram className="text-pink-600" /> Instagram
+                  <a href={organiser.socialLinks.instagram} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
+                    <FiInstagram className="text-[#d32f2f] text-sm" /> Instagram
                   </a>
                 )}
               </div>
 
-              {/* Action Buttons */}
+              {/* Primary Actions */}
               <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                <button
+                <button 
                   onClick={toggleFollow}
-                  className={`flex items-center gap-2 px-8 py-3 rounded-xl text-sm font-bold shadow-lg transition transform hover:scale-105 ${isFollowing ? 'bg-white text-red-600' : 'bg-white text-red-600'}`}
+                  className="flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:bg-gray-50 transition-all active:scale-95"
                 >
-                  <FaUsers className="text-lg" /> {isFollowing ? 'Following' : 'Follow'}
+                  <FiUsers className="text-lg" /> {isFollowing ? 'Following' : 'Follow'}
                 </button>
-                <button className="flex items-center gap-2 bg-white bg-opacity-20 border border-white border-opacity-30 text-white px-8 py-3 rounded-xl text-sm font-bold backdrop-blur-sm hover:bg-opacity-30 transition transform hover:scale-105">
-                  <FaEnvelope className="text-lg" /> Contact Organiser
+                <button 
+                  onClick={() => setShowContactModal(true)}
+                  className="flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:bg-gray-50 transition-all active:scale-95"
+                >
+                  <FiMail className="text-lg" /> Contact Organiser
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       </div>
 
       {/* Events Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-12 mb-20">
-        <div className="bg-white rounded-3xl shadow-xl p-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 mb-24">
+        
+        {/* Tab Switcher */}
+        <div className="inline-flex items-center bg-white p-1 rounded-2xl shadow-xl border border-gray-100 mb-12">
+          <button
+            onClick={() => handleTabChange("upcoming")}
+            className={`px-8 py-3 rounded-xl text-sm font-extrabold transition-all ${activeTab === "upcoming" ? 'bg-[#d32f2f] text-white shadow-lg shadow-red-200' : 'text-gray-500 hover:bg-gray-50'}`}
+          >
+            Upcoming Events
+          </button>
+          <button
+            onClick={() => handleTabChange("past")}
+            className={`px-8 py-3 rounded-xl text-sm font-extrabold transition-all ${activeTab === "past" ? 'bg-[#d32f2f] text-white shadow-lg shadow-red-200' : 'text-gray-500 hover:bg-gray-50'}`}
+          >
+            Past Events
+          </button>
+        </div>
 
-          {/* Tabs */}
-          <div className="flex items-center gap-2 mb-10 bg-gray-50 p-1.5 rounded-2xl w-fit">
-            <button
-              onClick={() => handleTabChange("upcoming")}
-              className={`px-8 py-3 rounded-xl text-sm font-bold transition ${activeTab === "upcoming" ? 'bg-red-600 text-white shadow-lg' : 'text-gray-600 hover:bg-gray-100'}`}
-            >
-              Upcoming Events
-            </button>
-            <button
-              onClick={() => handleTabChange("past")}
-              className={`px-8 py-3 rounded-xl text-sm font-bold transition ${activeTab === "past" ? 'bg-red-600 text-white shadow-lg' : 'text-gray-600 hover:bg-gray-100'}`}
-            >
-              Past Events
-            </button>
-          </div>
-
-          {/* Event Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {events.length > 0 ? (
-              events.map((event) => (
-                <Link href={`/event/${event.slug || event._id}`} key={event._id} className="group bg-white border border-gray-100 rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-300">
-                  <div className="relative h-56">
-                    <img src={getImageUrl(event.thumbnail || event.banner)} alt={event.title} className="w-full h-full object-cover transition duration-500 group-hover:scale-110" />
-                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest text-red-600 shadow-sm">
-                      {event.category?.name || "Community"}
+        {/* Event Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {events.length > 0 ? (
+            events.map((event) => (
+              <Link href={`/event/${event.slug || event._id}`} key={event._id} className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 flex flex-col">
+                <div className="relative h-64 overflow-hidden">
+                  <img src={getImageUrl(event.thumbnail || event.banner)} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute top-5 left-5 bg-white px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest text-gray-900 shadow-sm border border-gray-100">
+                    {event.category?.name || "Event"}
+                  </div>
+                </div>
+                
+                <div className="p-8 flex-1 flex flex-col">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-[#d32f2f] transition-colors line-clamp-2 min-h-[3.5rem]">
+                    {event.title}
+                  </h3>
+                  
+                  <div className="space-y-3 mb-8">
+                    <div className="flex items-center gap-3 text-sm font-semibold text-gray-500">
+                      <FiCalendar className="text-[#d32f2f] text-lg shrink-0" />
+                      <span>{new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} at {event.startTime}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm font-semibold text-gray-500">
+                      <FiMapPin className="text-[#d32f2f] text-lg shrink-0" />
+                      <span>{event.location?.city}, {event.location?.country}</span>
                     </div>
                   </div>
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-red-600 transition">
-                      {event.title}
-                    </h3>
-                    <div className="space-y-2.5 mb-6">
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center text-red-600">
-                          <FaCalendarAlt size={14} />
-                        </div>
-                        <span>{new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} at {event.startTime}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm text-gray-600">
-                        <div className="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center text-red-600">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        </div>
-                        <span>{event.location?.city}, {event.location?.country}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                      <p className="font-bold text-red-600">
-                        {event.ticketTypes?.[0]?.price ? `From £${event.ticketTypes[0].price}` : 'Free'}
+
+                  <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Tickets from</p>
+                      <p className="text-xl font-black text-gray-900">
+                        {event.ticketTypes?.[0]?.price ? `£${event.ticketTypes[0].price}` : 'Free'}
                       </p>
-                      <span className="text-xs font-bold bg-red-50 text-red-600 px-4 py-2 rounded-xl group-hover:bg-red-600 group-hover:text-white transition">
-                        Get Tickets
-                      </span>
                     </div>
+                    <button className="bg-[#d32f2f] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-red-100 group-hover:scale-105 transition-all">
+                      Get Tickets
+                    </button>
                   </div>
-                </Link>
-              ))
-            ) : (
-              <div className="col-span-full py-20 text-center text-gray-500 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-                <FaCalendarAlt className="mx-auto text-4xl mb-4 opacity-20" />
-                <p className="text-lg font-medium">No events found in this category.</p>
+                </div>
+              </Link>
+            ))
+          ) : (
+            <div className="col-span-full py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100 shadow-sm">
+              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FiCalendar className="text-gray-300 text-3xl" />
               </div>
-            )}
-          </div>
-
+              <p className="text-xl font-bold text-gray-900 mb-2">No events found</p>
+              <p className="text-gray-500 font-medium">This organiser hasn't scheduled any {activeTab} events yet.</p>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Contact Modal */}
+      {showContactModal && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="bg-[#d32f2f] p-8 text-white relative">
+              <button 
+                onClick={() => setShowContactModal(false)}
+                className="absolute top-6 right-6 w-10 h-10 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20 transition-all"
+              >
+                <FiMail className="rotate-45" />
+              </button>
+              <h2 className="text-2xl font-black mb-2">Contact {organiser.username}</h2>
+              <p className="text-white/80 text-sm font-medium">Send a message directly to the event organiser.</p>
+            </div>
+            
+            <form onSubmit={handleContactSubmit} className="p-8 space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Full Name</label>
+                  <input
+                    required
+                    type="text"
+                    value={contactForm.fullName}
+                    onChange={(e) => setContactForm({ ...contactForm, fullName: e.target.value })}
+                    placeholder="John Doe"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-sm font-semibold focus:ring-2 focus:ring-[#d32f2f] focus:border-[#d32f2f] outline-none transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                  <input
+                    required
+                    type="email"
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                    placeholder="john@example.com"
+                    className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-sm font-semibold focus:ring-2 focus:ring-[#d32f2f] focus:border-[#d32f2f] outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Subject</label>
+                <input
+                  required
+                  type="text"
+                  value={contactForm.subject}
+                  onChange={(e) => setContactForm({ ...contactForm, subject: e.target.value })}
+                  placeholder="Query regarding your events"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-sm font-semibold focus:ring-2 focus:ring-[#d32f2f] focus:border-[#d32f2f] outline-none transition-all"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Your Message</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={contactForm.message}
+                  onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                  placeholder="Write your message here..."
+                  className="w-full bg-gray-50 border border-gray-100 rounded-2xl px-5 py-3.5 text-sm font-semibold focus:ring-2 focus:ring-[#d32f2f] focus:border-[#d32f2f] outline-none transition-all resize-none"
+                />
+              </div>
+
+              <button
+                disabled={submittingContact}
+                className="w-full bg-[#d32f2f] text-white py-4 rounded-2xl font-bold text-sm shadow-xl shadow-red-100 hover:bg-red-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+              >
+                {submittingContact ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  <>
+                    <FiMail className="text-lg" />
+                    Send Message
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-500">
+          <div className="bg-white w-full max-w-sm rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500 text-center p-10">
+            <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8 animate-bounce duration-1000">
+              <svg className="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 mb-4">Message Sent!</h3>
+            <p className="text-gray-500 font-medium mb-10 leading-relaxed">
+              Your message has been delivered to {organiser.username}. They will get back to you shortly.
+            </p>
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full bg-[#d32f2f] text-white py-4 rounded-2xl font-bold text-sm shadow-xl shadow-red-100 hover:bg-red-700 transition-all active:scale-95"
+            >
+              Great, thanks!
+            </button>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

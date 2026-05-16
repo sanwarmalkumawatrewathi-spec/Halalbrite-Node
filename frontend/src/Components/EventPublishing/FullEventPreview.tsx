@@ -5,6 +5,10 @@ import { FiCalendar, FiClock, FiShare2, FiHeart, FiX, FiCheck, FiEdit3 } from 'r
 import { Calendar, Clock, Share2, Heart, Users } from "lucide-react";
 import { LocationIcon } from '@/Components/Icons';
 import { getImageUrl } from "@/utils/imageUtils";
+import dynamic from 'next/dynamic';
+import Footer from '@/Components/Footer';
+import TicketSelection from '@/Components/TicketSelection';
+const MapComponent = dynamic(() => import("@/Components/MapComponent"), { ssr: false });
 
 interface FullEventPreviewProps {
   isOpen: boolean;
@@ -49,20 +53,18 @@ export default function FullEventPreview({ isOpen, onClose, onPublish, eventData
     : (getImageUrl(bannerImage) || "/images/noimage.jpg");
 
   return (
-    <div className="fixed inset-0 z-[300] bg-white overflow-y-auto animate-in fade-in duration-300">
+    <div className="fixed top-16 inset-x-0 bottom-0 z-[9000] bg-white overflow-y-auto animate-in fade-in duration-300">
       
       {/* Top Bar / Controls */}
-      <div className="sticky top-0 z-[310] bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-4 flex items-center justify-between shadow-md">
+      <div className="sticky top-0 z-[310] bg-white/95 backdrop-blur-md border-b border-gray-100 px-6 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold">H</div>
-            <span className="font-bold text-gray-900">Halalbrite</span>
-          </div>
-          <div className="h-6 w-px bg-gray-200 mx-2"></div>
           <div className="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest flex items-center gap-2 uppercase">
             <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
             Preview Mode
           </div>
+          <span className="text-xs text-gray-500 font-medium hidden md:block italic">
+            This is how your event will appear to attendees
+          </span>
         </div>
         <div className="flex items-center gap-4">
           <button 
@@ -169,26 +171,21 @@ export default function FullEventPreview({ isOpen, onClose, onPublish, eventData
                 </div>
               </div>
 
-              {/* Tickets Section Mockup */}
-              <div className="bg-white rounded-3xl shadow-xl p-8 relative group cursor-pointer border-2 border-transparent hover:border-red-100 transition-all" onClick={onClose}>
-                <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-all flex items-center gap-2 text-red-600 font-bold text-sm">
+              {/* Tickets Section */}
+              <div className="relative group cursor-pointer" onClick={onClose}>
+                <div className="absolute top-8 right-8 opacity-0 group-hover:opacity-100 transition-all flex items-center gap-2 text-red-600 font-bold text-sm z-20">
                   <FiEdit3 /> Edit Tickets
                 </div>
-                <h2 className="text-2xl font-bold text-red-900 mb-6">Tickets</h2>
-                <div className="space-y-4">
-                  {tickets.map((t, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 border border-gray-100 rounded-2xl hover:border-red-100 transition-all">
-                      <div>
-                        <h4 className="font-bold text-gray-900">{t.name}</h4>
-                        <p className="text-sm text-gray-500">{t.quantity} available</p>
-                      </div>
-                      <div className="text-xl font-bold text-red-600">
-                        {t.price === 0 ? "FREE" : `$${t.price}`}
-                      </div>
-                    </div>
-                  ))}
-                  {tickets.length === 0 && <p className="text-gray-400 italic">No tickets added yet.</p>}
-                </div>
+                <TicketSelection 
+                  tickets={tickets.map((t, i) => ({
+                    ...t,
+                    _id: t._id || `preview-${i}`,
+                    price: Number(t.price) || 0,
+                    quantity: Number(t.quantity) || 0,
+                    description: t.description || "No description provided."
+                  }))} 
+                  eventId={eventData._id}
+                />
               </div>
             </div>
 
@@ -242,6 +239,22 @@ export default function FullEventPreview({ isOpen, onClose, onPublish, eventData
           </div>
         </section>
 
+        {/* Map Section */}
+        <section className="max-w-7xl mx-auto px-6 mb-12">
+          <div className="bg-white rounded-3xl shadow-xl p-8" id="map-section">
+            <h4 className="text-xl font-bold text-red-900 mb-6">Location Map</h4>
+            <div className="rounded-2xl overflow-hidden border border-gray-100">
+              <MapComponent
+                center={eventData.location?.geometry?.coordinates || [eventData.lng, eventData.lat]}
+                events={[{ ...eventData, location: { ...eventData.location, geometry: { coordinates: [eventData.lng, eventData.lat] } } }]}
+                height="400px"
+                containerClassName="w-full"
+              />
+            </div>
+          </div>
+        </section>
+
+        <Footer />
       </div>
     </div>
   );

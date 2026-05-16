@@ -42,6 +42,7 @@ class StripeService {
             const account = await stripeInstance.accounts.create({
                 type: 'express',
                 email: user.email,
+                country: user.country || 'IE',
                 capabilities: {
                     card_payments: { requested: true },
                     transfers: { requested: true },

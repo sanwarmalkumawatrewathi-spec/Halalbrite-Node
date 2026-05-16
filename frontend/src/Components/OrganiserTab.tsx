@@ -3,6 +3,7 @@
 import { FiEdit, FiTrash2, FiGlobe, FiFacebook, FiInstagram, FiTwitter, FiYoutube, FiLinkedin, FiLink } from "react-icons/fi";
 import { IoBusinessOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 
 // Fallback categories if backend fails
 const initialCategories = [
@@ -36,6 +37,7 @@ export default function OrganiserTab() {
     logo: '',
     website: '',
     bio: '',
+    country: '',
     categories: [] as string[],
     socialLinks: {
       facebook: '',
@@ -181,6 +183,7 @@ export default function OrganiserTab() {
       logo: '',
       website: '',
       bio: '',
+      country: '',
       categories: [],
       socialLinks: { facebook: '', instagram: '', linkedin: '', twitter: '', youtube: '', otherWebsite: '' }
     });
@@ -194,6 +197,7 @@ export default function OrganiserTab() {
       logo: org.logo || '',
       website: org.website || '',
       bio: org.bio || '',
+      country: org.country || '',
       categories: org.categories || [],
       socialLinks: {
         facebook: org.socialLinks?.facebook || '',
@@ -447,6 +451,44 @@ export default function OrganiserTab() {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-bold text-gray-800 mb-1">Country *</label>
+                  <select
+                    name="country"
+                    required
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    className="w-full border bg-white border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
+                  >
+                    <option value="">Select a country</option>
+                    <optgroup label="Europe">
+                      <option value="IE">Ireland</option>
+                      <option value="GB">United Kingdom</option>
+                      <option value="DE">Germany</option>
+                      <option value="FR">France</option>
+                      <option value="ES">Spain</option>
+                      <option value="IT">Italy</option>
+                      <option value="NL">Netherlands</option>
+                      <option value="AT">Austria</option>
+                      <option value="BE">Belgium</option>
+                      <option value="DK">Denmark</option>
+                      <option value="FI">Finland</option>
+                      <option value="NO">Norway</option>
+                      <option value="PT">Portugal</option>
+                      <option value="SE">Sweden</option>
+                      <option value="CH">Switzerland</option>
+                    </optgroup>
+                    <optgroup label="North America">
+                      <option value="US">United States</option>
+                      <option value="CA">Canada</option>
+                    </optgroup>
+                    <optgroup label="Oceania">
+                      <option value="AU">Australia</option>
+                      <option value="NZ">New Zealand</option>
+                    </optgroup>
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-sm font-bold text-gray-800 mb-1">Organisation Bio *</label>
                   <textarea
                     name="bio"
@@ -601,12 +643,20 @@ export default function OrganiserTab() {
                     <div className="flex-1 w-full">
                       <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-3">
                         <div>
-                          <h3 className="font-bold text-gray-900 text-lg">{org.name || org.username}</h3>
+                          <Link href={`/organiser/${org.slug || org._id}`} target="_blank">
+                            <h3 className="font-bold text-gray-900 text-lg hover:text-red-600 transition-colors cursor-pointer">{org.name || org.username}</h3>
+                          </Link>
                           {org.website && (
                             <a href={org.website} target="_blank" rel="noopener noreferrer" className="text-sm text-red-600 font-medium flex items-center gap-1 mt-0.5 hover:underline w-fit">
                               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-globe w-3 h-3"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
                               {org.website}
                             </a>
+                          )}
+                          {org.country && (
+                            <span className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3 h-3"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                              {org.country}
+                            </span>
                           )}
                         </div>
                         <div className="flex gap-2 w-full sm:w-auto">

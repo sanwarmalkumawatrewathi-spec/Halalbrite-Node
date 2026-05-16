@@ -85,9 +85,11 @@ exports.getEvents = async (req, res) => {
 
         console.log('📂 Final MongoDB Query:', JSON.stringify(query));
         const events = await Event.find(query)
-            .populate('organizer', 'username avatar')
-            .populate('category', 'name slug icon')
-            .sort({ startDate: 1 }); // Show soonest events first
+            .populate('organizer', 'username avatar bio slug')
+            .populate('organizerProfile', 'name slug logo bio website socialLinks')
+            .populate('category', 'name slug icon description')
+            .sort({ startDate: 1 })
+            .limit(25); // Apply the 25 record limit
 
         res.json(events);
     } catch (error) {

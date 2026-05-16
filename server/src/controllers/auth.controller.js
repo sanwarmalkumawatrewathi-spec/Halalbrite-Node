@@ -162,6 +162,7 @@ exports.getProfile = async (req, res) => {
             lastName: user.lastName,
             phone: user.phone,
             bio: user.bio,
+            country: user.country,
             avatar: user.avatar,
             roles: user.roles.map(r => r.slug),
             stripeConnectedId: user.stripeConnectedId || null,
@@ -312,33 +313,42 @@ exports.updateProfile = async (req, res) => {
         const user = await User.findById(req.user._id);
 
         if (user) {
-            user.username = req.body.username || user.username;
-            user.firstName = req.body.firstName || user.firstName;
-            user.lastName = req.body.lastName || user.lastName;
-            user.phone = req.body.phone || user.phone;
-            user.bio = req.body.bio || user.bio;
-            user.avatar = req.body.avatar || user.avatar;
+            const updateFields = {
+                username: req.body.username || user.username,
+                firstName: req.body.firstName || user.firstName,
+                lastName: req.body.lastName || user.lastName,
+                phone: req.body.phone || user.phone,
+                bio: req.body.bio || user.bio,
+                country: req.body.country || user.country,
+                avatar: req.body.avatar || user.avatar
+            };
 
             if (req.body.password) {
                 user.password = req.body.password;
+                await user.save(); // Save to trigger password hashing pre-save hook
             }
 
-            const updatedUser = await user.save();
-            const populatedUser = await User.findById(updatedUser._id).populate('roles');
+            const updatedUser = await User.findByIdAndUpdate(
+                req.user._id,
+                { $set: updateFields },
+                { new: true, runValidators: true }
+            ).populate('roles');
 
             res.json({
-                _id: populatedUser._id,
-                username: populatedUser.username,
-                email: populatedUser.email,
-                firstName: populatedUser.firstName,
-                lastName: populatedUser.lastName,
-                phone: populatedUser.phone,
-                bio: populatedUser.bio,
-                avatar: populatedUser.avatar,
-                roles: populatedUser.roles.map(r => r.slug),
-                stripeConnectedId: populatedUser.stripeConnectedId || null,
-                token: generateToken(populatedUser._id),
-                preferences: populatedUser.preferences
+                success: true,
+                _id: updatedUser._id,
+                username: updatedUser.username,
+                email: updatedUser.email,
+                firstName: updatedUser.firstName,
+                lastName: updatedUser.lastName,
+                phone: updatedUser.phone,
+                bio: updatedUser.bio,
+                country: updatedUser.country,
+                avatar: updatedUser.avatar,
+                roles: updatedUser.roles.map(r => r.slug),
+                stripeConnectedId: updatedUser.stripeConnectedId || null,
+                token: generateToken(updatedUser._id),
+                preferences: updatedUser.preferences
             });
         } else {
             res.status(404).json({ message: 'User not found' });

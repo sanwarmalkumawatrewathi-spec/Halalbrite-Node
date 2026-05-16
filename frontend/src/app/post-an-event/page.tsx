@@ -53,7 +53,7 @@ function PostEventFormContent() {
       <div className="relative">
         {/* Restricted Overlay for Non-Organizers - Only on the Form */}
         {!isOrganizer && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="fixed top-16 inset-x-0 bottom-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-white/40 backdrop-blur-[3px]"></div>
             <div className="relative z-10 bg-white p-8 rounded-2xl shadow-2xl border border-red-100 max-w-md w-full text-center transform scale-110">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">

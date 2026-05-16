@@ -3,6 +3,7 @@ const AppSetting = require('../models/appSetting.model');
 const Booking = require('../models/booking.model');
 const User = require('../models/user.model');
 const Event = require('../models/event.model');
+const Role = require('../models/role.model');
 const Transaction = require('../models/transaction.model');
 const Payout = require('../models/payout.model');
 const pdfService = require('../services/pdf.service');
@@ -558,15 +559,18 @@ exports.handleTicketDelivery = async function (booking) {
         // 4. Send Notification to Organizer
         const organizer = await User.findById(booking.organizer_id);
         if (organizer && organizer.email) {
-            await emailService.sendTicketEmail(booking, pdfBuffer, organizer.email, 'organizer');
+            await emailService.sendSaleNotificationEmail(booking, organizer.email, 'organizer');
         }
 
         // 5. Send Notification to Platform Admin
-        const adminUser = await User.findOne({ role: 'admin' });
+        const adminRole = await Role.findOne({ $or: [{ slug: 'administrator' }, { slug: 'admin' }] });
+        const adminUser = adminRole ? await User.findOne({ roles: adminRole._id }) : null;
         const adminEmail = adminUser?.email || process.env.ADMIN_EMAIL;
 
+        console.log(`📧 Sending Sale Notification Emails - Organizer: ${organizer?.email}, Admin: ${adminEmail}`);
+
         if (adminEmail) {
-            await emailService.sendTicketEmail(booking, pdfBuffer, adminEmail, 'admin');
+            await emailService.sendSaleNotificationEmail(booking, adminEmail, 'admin');
         }
 
         console.log(`✅ Ticket Delivery & Inventory Update Complete for ${booking.booking_reference}`);

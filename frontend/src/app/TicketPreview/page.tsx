@@ -18,18 +18,47 @@ function TicketPreviewContent() {
         const fetchBooking = async () => {
             try {
                 const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-                const res = await fetch(`${baseUrl}/api/bookings/${bookingId}`);
+                const token = localStorage.getItem("token");
+                const headers: any = {};
+                if (token) headers["Authorization"] = `Bearer ${token}`;
+
+                const res = await fetch(`${baseUrl}/api/bookings/${bookingId}`, { headers });
                 let result = await res.json();
+                
+                if (!res.ok || result.success === false) {
+                    console.error("Fetch booking failed:", result.message);
+                    setLoading(false);
+                    return;
+                }
+
                 let data = result.data || result;
 
-                // Nuclear Option: If event details are missing, fetch them directly
-                if (data && data.event_id && (!data.event_name || !data.event_date)) {
-                    const eventId = typeof data.event_id === 'string' ? data.event_id : data.event_id._id;
-                    const eventRes = await fetch(`${baseUrl}/api/events/${eventId}`);
-                    const eventResult = await eventRes.json();
-                    const eventData = eventResult.data || eventResult;
-                    if (eventData) {
-                        data.event = eventData;
+                // Robust Fallback: If event details are missing, try to get them from populated event_id or direct fetch
+                if (data && data.event_id) {
+                    const isPopulated = typeof data.event_id === 'object';
+                    const eventObj = isPopulated ? data.event_id : null;
+                    
+                    if (!data.event_name && eventObj?.title) data.event_name = eventObj.title;
+                    if (!data.event_date && eventObj?.startDate) data.event_date = eventObj.startDate;
+                    if (!data.event_time && eventObj?.startTime) {
+                        data.event_time = eventObj.startTime + (eventObj.endTime ? ` - ${eventObj.endTime}` : '');
+                    }
+                    if (!data.event_venue && eventObj?.location?.venueName) data.event_venue = eventObj.location.venueName;
+                    if (!data.event_location && eventObj?.location?.city) {
+                        data.event_location = (eventObj.location.address ? eventObj.location.address + ', ' : '') + eventObj.location.city;
+                    }
+
+                    // Final fallback: direct fetch
+                    if (!data.event_name || !data.event_date) {
+                        const eventId = isPopulated ? data.event_id._id : data.event_id;
+                        const eventRes = await fetch(`${baseUrl}/api/events/${eventId}`);
+                        const eventResult = await eventRes.json();
+                        const eventData = eventResult.data || eventResult;
+                        if (eventData) {
+                            data.event = eventData;
+                            if (!data.event_name) data.event_name = eventData.title;
+                            if (!data.event_date) data.event_date = eventData.startDate;
+                        }
                     }
                 }
 
@@ -47,7 +76,8 @@ function TicketPreviewContent() {
         if (!booking) return;
         try {
             const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
-            const response = await fetch(`${baseUrl}/api/payments/booking/${booking._id}/ticket`);
+            const downloadId = booking?._id || bookingId;
+            const response = await fetch(`${baseUrl}/api/payments/booking/${downloadId}/download`);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');

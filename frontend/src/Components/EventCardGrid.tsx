@@ -26,6 +26,16 @@ type MapEvent = {
   category: {
     name: string;
   };
+  organizer?: {
+    _id: string;
+    username: string;
+    slug: string;
+  };
+  organizerProfile?: {
+    _id: string;
+    name: string;
+    slug: string;
+  };
   banner: string;
 };
 
@@ -83,7 +93,9 @@ export default function EventCardGrid({ events, loading }: EventCardGridProps) {
               id={event._id}
               slug={event.slug}
               title={event.title}
-              organizer={event.organizerName}
+              organizer={event.organizerProfile?.name || event.organizerName || event.organizer?.username || "Organizer"}
+              organizerId={event.organizerProfile?._id || (event.organizer && typeof event.organizer === 'object' ? event.organizer._id : (event.organizer || ''))}
+              organizerSlug={event.organizerProfile?.slug || event.organizer?.slug}
               location={`${event.location?.city || "Online"}`}
               startDate={event.startDate}
               endDate={event.endDate}

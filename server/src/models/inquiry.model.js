@@ -26,7 +26,16 @@ const inquirySchema = new mongoose.Schema({
         enum: ['new', 'read', 'replied', 'archived'],
         default: 'new'
     },
-    adminNotes: String
+    adminNotes: String,
+    organizer: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User' // Can be User or Organizer depending on context
+    },
+    type: {
+        type: String,
+        enum: ['general', 'organizer'],
+        default: 'general'
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Inquiry', inquirySchema);

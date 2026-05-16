@@ -411,6 +411,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
 
             const eventData = {
                 ...form,
+                status: 'published',
                 banner: bannerUrl || (isEditMode ? undefined : ""),
                 thumbnail: thumbnailUrl || (isEditMode ? undefined : ""),
                 ticketTypes: formattedTickets,

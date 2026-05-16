@@ -2,6 +2,7 @@
 
 import { IoCheckmarkCircle, IoTimeOutline, IoWalletOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
+import { useCurrency } from "@/context/CurrencyContext";
 
 const statusStyles: any = {
   paid: "bg-green-100 text-green-700",
@@ -13,6 +14,7 @@ export default function PayoutsTab() {
   const [loading, setLoading] = useState(true);
   const [payouts, setPayouts] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     fetchPayoutData();
@@ -65,7 +67,7 @@ export default function PayoutsTab() {
               <span className="text-purple-100">Available Balance</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wallet w-5 h-5"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a8 8 0 0 1-9.27 7.8A4.02 4.02 0 0 1 5.38 16H4a2 2 0 0 1-2-2V4"></path><path d="M21 12v4"></path><path d="M12 21h-2"></path><circle cx="18" cy="14" r="1"></circle></svg>
             </div>
-            <p className="text-white mb-1">€{(stats?.availableBalance || 0).toFixed(2)}</p>
+            <p className="text-white mb-1 font-bold text-2xl">{formatPrice(stats?.availableBalance || 0, false)}</p>
             <div className="flex items-center gap-1 text-purple-100 text-sm">
               <span>Ready for next payout</span>
             </div>
@@ -76,7 +78,7 @@ export default function PayoutsTab() {
           <div className="flex flex-col h-full justify-between">
             <div className="mb-4">
               <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Pending</p>
-              <h2 className="text-3xl font-bold text-amber-500 mt-1">€{(stats?.pendingBalance || 0).toFixed(2)}</h2>
+              <h2 className="text-3xl font-bold text-amber-500 mt-1">{formatPrice(stats?.pendingBalance || 0, false)}</h2>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-clock w-4 h-4 text-amber-500"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -89,7 +91,7 @@ export default function PayoutsTab() {
           <div className="flex flex-col h-full justify-between">
             <div className="mb-4">
               <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">Total Paid Out</p>
-              <h2 className="text-3xl font-bold text-green-600 mt-1">€{totalPaidOut.toFixed(2)}</h2>
+              <h2 className="text-3xl font-bold text-green-600 mt-1">{formatPrice(totalPaidOut, false)}</h2>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-check-circle w-4 h-4 text-green-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
@@ -133,7 +135,7 @@ export default function PayoutsTab() {
                                 {new Date(p.createdAt).toLocaleDateString()}
                               </td>
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-green-700 whitespace-nowrap font-medium">
-                                €{(p.amount || 0).toFixed(2)}
+                                {formatPrice(p.amount || 0, false)}
                               </td>
                               <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
                                 <span data-slot="badge" className={`inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&amp;>svg]:size-3 gap-1 [&amp;>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden border-transparent [a&amp;]:hover:bg-primary/90 capitalize ${badgeClasses}`}>

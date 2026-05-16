@@ -86,7 +86,7 @@ export default function SavedEvents() {
   return (
     <div className="mb-20">
       {/* Header */}
-      <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border mt-5">
+      <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-gray-200 mt-5">
         <div className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-4 sm:p-6">
           <h1 className="text-lg sm:text-xl">Saved Events</h1>
           <p className="text-sm text-gray-500">
@@ -168,7 +168,7 @@ export default function SavedEvents() {
 
 
       {/* Followed Organizers Section */}
-      <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border mt-5">
+      <div className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl border border-gray-200 mt-5">
         <div className="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6 p-4 sm:p-6">
           <div className="mb-4">
             <h2 className="text-lg sm:text-xl">Followed Organisers</h2>

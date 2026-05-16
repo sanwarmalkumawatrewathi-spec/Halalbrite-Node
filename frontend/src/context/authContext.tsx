@@ -15,6 +15,7 @@ interface User {
   lastName?: string;
   phone?: string;
   bio?: string;
+  country?: string;
   preferences?: {
     eventUpdates: boolean;
     promotions: boolean;

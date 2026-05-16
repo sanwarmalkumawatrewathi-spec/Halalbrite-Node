@@ -32,6 +32,7 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
     logo: '',
     website: '',
     bio: '',
+    country: '',
     categories: [] as string[],
     socialLinks: {
       facebook: '',
@@ -317,6 +318,44 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
                     placeholder="yourorganisation.com"
                     className="w-full border bg-gray-50/50 border-gray-200 rounded-xl p-3.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">Country *</label>
+                  <select
+                    name="country"
+                    required
+                    value={formData.country}
+                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                    className="w-full border bg-gray-50/50 border-gray-200 rounded-xl p-3.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                  >
+                    <option value="">Select a country</option>
+                    <optgroup label="Europe">
+                      <option value="IE">Ireland</option>
+                      <option value="GB">United Kingdom</option>
+                      <option value="DE">Germany</option>
+                      <option value="FR">France</option>
+                      <option value="ES">Spain</option>
+                      <option value="IT">Italy</option>
+                      <option value="NL">Netherlands</option>
+                      <option value="AT">Austria</option>
+                      <option value="BE">Belgium</option>
+                      <option value="DK">Denmark</option>
+                      <option value="FI">Finland</option>
+                      <option value="NO">Norway</option>
+                      <option value="PT">Portugal</option>
+                      <option value="SE">Sweden</option>
+                      <option value="CH">Switzerland</option>
+                    </optgroup>
+                    <optgroup label="North America">
+                      <option value="US">United States</option>
+                      <option value="CA">Canada</option>
+                    </optgroup>
+                    <optgroup label="Oceania">
+                      <option value="AU">Australia</option>
+                      <option value="NZ">New Zealand</option>
+                    </optgroup>
+                  </select>
                 </div>
               </div>
 
