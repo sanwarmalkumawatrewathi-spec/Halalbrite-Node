@@ -13,7 +13,7 @@
 }
 
 .main-container {
-    max-width: 900px;
+    max-width: 100%;
     margin: 40px auto;
     padding: 0 20px;
 }
@@ -36,7 +36,7 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    padding-bottom: 2rem;
+    padding-bottom: 1rem;
     border-bottom: 1px solid var(--border);
     flex-wrap: wrap;
     gap: 2rem;
@@ -101,7 +101,7 @@
 .form-section-card {
     background: white;
     border-radius: 20px;
-    padding: 0px;
+    padding: 20px;
     margin-bottom: 40px;
     border: 1px solid var(--border);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
@@ -125,7 +125,7 @@
     display: flex;
     gap: 1.5rem;
     align-items: center;
-    margin-bottom: 35px;
+    margin-bottom: 20px;
     border-bottom: 1px solid var(--border);
     padding-bottom: 25px;
 }
