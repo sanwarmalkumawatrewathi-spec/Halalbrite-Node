@@ -46,7 +46,7 @@ export default function FilterBar({ filters, setFilters }: { filters: any, setFi
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
 
         {/* Main Search Bar */}
-        <div className="flex flex-row items-center gap-4 p-6 bg-white">
+        <div className="flex flex-row items-center gap-4 p-6 bg-white btnhight">
           <div className="relative flex-1 group w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-500 transition-colors" size={18} />
             <input
@@ -61,7 +61,7 @@ export default function FilterBar({ filters, setFilters }: { filters: any, setFi
           <div className="flex items-center gap-3 w-auto">
             <button
               onClick={() => setOpen(!open)}
-              className={`flex items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-sm transition-all whitespace-nowrap w-full md:w-auto ${open
+              className={`flex btnhight items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-sm transition-all whitespace-nowrap w-full md:w-auto ${open
                 ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
                 : 'bg-white border-2 border-red-500 text-red-500 hover:bg-red-50'
                 }`}

@@ -1,13 +1,20 @@
 import React from 'react';
-import { FileText, Shield, CircleAlert } from 'lucide-react';
-
+import {
+  LuFileText,
+  LuShield,
+  LuCircleAlert
+} from 'react-icons/lu';
+import {
+  CircleCheckBig,
+  DollarSign
+} from 'lucide-react';
 export default function TermsOfService() {
   return (
     <main className="flex-1 w-full bg-gray-50 pb-20">
       <div className="bg-gradient-to-br from-red-500 to-red-600 text-white py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-4 sm:mb-6">
-            <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <LuFileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="text-xs sm:text-sm">Legal Information</span>
           </div>
           <h1 className="mb-4 sm:mb-6 text-2xl sm:text-3xl md:text-4xl lg:text-5xl">Terms of Service</h1>
@@ -23,11 +30,11 @@ export default function TermsOfService() {
           <div className="[&_:last-child]:pb-6 p-5 sm:p-6 md:p-8">
             <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-shield w-5 h-5 sm:w-6 sm:h-6 text-red-600"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg>
+                <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="text-red-900 mb-2 sm:mb-3 text-lg sm:text-xl md:text-2xl">Welcome to Halalbrite</h2>
-                <p className="text-gray-600 leading-relaxed mb-3 sm:mb-4 text-sm sm:text-base">These Terms of Service ("Terms") govern your access to and use of Halalbrite's website, services, and applications (collectively, the "Service"). By accessing or using our Service, you agree to be bound by these Terms.</p>
+                <p className="text-gray-700 leading-relaxed mb-3 sm:mb-4 text-sm sm:text-base">These Terms of Service (&quot;Terms&quot;) govern your access to and use of Halalbrite&apos;s website, services, and applications (collectively, the &quot;Service&quot;). By accessing or using our Service, you agree to be bound by these Terms.</p>
                 <p className="text-gray-600 leading-relaxed text-sm sm:text-base">If you do not agree to these Terms, please do not use our Service.</p>
               </div>
             </div>
@@ -67,7 +74,7 @@ export default function TermsOfService() {
                 <li>Use the Service only for lawful purposes and in accordance with these Terms</li>
                 <li>Not use the Service in any way that violates any applicable law or regulation</li>
                 <li>Not impersonate any person or entity or misrepresent your affiliation with any person or entity</li>
-                <li>Not engage in any conduct that restricts or inhibits anyone's use of the Service</li>
+                <li>Not engage in any conduct that restricts or inhibits anyone&apos;s use of the Service</li>
                 <li>Not introduce viruses, trojans, or other malicious code</li>
                 <li>Not attempt to gain unauthorized access to any portion of the Service</li>
                 <li>Provide accurate information when purchasing tickets or creating events</li>
@@ -95,7 +102,7 @@ export default function TermsOfService() {
             <h2 className="text-red-900 mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl">5. Payments and Fees</h2>
             <div className="space-y-3 sm:space-y-4 text-gray-600 leading-relaxed text-sm sm:text-base">
               <p><strong className="text-gray-900">Platform Fees:</strong> Halalbrite charges a platform fee of 3% + €0.30 per paid ticket sold, plus 23% VAT on the platform fee. Free events are not subject to platform fees.</p>
-              <p><strong className="text-gray-900">Payment Processing:</strong> All payments are processed securely through Stripe. By using our payment services, you agree to Stripe's Terms of Service.</p>
+              <p><strong className="text-gray-900">Payment Processing:</strong> All payments are processed securely through Stripe. By using our payment services, you agree to Stripe&apos;s Terms of Service.</p>
               <p><strong className="text-gray-900">Stripe Connect:</strong> Event Organisers must connect a Stripe account to receive payouts. Payments are transferred according to your Stripe payout schedule.</p>
               <p><strong className="text-gray-900">Fee Payment Options:</strong> Organisers can choose to absorb platform fees or pass them to attendees on a per-ticket basis.</p>
               <p><strong className="text-gray-900">Taxes:</strong> You are responsible for determining and paying any applicable taxes related to your use of the Service, including sales tax, VAT, or other taxes.</p>
@@ -111,7 +118,7 @@ export default function TermsOfService() {
               <p><strong className="text-gray-900">Organiser Refund Policy:</strong> Each Event Organiser sets their own refund policy. Attendees should review the refund policy before purchasing tickets.</p>
               <p><strong className="text-gray-900">Processing Refunds:</strong> Organisers are responsible for processing refunds through their organiser dashboard. Platform fees for refunded tickets will be returned to the organiser.</p>
               <p><strong className="text-gray-900">Event Cancellation by Organiser:</strong> If an event is cancelled by the organiser, all ticket holders must be notified promptly and offered full refunds.</p>
-              <p><strong className="text-gray-900">Halalbrite's Role:</strong> Halalbrite is not responsible for issuing refunds on behalf of organisers. All refund requests should be directed to the event organiser.</p>
+              <p><strong className="text-gray-900">Halalbrite&apos;s Role:</strong> Halalbrite is not responsible for issuing refunds on behalf of organisers. All refund requests should be directed to the event organiser.</p>
             </div>
           </div>
         </div>
@@ -145,7 +152,7 @@ export default function TermsOfService() {
           <div className="[&_:last-child]:pb-6 p-5 sm:p-6 md:p-8">
             <h2 className="text-red-900 mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl">9. Limitation of Liability</h2>
             <div className="space-y-3 sm:space-y-4 text-gray-600 leading-relaxed text-sm sm:text-base">
-              <p><strong className="text-gray-900">Service "As Is":</strong> The Service is provided "as is" and "as available" without warranties of any kind, either express or implied.</p>
+              <p><strong className="text-gray-900">Service &quot;As Is&quot;:</strong> The Service is provided &quot;as is&quot; and &quot;as available&quot; without warranties of any kind, either express or implied.</p>
               <p><strong className="text-gray-900">No Liability for Events:</strong> Halalbrite is not responsible for the conduct of event organisers or attendees, the quality or safety of events, or any disputes between users.</p>
               <p><strong className="text-gray-900">Limitation of Damages:</strong> To the maximum extent permitted by law, Halalbrite shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of your use of the Service.</p>
               <p><strong className="text-gray-900">Maximum Liability:</strong> Our total liability for any claim arising out of or relating to these Terms or the Service shall not exceed the amount you paid to Halalbrite in the twelve months preceding the claim.</p>
@@ -213,7 +220,7 @@ export default function TermsOfService() {
           <div className="[&_:last-child]:pb-6 p-5 sm:p-6 md:p-8">
             <div className="flex items-start gap-3 sm:gap-4">
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-circle-alert w-5 h-5 sm:w-6 sm:h-6 text-white"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-zap w-5 h-5 sm:w-6 sm:h-6 text-red-600" aria-hidden="true"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"></path></svg>
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="text-red-900 mb-2 sm:mb-3 text-lg sm:text-xl md:text-2xl">Questions About These Terms?</h2>

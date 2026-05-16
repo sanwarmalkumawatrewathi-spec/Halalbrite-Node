@@ -215,7 +215,7 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                         <span className="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-0.5 rounded uppercase">Free</span>
                                     )}
                                 </div>
-                                
+
                                 {Number(t.price) > 0 ? (
                                     <div className="space-y-2 text-xs">
                                         <div className="flex justify-between text-gray-600">
@@ -260,8 +260,8 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                 </div>
                                 <p className="text-sm font-bold text-[#92400e]">
                                     Customer will pay: {currentCurrency.symbol}
-                                    {t.chargeCustomer 
-                                        ? (Number(t.price || 0) + Number(fees.total)).toFixed(2) 
+                                    {t.chargeCustomer
+                                        ? (Number(t.price || 0) + Number(fees.total)).toFixed(2)
                                         : Number(t.price || 0).toFixed(2)
                                     }
                                 </p>

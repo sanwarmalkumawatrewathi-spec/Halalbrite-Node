@@ -125,8 +125,8 @@ export default function EventCard({
         <div className="flex items-start gap-2 text-gray-500 text-[11px] leading-tight">
           <Calendar size={14} className="text-red-600 mt-0.5 flex-shrink-0" />
           <div className="flex flex-col gap-1">
-            <p className="whitespace-nowrap flex gap-2 items-center"><span className="flex flex-col text-[13px]">Start:</span> {formatEventDate(startDate, startTime)}</p>
-            <p className="whitespace-nowrap flex gap-2 items-center"><span className="flex flex-col text-[13px]">End:</span> {formatEventDate(endDate, endTime)}</p>
+            <p className="whitespace-nowrap flex gap-2 items-center whitespace"><span className="flex flex-col text-[13px]">Start:</span> {formatEventDate(startDate, startTime)}</p>
+            <p className="whitespace-nowrap flex gap-2 items-center whitespace"><span className="flex flex-col text-[13px]">End:</span> {formatEventDate(endDate, endTime)}</p>
           </div>
         </div>
 
@@ -137,7 +137,7 @@ export default function EventCard({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 mt-auto">
+        <div className="flex items-center justify-between pt-2 mt-auto whitespace">
           <span className="text-red-700 text-sm font-medium">
             {(() => {
               if (priceLabel && typeof price === 'number') {
@@ -151,7 +151,7 @@ export default function EventCard({
             })()}
           </span>
 
-          <button className="bg-red-600 text-white text-xs px-4 py-2 rounded-lg hover:bg-red-700 transition">
+          <button className="bg-red-600 text-white text-xs px-4 py-2 rounded-lg hover:bg-red-700 transition btnhoight">
             View Details
           </button>
         </div>

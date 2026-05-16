@@ -39,3 +39,14 @@ textarea {
 .hh-100 {
     height: 100%;
 }
+
+@media (max-width: 640px) {
+    .whitespace {
+        white-space: normal;
+        display: contents;
+    }
+
+    .btnhight {
+        padding: 6px 10px;
+    }
+}

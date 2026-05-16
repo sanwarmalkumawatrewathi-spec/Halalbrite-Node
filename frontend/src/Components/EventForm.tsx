@@ -100,14 +100,14 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         if (isEditMode) return;
         const savedForm = localStorage.getItem('event_form_draft');
         const savedTickets = localStorage.getItem('event_tickets_draft');
-        
+
         if (savedForm) {
             try {
                 const parsed = JSON.parse(savedForm);
                 setForm(prev => ({ ...prev, ...parsed }));
             } catch (e) { console.error("Error loading saved form", e); }
         }
-        
+
         if (savedTickets) {
             try {
                 setTickets(JSON.parse(savedTickets));
@@ -454,7 +454,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                 setPublishedEventId(event._id);
                 setPublishedEventSlug(event.slug || event._id);
                 setShowSuccess(true);
-                
+
                 // Clear drafts
                 localStorage.removeItem('event_form_draft');
                 localStorage.removeItem('event_tickets_draft');
