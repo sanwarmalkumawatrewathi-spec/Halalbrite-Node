@@ -25,17 +25,12 @@
     </script>
     <!-- Custom Style -->
     <link rel="stylesheet" href="/css/modern-admin.css">
-    <link rel="stylesheet" href="/css/forms-premium.css">
     <%- style %>
 </head>
 
 <body>
     <!-- Sidebar -->
     <aside id="mySidebar" class="sidebar">
-        <a href="/admin/dashboard" class="logo  desktoplogo">
-            <img src="/images/logo.svg" alt="HalalBrite">
-            <span>Halal Brite</span>
-        </a>
 
         <nav class="sidebar-nav">
             <a href="/admin/dashboard" class="nav-item <%= activePage === 'dashboard' ? 'active' : '' %>"
@@ -118,56 +113,58 @@
 
     </aside>
 
+    <header class="header">
+        <div class="header-search">
+            <a href="/admin/dashboard" class="logo desktoplogo">
+                <img src="/images/logo.svg" alt="HalalBrite">
+                <span>Halal Brite</span>
+            </a>
+            <a href="/admin/dashboard" class="logo phone-logo">
+                <img src="/images/logo.svg" alt="HalalBrite">
+                <span>Halal Brite</span>
+            </a>
+            <button onclick="toggleBar()" class="btn-menu">
+                <svg viewBox="0 0 20 20" class="menu-icon">
+                    <path class="line line1" d="M3 5h12"></path>
+                    <path class="line line2" d="M3 10h6"></path>
+                    <path class="line line3" d="M3 15h12"></path>
+                </svg>
+            </button>
+            <h2>
+                <%= activePage.charAt(0).toUpperCase() + activePage.slice(1) %> Management
+            </h2>
+        </div>
+        <div class="header-user">
+            <!-- Currency Switcher -->
+            <div class="btnprice">
+                <i class="fa-solid fa-earth-americas"></i>
+                <select id="currency-switcher">
+                    <% (typeof allCurrencies !=='undefined' ? allCurrencies : []).forEach(curr=> { %>
+                        <option value="<%= curr.code %>" <%=(typeof currentCurrency !=='undefined' &&
+                            currentCurrency.code===curr.code) ? 'selected' : '' %>>
+                            <%= curr.code %> (<%= curr.symbol %>)
+                        </option>
+                        <% }) %>
+                </select>
+            </div>
+
+            <span class="nameadi">Admin: <strong>
+                    <%= admin.username %>
+                </strong></span>
+
+            <!-- Dark Mode Toggle -->
+            <button id="darkModeToggle" class="btn-dark-toggle" title="Toggle Dark Mode">
+                <i class="fa-solid fa-moon" id="darkModeIcon"></i>
+            </button>
+
+            <div class="user-avatar" onclick="window.location.href='/admin/profile'" style="cursor: pointer;"
+                title="Edit Profile">
+                <%= admin.username.charAt(0).toUpperCase() %>
+            </div>
+        </div>
+    </header>
+
     <div class="main-wrapper">
-        <header class="header">
-
-
-            <div class="header-search">
-                <a href="/admin/dashboard" class="logo phone-logo">
-                    <img src="/images/logo.svg" alt="HalalBrite">
-                    <span>Halal Brite</span>
-                </a>
-                <button onclick="toggleBar()" class="btn-menu">
-                    <svg viewBox="0 0 20 20" class="menu-icon">
-                        <path class="line line1" d="M3 5h12"></path>
-                        <path class="line line2" d="M3 10h6"></path>
-                        <path class="line line3" d="M3 15h12"></path>
-                    </svg>
-                </button>
-                <h2>
-                    <%= activePage.charAt(0).toUpperCase() + activePage.slice(1) %> Management
-                </h2>
-            </div>
-            <div class="header-user">
-                <!-- Currency Switcher -->
-                <div class="btnprice">
-                    <i class="fa-solid fa-earth-americas"></i>
-                    <select id="currency-switcher">
-                        <% (typeof allCurrencies !=='undefined' ? allCurrencies : []).forEach(curr=> { %>
-                            <option value="<%= curr.code %>" <%=(typeof currentCurrency !=='undefined' &&
-                                currentCurrency.code===curr.code) ? 'selected' : '' %>>
-                                <%= curr.code %> (<%= curr.symbol %>)
-                            </option>
-                            <% }) %>
-                    </select>
-                </div>
-
-                <span class="nameadi">Admin: <strong>
-                        <%= admin.username %>
-                    </strong></span>
-
-                <!-- Dark Mode Toggle -->
-                <button id="darkModeToggle" class="btn-dark-toggle" title="Toggle Dark Mode">
-                    <i class="fa-solid fa-moon" id="darkModeIcon"></i>
-                </button>
-
-                <div class="user-avatar" onclick="window.location.href='/admin/profile'" style="cursor: pointer;"
-                    title="Edit Profile">
-                    <%= admin.username.charAt(0).toUpperCase() %>
-                </div>
-            </div>
-        </header>
-
         <main class="content-body">
             <% if (typeof success !=='undefined' && success) { %>
                 <div class="badge-success"
@@ -176,8 +173,8 @@
                     <%= success %>
                 </div>
                 <% } %>
-
                     <%- body %>
+
         </main>
     </div>
 

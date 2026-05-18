@@ -1,5 +1,4 @@
 <%- contentFor('style') %>
-    <link rel="stylesheet" href="/css/stripe-admin.css">
     <style>
     </style>
 
@@ -17,7 +16,7 @@
             </div>
         </div>
 
-        <div class="form-container" style="max-width: 100%; padding: 0 20px;">
+        <div class="form-container">
             <div class="form-section-card" style="padding: 0; overflow: hidden;">
                 <div class="table-responsive">
                     <table class="modern-table" style="margin-bottom: 0;">
@@ -33,43 +32,62 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <% if (organizers && organizers.length > 0) { %>
-                                <% organizers.forEach((org, idx) => { %>
+                            <% if (organizers && organizers.length> 0) { %>
+                                <% organizers.forEach((org, idx)=> { %>
                                     <tr style="border-bottom: 1px solid var(--form-border);">
-                                        <td class="text-slate-500" style="padding: 16px 24px; font-family: monospace;"><%= idx + 1 %></td>
-                                        <td style="padding: 16px 24px;"><strong class="text-slate-900" style="font-size: 0.95rem;"><%= org.username %></strong></td>
-                                        <td class="text-slate-600" style="padding: 16px 24px;"><%= org.email %></td>
+                                        <td class="text-slate-500" style="padding: 16px 24px; font-family: monospace;">
+                                            <%= idx + 1 %>
+                                        </td>
+                                        <td style="padding: 16px 24px;"><strong class="text-slate-900"
+                                                style="font-size: 0.95rem;">
+                                                <%= org.username %>
+                                            </strong></td>
+                                        <td class="text-slate-600" style="padding: 16px 24px;">
+                                            <%= org.email %>
+                                        </td>
                                         <td style="padding: 16px 24px;">
                                             <% if (org.accountId || org.stripeConnectedId || org.stripe_account_id) { %>
                                                 <span class="badge badge-premium badge-success">CONNECTED</span>
-                                            <% } else { %>
-                                                <span class="badge badge-premium badge-danger">PENDING</span>
-                                            <% } %>
+                                                <% } else { %>
+                                                    <span class="badge badge-premium badge-danger">PENDING</span>
+                                                    <% } %>
                                         </td>
-                                        <td class="text-slate-500" style="padding: 16px 24px; font-family: monospace; font-size: 0.8rem;">
-                                            <%= org.accountId || org.stripeConnectedId || org.stripe_account_id || '-' %>
+                                        <td class="text-slate-500"
+                                            style="padding: 16px 24px; font-family: monospace; font-size: 0.8rem;">
+                                            <%= org.accountId || org.stripeConnectedId || org.stripe_account_id || '-'
+                                                %>
                                         </td>
-                                        <td class="text-slate-900" style="padding: 16px 24px; font-weight: 800;">£<%= (org.availableBalance || 0).toFixed(2) %></td>
+                                        <td class="text-slate-900" style="padding: 16px 24px; font-weight: 800;">£<%=
+                                                (org.availableBalance || 0).toFixed(2) %>
+                                        </td>
                                         <td style="padding: 16px 24px;">
                                             <div class="flex justify-end gap-3">
-                                                <a href="/admin/stripe/login-link/<%= org._id %>" target="_blank" class="text-indigo-600" style="font-weight: 700; font-size: 0.85rem;" title="Dashboard">Dashboard</a>
-                                                <a href="/admin/stripe/transactions?organizer=<%= org._id %>" class="text-slate-600" style="font-weight: 700; font-size: 0.85rem;" title="History">History</a>
-                                                <a href="/admin/users/edit/<%= org._id %>" class="text-slate-600" style="font-weight: 700; font-size: 0.85rem;" title="Profile">Profile</a>
+                                                <a href="/admin/stripe/login-link/<%= org._id %>" target="_blank"
+                                                    class="text-indigo-600"
+                                                    style="font-weight: 700; font-size: 0.85rem;"
+                                                    title="Dashboard">Dashboard</a>
+                                                <a href="/admin/stripe/transactions?organizer=<%= org._id %>"
+                                                    class="text-slate-600" style="font-weight: 700; font-size: 0.85rem;"
+                                                    title="History">History</a>
+                                                <a href="/admin/users/edit/<%= org._id %>" class="text-slate-600"
+                                                    style="font-weight: 700; font-size: 0.85rem;"
+                                                    title="Profile">Profile</a>
                                             </div>
                                         </td>
                                     </tr>
-                                <% }) %>
-                            <% } else { %>
-                                <tr>
-                                    <td colspan="7" class="text-slate-500" style="padding: 60px 24px; text-align: center;">
-                                        <i class="fa-solid fa-user-slash" style="font-size: 32px; display: block; margin-bottom: 16px; opacity: 0.3;"></i>
-                                        No connected organizers found.
-                                    </td>
-                                </tr>
-                            <% } %>
+                                    <% }) %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="7" class="text-slate-500"
+                                                    style="padding: 60px 24px; text-align: center;">
+                                                    <i class="fa-solid fa-user-slash"
+                                                        style="font-size: 32px; display: block; margin-bottom: 16px; opacity: 0.3;"></i>
+                                                    No connected organizers found.
+                                                </td>
+                                            </tr>
+                                            <% } %>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
->

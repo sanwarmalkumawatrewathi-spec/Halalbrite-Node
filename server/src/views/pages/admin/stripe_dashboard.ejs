@@ -8,84 +8,125 @@
             </div>
         </div>
 
-        <div class="form-container" style="max-width: 100%; padding: 0 20px;">
+        <div class="form-container">
             <% if (notConfigured) { %>
                 <div class="form-section-card" style="padding: 60px 20px; text-align: center;">
-                    <div style="width: 64px; height: 64px; background: #fee2e2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 24px;">
+                    <div
+                        style="width: 64px; height: 64px; background: #fee2e2; color: #dc2626; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 24px;">
                         <i class="fa-solid fa-gears"></i>
                     </div>
                     <h2 class="section-title">Stripe Connection Required</h2>
-                    <p class="section-desc">To start managing your platform transactions and organizers, you need to configure your Stripe API keys.</p>
+                    <p class="section-desc">To start managing your platform transactions and organizers, you need to
+                        configure your Stripe API keys.</p>
                     <div style="margin-top: 32px;">
-                        <a href="/admin/stripe/settings" class="form-btn-submit" style="display: inline-flex; width: auto; padding: 12px 32px;">Configure Stripe Settings</a>
+                        <a href="/admin/stripe/settings" class="form-btn-submit"
+                            style="display: inline-flex; width: auto; padding: 12px 32px;">Configure Stripe Settings</a>
                     </div>
                 </div>
-            <% } else { %>
-                <!-- Connection Status Card -->
-                <div class="form-section-card" style="padding: 20px; margin-bottom: 24px;">
-                    <div class="flex items-center justify-between flex-wrap gap-4">
-                        <div class="flex items-center gap-4">
-                            <div style="width: 48px; height: 48px; background: #dcfce7; color: #166534; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
-                                <i class="fa-solid fa-circle-check"></i>
+                <% } else { %>
+                    <!-- Connection Status Card -->
+                    <div class="form-section-card" style="padding: 20px; margin-bottom: 24px;">
+                        <div class="flex items-center justify-between flex-wrap gap-4">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    style="width: 48px; height: 48px; background: #dcfce7; color: #166534; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </div>
+                                <div>
+                                    <h3 class="section-title" style="margin-bottom: 2px; font-size: 1.1rem;">Platform
+                                        Stripe Connected</h3>
+                                    <p class="text-slate-500" style="font-size: 0.85rem; font-family: monospace;">
+                                        Account ID: acct_<%= settings?.stripe?.testClientId || 'Not Configured' %>
+                                    </p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="section-title" style="margin-bottom: 2px; font-size: 1.1rem;">Platform Stripe Connected</h3>
-                                <p class="text-slate-500" style="font-size: 0.85rem; font-family: monospace;">Account ID: acct_<%= settings?.stripe?.testClientId || 'Not Configured' %></p>
-                            </div>
+                            <form action="/admin/stripe/disconnect" method="POST"
+                                onsubmit="return confirm('Are you sure you want to disconnect?');">
+                                <button type="submit"
+                                    style="background: var(--form-bg); color: #ef4444; border: 1px solid #fee2e2; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                                    Disconnect Account
+                                </button>
+                            </form>
                         </div>
-                        <form action="/admin/stripe/disconnect" method="POST" onsubmit="return confirm('Are you sure you want to disconnect?');">
-                            <button type="submit" style="background: var(--form-bg); color: #ef4444; border: 1px solid #fee2e2; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s;">
-                                Disconnect Account
-                            </button>
-                        </form>
                     </div>
-                </div>
 
-                <!-- Stats Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                    <div class="form-section-card" style="padding: 24px;">
-                        <p class="text-slate-500" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Organisers</p>
-                        <p class="text-slate-900" style="font-size: 2rem; font-weight: 900;"><%= stats.connectedOrganizers %></p>
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="form-section-card" style="padding: 24px;">
+                            <p class="text-slate-500"
+                                style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+                                Organisers</p>
+                            <p class="text-slate-900" style="font-size: 2rem; font-weight: 900;">
+                                <%= stats.connectedOrganizers %>
+                            </p>
+                        </div>
+                        <div class="form-section-card" style="padding: 24px; border-left: 4px solid #3b82f6;">
+                            <p class="text-slate-500"
+                                style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+                                Total Payouts</p>
+                            <p class="text-slate-900" style="font-size: 2rem; font-weight: 900;">
+                                <%= settings?.platform?.currency==='EUR' ? '€' : settings?.platform?.currency==='USD'
+                                    ? '$' : '£' %>
+                                    <%= stats.totalPayouts.toFixed(2) %>
+                            </p>
+                        </div>
+                        <div class="form-section-card" style="padding: 24px; border-left: 4px solid #10b981;">
+                            <p class="text-slate-500"
+                                style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+                                Platform Revenue</p>
+                            <p class="text-slate-900" style="font-size: 2rem; font-weight: 900;">
+                                <%= settings?.platform?.currency==='EUR' ? '€' : settings?.platform?.currency==='USD'
+                                    ? '$' : '£' %>
+                                    <%= stats.platformRevenue.toFixed(2) %>
+                            </p>
+                        </div>
+                        <div class="form-section-card" style="padding: 24px; border-left: 4px solid #ef4444;">
+                            <p class="text-slate-500"
+                                style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
+                                Tickets Sold</p>
+                            <p class="text-slate-900" style="font-size: 2rem; font-weight: 900;">
+                                <%= stats.ticketsSold %>
+                            </p>
+                        </div>
                     </div>
-                    <div class="form-section-card" style="padding: 24px; border-left: 4px solid #3b82f6;">
-                        <p class="text-slate-500" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Total Payouts</p>
-                        <p class="text-slate-900" style="font-size: 2rem; font-weight: 900;"><%= settings?.platform?.currency==='EUR' ? '€' : settings?.platform?.currency==='USD' ? '$' : '£' %><%= stats.totalPayouts.toFixed(2) %></p>
-                    </div>
-                    <div class="form-section-card" style="padding: 24px; border-left: 4px solid #10b981;">
-                        <p class="text-slate-500" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Platform Revenue</p>
-                        <p class="text-slate-900" style="font-size: 2rem; font-weight: 900;"><%= settings?.platform?.currency==='EUR' ? '€' : settings?.platform?.currency==='USD' ? '$' : '£' %><%= stats.platformRevenue.toFixed(2) %></p>
-                    </div>
-                    <div class="form-section-card" style="padding: 24px; border-left: 4px solid #ef4444;">
-                        <p class="text-slate-500" style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">Tickets Sold</p>
-                        <p class="text-slate-900" style="font-size: 2rem; font-weight: 900;"><%= stats.ticketsSold %></p>
-                    </div>
-                </div>
 
-                <!-- Platform Account Details -->
-                <div class="form-section-card" style="padding: 0; overflow: hidden;">
-                    <div class="bg-white" style="padding: 20px 24px; border-bottom: 1px solid var(--form-border);">
-                        <h3 class="section-title" style="margin-bottom: 4px;">Platform Statistics</h3>
-                        <p class="section-desc" style="margin-bottom: 0;">Detailed breakdown of platform activity</p>
+                    <!-- Platform Account Details -->
+                    <div class="form-section-card" style="padding: 0; overflow: hidden;">
+                        <div class="bg-white" style="padding: 20px 24px; border-bottom: 1px solid var(--form-border);">
+                            <h3 class="section-title" style="margin-bottom: 4px;">Platform Statistics</h3>
+                            <p class="section-desc" style="margin-bottom: 0;">Detailed breakdown of platform activity
+                            </p>
+                        </div>
+                        <div style="padding: 0;">
+                            <table class="modern-table" style="margin: 0; border: none;">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-slate-600" style="padding: 16px 24px; font-weight: 600;">
+                                            Connected Organizers</td>
+                                        <td class="text-slate-900"
+                                            style="padding: 16px 24px; text-align: right; font-weight: 800;">
+                                            <%= stats.connectedOrganizers %>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-slate-600" style="padding: 16px 24px; font-weight: 600;">System
+                                            Currency</td>
+                                        <td style="padding: 16px 24px; text-align: right;"><span
+                                                class="badge badge-premium badge-info">
+                                                <%= settings?.platform?.currency || 'GBP' %>
+                                            </span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-slate-600" style="padding: 16px 24px; font-weight: 600;">Last
+                                            Synchronization</td>
+                                        <td
+                                            style="padding: 16px 24px; text-align: right; font-weight: 700; color: #10b981;">
+                                            Active</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div style="padding: 0;">
-                        <table class="modern-table" style="margin: 0; border: none;">
-                            <tbody>
-                                <tr>
-                                    <td class="text-slate-600" style="padding: 16px 24px; font-weight: 600;">Connected Organizers</td>
-                                    <td class="text-slate-900" style="padding: 16px 24px; text-align: right; font-weight: 800;"><%= stats.connectedOrganizers %></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-slate-600" style="padding: 16px 24px; font-weight: 600;">System Currency</td>
-                                    <td style="padding: 16px 24px; text-align: right;"><span class="badge badge-premium badge-info"><%= settings?.platform?.currency || 'GBP' %></span></td>
-                                </tr>
-                                <tr>
-                                    <td class="text-slate-600" style="padding: 16px 24px; font-weight: 600;">Last Synchronization</td>
-                                    <td style="padding: 16px 24px; text-align: right; font-weight: 700; color: #10b981;">Active</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            <% } %>
+                    <% } %>
         </div>
-</div>
+        </div>
