@@ -392,9 +392,9 @@ exports.createCheckoutSession = async (req, res) => {
             if (ticket.quantity < item.qty) return res.status(400).json({ message: `Not enough tickets available for ${item.name}` });
 
             const itemSubtotal = ticket.price * item.qty;
-            const platformUnit = ticket.price * (feePercentage / 100) + fixedFee;
-            const vatUnit = platformUnit * (vatRate / 100);
-            const stripeUnit = ticket.price * (stripePercentage / 100) + fixedStripe;
+            const platformUnit = ticket.price === 0 ? 0 : (ticket.price * (feePercentage / 100) + fixedFee);
+            const vatUnit = ticket.price === 0 ? 0 : (platformUnit * (vatRate / 100));
+            const stripeUnit = ticket.price === 0 ? 0 : (ticket.price * (stripePercentage / 100) + fixedStripe);
 
             const itemFeesBase = platformUnit + vatUnit + stripeUnit;
             const itemTotalBase = event.feePayment === true ? ticket.price : ticket.price + itemFeesBase;
@@ -428,9 +428,9 @@ exports.createCheckoutSession = async (req, res) => {
             if (currencyData) exchangeRate = currencyData.rate;
         }
 
-        const totalFeesBase = totalPlatformFeeBase + totalVatFeeBase + (totalSubtotalBase * (stripePercentage / 100) + fixedStripe * totalQuantity);
-        const finalTotalBase = event.feePayment === true ? totalSubtotalBase : totalSubtotalBase + totalPlatformFeeBase + totalVatFeeBase + (totalSubtotalBase * (stripePercentage / 100) + fixedStripe * totalQuantity);
-        const organizerEarningsBase = event.feePayment === true ? totalSubtotalBase - totalFeesBase : totalSubtotalBase;
+        const totalFeesBase = totalSubtotalBase === 0 ? 0 : (totalPlatformFeeBase + totalVatFeeBase + (totalSubtotalBase * (stripePercentage / 100) + fixedStripe * totalQuantity));
+        const finalTotalBase = totalSubtotalBase === 0 ? 0 : (event.feePayment === true ? totalSubtotalBase : totalSubtotalBase + totalPlatformFeeBase + totalVatFeeBase + (totalSubtotalBase * (stripePercentage / 100) + fixedStripe * totalQuantity));
+        const organizerEarningsBase = totalSubtotalBase === 0 ? 0 : (event.feePayment === true ? totalSubtotalBase - totalFeesBase : totalSubtotalBase);
 
         const finalTotal = parseFloat((finalTotalBase * exchangeRate).toFixed(2));
         const organizerEarnings = parseFloat((organizerEarningsBase * exchangeRate).toFixed(2));

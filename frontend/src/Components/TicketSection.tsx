@@ -53,6 +53,14 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
 
     // 💰 Fee calculation
     const calcFees = (price: number) => {
+        if (price === 0) {
+            return {
+                platform: "0.00",
+                vat: "0.00",
+                stripe: "0.00",
+                total: "0.00",
+            };
+        }
         // Use backend settings or fallbacks
         const feePercentage = settings?.feePercentage ?? 0;
         const fixedFee = settings?.fixedFee ?? 0;
