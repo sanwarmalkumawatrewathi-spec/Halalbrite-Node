@@ -54,7 +54,7 @@ const organizerSchema = new mongoose.Schema({
 
 // Generate slug from name before saving
 organizerSchema.pre('save', async function () {
-    if (!this.isModified('name')) {
+    if (!this.isModified('name') && this.slug) {
         return;
     }
 

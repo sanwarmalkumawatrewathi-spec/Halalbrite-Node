@@ -246,7 +246,16 @@ function TicketPreviewContent() {
                                     <div className="text-right">
                                         <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Price Paid</p>
                                         <p className="text-gray-900 text-sm sm:text-base font-black flex items-center justify-end gap-1">
-                                            £ {booking.amount_total?.toFixed(2) || "0.00"}
+                                            {(() => {
+                                                const symbolMap: { [key: string]: string } = {
+                                                    'EUR': '€',
+                                                    'GBP': '£',
+                                                    'USD': '$',
+                                                    'AUD': 'A$',
+                                                };
+                                                const code = (booking.currency || 'GBP').toUpperCase();
+                                                return symbolMap[code] || code;
+                                            })()} {booking.amount_total?.toFixed(2) || "0.00"}
                                         </p>
                                     </div>
                                 </div>

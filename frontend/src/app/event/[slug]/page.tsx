@@ -97,6 +97,14 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
   const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
   const bannerImage = event.banner ? getImageUrl(event.banner) : "/images/noimage.jpg";
 
+  const hasOrgProfile = !!event.organizerProfile;
+  const activeOrg = hasOrgProfile ? event.organizerProfile : event.organizer;
+  const activeOrgId = activeOrg && typeof activeOrg === 'object' ? activeOrg._id : activeOrg;
+  const activeOrgSlug = (hasOrgProfile ? event.organizerProfile?.slug : event.organizer?.slug) || activeOrgId;
+  const activeOrgName = (hasOrgProfile ? event.organizerProfile?.name : (event.organizerName || event.organizer?.username)) || "Organizer";
+  const activeOrgAvatar = hasOrgProfile ? event.organizerProfile?.logo : event.organizer?.avatar;
+  const activeOrgFollowersCount = activeOrg?.followers?.length || 0;
+
   return (
     <div className="bg-[#fef3f6] ">
       {searchParams.get("preview") === "true" && (
@@ -165,24 +173,24 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
           <div className="p-3 sm:p-4 md:p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
               <div className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0">
-                {event.organizer ? (
-                  <Link href={`/organiser/${event.organizer.slug || (event.organizer && typeof event.organizer === 'object' ? event.organizer._id : event.organizer)}`} className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0 group">
+                {activeOrg ? (
+                  <Link href={`/organiser/${activeOrgSlug}`} className="flex items-center gap-2.5 sm:gap-3 md:gap-4 flex-1 min-w-0 group">
                     <div className="relative flex-shrink-0">
                       <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg sm:rounded-xl overflow-hidden border-2 border-red-100 shadow-lg bg-white">
-                        {event.organizer?.avatar ? (
+                        {activeOrgAvatar ? (
                           <img
-                            src={getImageUrl(event.organizer.avatar)}
-                            alt={event.organizerName || event.organizer?.username}
+                            src={getImageUrl(activeOrgAvatar)}
+                            alt={activeOrgName}
                             className="w-full h-full object-cover"
                             onError={(e: any) => {
                               e.target.onerror = null;
-                              e.target.parentElement.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center"><span class="text-red-700 text-base sm:text-lg md:text-xl font-bold">${event.organizerName?.substring(0, 2) || event.organizer?.username?.substring(0, 2) || "OR"}</span></div>`;
+                              e.target.parentElement.innerHTML = `<div class="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center"><span class="text-red-700 text-base sm:text-lg md:text-xl font-bold">${activeOrgName.substring(0, 2)}</span></div>`;
                             }}
                           />
                         ) : (
                           <div className="w-full h-full bg-gradient-to-br from-red-100 to-red-200 flex items-center justify-center">
                             <span className="text-red-700 text-base sm:text-lg md:text-xl font-bold">
-                              {event.organizerName?.substring(0, 2) || event.organizer?.username?.substring(0, 2) || "OR"}
+                              {activeOrgName.substring(0, 2)}
                             </span>
                           </div>
                         )}
@@ -191,10 +199,10 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                     <div className="flex-1 min-w-0">
                       <p className="text-gray-600 text-xs sm:text-sm">Organised by</p>
                       <h3 className="text-red-900 text-sm sm:text-base md:text-lg font-semibold truncate group-hover:text-red-600 transition-colors">
-                        {event.organizerName || event.organizer?.username || "Organizer"}
+                        {activeOrgName}
                       </h3>
                       <p className="text-gray-600 text-xs sm:text-sm">
-                        {event.organizer?.followers?.length || 0} followers
+                        {activeOrgFollowersCount} followers
                       </p>
                     </div>
                   </Link>
@@ -217,7 +225,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                 )}
               </div>
 
-              {event.organizer && (
+              {activeOrg && (
                 <div className="flex flex-col items-start sm:items-end gap-2 w-full sm:w-auto sm:flex-shrink-0">
                   <button
                     onClick={async () => {
@@ -225,33 +233,48 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                         router.push('/login-register');
                         return;
                       }
-                      const orgId = event.organizer && typeof event.organizer === 'object' ? event.organizer._id : event.organizer;
-                      const result = await toggleFollowOrganizer(orgId);
+                      const result = await toggleFollowOrganizer(activeOrgId);
 
                       if (result.success) {
                         // Update local follower count
                         setEvent((prev: any) => {
-                          if (!prev || !prev.organizer) return prev;
-                          const newFollowers = [...(prev.organizer.followers || [])];
-                          if (result.isFollowing) {
-                            if (!newFollowers.includes(user._id)) newFollowers.push(user._id);
+                          if (!prev) return prev;
+                          if (hasOrgProfile) {
+                            if (!prev.organizerProfile) return prev;
+                            const newFollowers = [...(prev.organizerProfile.followers || [])];
+                            if (result.isFollowing) {
+                              if (!newFollowers.includes(user._id)) newFollowers.push(user._id);
+                            } else {
+                              const index = newFollowers.indexOf(user._id);
+                              if (index > -1) newFollowers.splice(index, 1);
+                            }
+                            return {
+                              ...prev,
+                              organizerProfile: { ...prev.organizerProfile, followers: newFollowers }
+                            };
                           } else {
-                            const index = newFollowers.indexOf(user._id);
-                            if (index > -1) newFollowers.splice(index, 1);
+                            if (!prev.organizer) return prev;
+                            const newFollowers = [...(prev.organizer.followers || [])];
+                            if (result.isFollowing) {
+                              if (!newFollowers.includes(user._id)) newFollowers.push(user._id);
+                            } else {
+                              const index = newFollowers.indexOf(user._id);
+                              if (index > -1) newFollowers.splice(index, 1);
+                            }
+                            return {
+                              ...prev,
+                              organizer: { ...prev.organizer, followers: newFollowers }
+                            };
                           }
-                          return {
-                            ...prev,
-                            organizer: { ...prev.organizer, followers: newFollowers }
-                          };
                         });
                       }
                     }}
-                    className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium transition-all px-6 py-2 border-2 text-sm sm:text-base h-10 sm:h-12 w-full sm:w-auto ${(event.organizer && user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer))
+                    className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium transition-all px-6 py-2 border-2 text-sm sm:text-base h-10 sm:h-12 w-full sm:w-auto ${(activeOrgId && user?.followedOrganizers?.includes(activeOrgId))
                       ? "bg-red-600 text-white border-red-600 shadow-md"
                       : "border-red-500 text-red-700 hover:bg-red-50"
                       }`}
                   >
-                    {(event.organizer && user?.followedOrganizers?.includes(typeof event.organizer === 'object' ? event.organizer._id : event.organizer)) ? "Following" : "Follow"}
+                    {(activeOrgId && user?.followedOrganizers?.includes(activeOrgId)) ? "Following" : "Follow"}
                   </button>
                 </div>
               )}
@@ -367,7 +390,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
         </div>
         {/* TICKETS SECTION */}
         <div id="tickets" className="px-0 pb-6 mt-6">
-          <TicketSelection tickets={event.ticketTypes} eventId={event._id} />
+          <TicketSelection tickets={event.ticketTypes} eventId={event._id} eventEndDate={event.endDate} />
           <p className="text-center text-gray-500 text-sm mt-4">Secure payment powered by Stripe</p>
         </div>
       </section>

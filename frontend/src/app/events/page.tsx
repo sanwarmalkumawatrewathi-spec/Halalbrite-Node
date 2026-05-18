@@ -94,6 +94,7 @@ function EventContent() {
               <MapComponent
                 events={events}
                 onMarkerClick={(id) => setSelectedEventId(id)}
+                selectedEventId={selectedEventId}
               />
             </div>
 

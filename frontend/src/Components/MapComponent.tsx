@@ -28,7 +28,8 @@ type MapEvent = {
 type MapComponentProps = {
   center?: [number, number]; // [lng, lat] from MongoDB
   events?: MapEvent[];
-  onMarkerClick?: (eventId: string) => void;
+  onMarkerClick?: (eventId: string | null) => void;
+  selectedEventId?: string | null;
   height?: string;
   containerClassName?: string;
 };
@@ -82,7 +83,8 @@ export default function MapComponent(props: MapComponentProps) {
   return <GoogleMapLoader apiKey={apiKey} {...props} />;
 }
 
-function GoogleMapLoader({ apiKey, center, events, onMarkerClick, height = "500px", containerClassName = "rounded-2xl overflow-hidden shadow-xl max-w-7xl mx-auto border-4 border-white mb-20" }: MapComponentProps & { apiKey: string }) {
+function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventId, height = "500px", containerClassName = "rounded-2xl overflow-hidden shadow-xl max-w-7xl mx-auto border-4 border-white mb-20" }: MapComponentProps & { apiKey: string }) {
+  const { formatPrice } = useCurrency();
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: apiKey,
@@ -91,6 +93,18 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, height = "500p
 
   const [selectedEvent, setSelectedEvent] = useState<MapEvent | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+
+  // Sync selectedEvent with selectedEventId prop from parent
+  useEffect(() => {
+    if (selectedEventId === null || selectedEventId === undefined) {
+      setSelectedEvent(null);
+    } else if (selectedEventId && events) {
+      const found = events.find((e) => e._id === selectedEventId);
+      if (found) {
+        setSelectedEvent(found);
+      }
+    }
+  }, [selectedEventId, events]);
 
   const onLoad = useCallback(function callback(map: google.maps.Map) {
     setMap(map);
@@ -202,7 +216,10 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, height = "500p
               lat: selectedEvent.location!.geometry!.coordinates[1],
               lng: selectedEvent.location!.geometry!.coordinates[0]
             }}
-            onCloseClick={() => setSelectedEvent(null)}
+            onCloseClick={() => {
+              setSelectedEvent(null);
+              if (onMarkerClick) onMarkerClick(null);
+            }}
           >
             <div className="w-64 p-0 bg-white rounded-lg overflow-hidden shadow-2xl border border-gray-100">
               <div className="relative h-32 w-full">
@@ -228,7 +245,19 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, height = "500p
 
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-red-700 font-bold text-sm">
-                    {selectedEvent.priceLabel || (selectedEvent.price === 0 ? 'Free' : `£${selectedEvent.price}`)}
+                    {(() => {
+                      const price = selectedEvent.price || 0;
+                      const priceLabel = selectedEvent.priceLabel;
+                      const displayPrice = formatPrice(price);
+                      if (priceLabel && typeof price === 'number') {
+                        const isFrom = priceLabel.toLowerCase().startsWith('from ');
+                        if (price === 0) {
+                          return isFrom ? 'From Free' : 'Free';
+                        }
+                        return isFrom ? `From ${displayPrice}` : displayPrice;
+                      }
+                      return priceLabel || (price === 0 ? 'Free' : displayPrice);
+                    })()}
                   </span>
                   <Link
                     href={`/event/${selectedEvent.slug || selectedEvent._id}`}

@@ -121,12 +121,14 @@ exports.getOrganizerEvents = async (req, res) => {
         const now = new Date();
 
         let query = {
-            status: 'published',
-            $or: []
+            status: 'published'
         };
         
-        if (userId) query.$or.push({ organizer: userId });
-        if (organizationId) query.$or.push({ organizerProfile: organizationId });
+        if (organizationId) {
+            query.organizerProfile = organizationId;
+        } else if (userId) {
+            query.organizer = userId;
+        }
 
         if (type === 'upcoming') {
             query.startDate = { $gte: now };

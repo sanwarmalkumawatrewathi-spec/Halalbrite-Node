@@ -9,14 +9,17 @@ type Ticket = {
   description: string;
   quantity: number;
   chargeCustomer?: boolean;
+  saleStart?: string;
+  saleEnd?: string;
 };
 
 type TicketSelectionProps = {
   tickets?: Ticket[];
   eventId?: string;
+  eventEndDate?: string;
 };
 
-export default function TicketSelection({ tickets, eventId }: TicketSelectionProps) {
+export default function TicketSelection({ tickets, eventId, eventEndDate }: TicketSelectionProps) {
   const [qty, setQty] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState<string | null>(null);
   const [settings, setSettings] = useState<any>(null);
@@ -40,7 +43,46 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
     fetchSettings();
   }, []);
 
+  const formatSaleDate = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZoneName: 'short'
+      });
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const getTicketStatus = (ticket: Ticket) => {
+    const now = new Date();
+    const hasEventEnded = eventEndDate ? now > new Date(eventEndDate) : false;
+    const isSaleStarted = ticket.saleStart ? now >= new Date(ticket.saleStart) : true;
+    const isSaleEnded = ticket.saleEnd ? now > new Date(ticket.saleEnd) : false;
+    const isTicketSoldOut = ticket.quantity <= 0;
+
+    return {
+      hasEventEnded,
+      isSaleStarted,
+      isSaleEnded,
+      isTicketSoldOut,
+      isAvailable: !hasEventEnded && isSaleStarted && !isSaleEnded && !isTicketSoldOut
+    };
+  };
+
   const handleChange = (id: string, type: "inc" | "dec") => {
+    const ticket = displayTickets.find(t => t._id === id);
+    if (!ticket) return;
+
+    const { isAvailable } = getTicketStatus(ticket);
+    if (!isAvailable && type === "inc") return;
+
     setQty((prev) => {
       const current = prev[id] || 0;
       if (type === "inc") return { ...prev, [id]: current + 1 };
@@ -73,6 +115,12 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
   };
 
   const handleBuyNow = (ticket: Ticket) => {
+    const { isAvailable } = getTicketStatus(ticket);
+    if (!isAvailable) {
+      alert("This ticket is not available for purchase.");
+      return;
+    }
+
     const quantity = qty[ticket._id] || 0;
     if (quantity <= 0) {
       alert("Please select at least one ticket.");
@@ -94,14 +142,17 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
 
   const handleBuyAll = () => {
     const selectedItems = displayTickets
-      .filter(t => (qty[t._id] || 0) > 0)
+      .filter(t => {
+        const { isAvailable } = getTicketStatus(t);
+        return isAvailable && (qty[t._id] || 0) > 0;
+      })
       .map(t => ({
         name: t.name,
         qty: qty[t._id]
       }));
 
     if (selectedItems.length === 0) {
-      alert("Please select at least one ticket.");
+      alert("Please select at least one available ticket.");
       return;
     }
 
@@ -127,11 +178,13 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
         Select Tickets
       </h2>
 
-      <div className="space-y-6">
-        {displayTickets.map((ticket, index) => {
+      <div className="space-y-6 mt-6">
+        {displayTickets.map((ticket) => {
           const count = qty[ticket._id] || 0;
           const isProcessing = loading === ticket._id;
           const feeData = calcFees(ticket.price);
+          
+          const { hasEventEnded, isSaleStarted, isSaleEnded, isTicketSoldOut, isAvailable } = getTicketStatus(ticket);
 
           // Display price with fees if ticket.chargeCustomer is true or undefined (default)
           const showFees = ticket.price > 0;
@@ -139,7 +192,11 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
           return (
             <div
               key={ticket._id}
-              className="group bg-white p-6 rounded-3xl border border-gray-100 hover:border-red-100 hover:shadow-xl hover:shadow-red-50/50 transition-all duration-300"
+              className={`group bg-white p-6 rounded-3xl border transition-all duration-300 ${
+                isAvailable 
+                  ? "border-gray-100 hover:border-red-100 hover:shadow-xl hover:shadow-red-50/50" 
+                  : "border-gray-200 opacity-60 bg-gray-50/50"
+              }`}
             >
               {/* TOP INFO */}
               <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
@@ -150,10 +207,9 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                   </p>
                 </div>
 
-
                 <div className="mt-1">
-                  <div className="flex  items-baseline md:justify-end gap-2">
-                    <span className="flex justify-end text-xl text-gray-900">
+                  <div className="flex items-baseline md:justify-end gap-2">
+                    <span className="flex justify-end text-xl text-gray-900 font-semibold">
                       {formatPrice(ticket.price)}
                     </span>
                     {showFees && (
@@ -162,19 +218,41 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                       </span>
                     )}
                   </div>
-                  <div className="justify-start flex">
-                    {(ticket.quantity - count) <= 5 && (ticket.quantity - count) > 0 ? (
-                      <div className="flex  items-center gap-1 text-orange-600 font-bold text-[14px] uppercase tracking-wide">
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        Only {ticket.quantity - count} left
-                      </div>
-                    ) : (
-                      <p className="text-[14px] text-gray-600 uppercase tracking-wider">
-                        {ticket.quantity - count} Left
-                      </p>
+                  
+                  {/* Status Labels (e.g. Left count, Sales End date) */}
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 justify-start md:justify-end">
+                    {isAvailable && (
+                      <>
+                        {(ticket.quantity - count) <= 5 && (ticket.quantity - count) > 0 ? (
+                          <span className="flex items-center gap-1 text-orange-600 font-bold text-[13px] uppercase tracking-wide">
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            Only {ticket.quantity - count} left
+                          </span>
+                        ) : (
+                          <span className="text-[13px] font-semibold text-gray-600 uppercase tracking-wider">
+                            {ticket.quantity - count} Left
+                          </span>
+                        )}
+                      </>
                     )}
+
+                    {/* Sales End/Start or Ended Label */}
+                    <span className="flex items-center gap-1.5 text-[13px] text-gray-500 font-medium">
+                      <span className="text-gray-400">🕐</span>
+                      {hasEventEnded ? (
+                        <span className="text-red-600 font-bold">Event Ended</span>
+                      ) : isTicketSoldOut ? (
+                        <span className="text-red-600 font-bold">Sold Out</span>
+                      ) : isSaleEnded ? (
+                        <span className="text-red-600 font-semibold">Sales Ended</span>
+                      ) : !isSaleStarted ? (
+                        <span className="text-amber-600">Sales Start: {formatSaleDate(ticket.saleStart!)}</span>
+                      ) : ticket.saleEnd ? (
+                        <span className="text-gray-600">Sales End: {formatSaleDate(ticket.saleEnd)}</span>
+                      ) : null}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -182,8 +260,9 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
               {/* ACTION ROW */}
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 {/* COUNTER */}
-                <div className="flex items-center bg-gray-50 rounded-2xl p-1.5 border border-gray-100">
+                <div className={`flex items-center bg-gray-50 rounded-2xl p-1.5 border border-gray-100 ${!isAvailable ? 'opacity-55 pointer-events-none' : ''}`}>
                   <button
+                    disabled={!isAvailable}
                     onClick={() => handleChange(ticket._id, "dec")}
                     className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-600 font-bold hover:bg-red-50 hover:text-red-600 hover:border-red-100 transition-all shadow-sm"
                   >
@@ -193,10 +272,13 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                     {count}
                   </div>
                   <button
+                    disabled={!isAvailable || count >= ticket.quantity}
                     onClick={() => handleChange(ticket._id, "inc")}
-                    disabled={count >= ticket.quantity}
-                    className={`w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-600 font-bold transition-all shadow-sm ${count >= ticket.quantity ? 'opacity-30 cursor-not-allowed' : 'hover:bg-red-50 hover:text-red-600 hover:border-red-100'
-                      }`}
+                    className={`w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-600 font-bold transition-all shadow-sm ${
+                      !isAvailable || count >= ticket.quantity 
+                        ? 'opacity-30 cursor-not-allowed' 
+                        : 'hover:bg-red-50 hover:text-red-600 hover:border-red-100'
+                    }`}
                   >
                     +
                   </button>
@@ -204,14 +286,15 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
 
                 {/* BUY BUTTON */}
                 <button
-                  disabled={isProcessing}
+                  disabled={isProcessing || !isAvailable}
                   onClick={() => handleBuyNow(ticket)}
-                  className={`flex-1 relative overflow-hidden py-4 rounded-2xl font-bold text-white transition-all duration-300 transform h-[40px] active:scale-95 flex items-center justify-center ${isProcessing
-                    ? "bg-gray-400"
-                    : (selectedTicketTypes.length > 1
-                      ? "bg-[#c5c9d1] hover:bg-gray-400"
-                      : (count > 0 ? "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-100" : "bg-[#f28e9d] hover:bg-red-600"))
-                    }`}
+                  className={`flex-1 relative overflow-hidden py-4 rounded-2xl font-bold text-white transition-all duration-300 transform h-[48px] active:scale-95 flex items-center justify-center ${
+                    isProcessing || !isAvailable
+                      ? "bg-gray-300 cursor-not-allowed text-gray-500 shadow-none border-0"
+                      : (selectedTicketTypes.length > 1
+                        ? "bg-[#c5c9d1] hover:bg-gray-400"
+                        : (count > 0 ? "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-100" : "bg-[#f28e9d] hover:bg-red-600"))
+                  }`}
                 >
                   {isProcessing ? (
                     <div className="flex items-center gap-2">
@@ -221,13 +304,21 @@ export default function TicketSelection({ tickets, eventId }: TicketSelectionPro
                       </svg>
                       <span>Processing...</span>
                     </div>
+                  ) : hasEventEnded ? (
+                    "Event Ended"
+                  ) : isTicketSoldOut ? (
+                    "Sold Out"
+                  ) : isSaleEnded ? (
+                    "Sales Ended"
+                  ) : !isSaleStarted ? (
+                    "Not on Sale"
                   ) : (
                     "Buy Now"
                   )}
                 </button>
 
                 {/* TOTAL SUMMARY IF QTY > 0 */}
-                {count > 0 && showFees && (
+                {count > 0 && showFees && isAvailable && (
                   <div className="flex gap-2 bg-red-50/50 border border-red-100 rounded-2xl px-6 py-3.5 items-center justify-center">
                     <span className="text-[14px] font-bold text-gray-600 uppercase tracking-widest mb-0.5">Total + fees</span>
                     <span className="font-bold text-lg text-gray-900">

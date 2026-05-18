@@ -80,6 +80,7 @@ export default function Page() {
         <MapComponent 
           events={mapEvents} 
           onMarkerClick={(id) => setSelectedEventId(id)}
+          selectedEventId={selectedEventId}
         />
       </div>
 

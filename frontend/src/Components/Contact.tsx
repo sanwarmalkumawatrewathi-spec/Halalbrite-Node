@@ -77,7 +77,7 @@ export default function Contact() {
           <div className="lg:col-span-2">
             <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0">
               <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-5 sm:p-6 md:p-8">
-                <h2 className="text-red-900 mb-4 sm:mb-6 text-xl sm:text-2xl md:text-3xl">Send Us a Message</h2>
+                <h2 className="text-red-900 mb-4 sm:mb-6 text-xl sm:text-2xl md:text-3xl">Contact & Help Centre</h2>
 
                 {status.success && (
                   <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
@@ -108,45 +108,45 @@ export default function Contact() {
                   <div className="space-y-4 sm:space-y-6">
                     <div>
                       <label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="subject">Subject *</label>
-                    <div className="relative">
-                        <select 
-                          id="subject" 
-                          name="subject" 
-                          required 
+                      <div className="relative">
+                        <select
+                          id="subject"
+                          name="subject"
+                          required
                           className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all appearance-none cursor-pointer bg-white"
-                          value={formData.subject} 
+                          value={formData.subject}
                           onChange={handleChange}
                         >
-                        <option value="" disabled>Select a subject</option>
-                        <option value="General Inquiry">General Inquiry</option>
-                        <option value="Sales & Pricing">Sales & Pricing</option>
-                        <option value="Partnerships & Collaborations">Partnerships & Collaborations</option>
-                        <option value="Become an Organiser">Become an Organiser</option>
-                        <option value="Technical Support">Technical Support</option>
-                        <option value="Billing & Payments">Billing & Payments</option>
-                        <option value="Refunds & Cancellations">Refunds & Cancellations</option>
-                        <option value="Feature Request">Feature Request</option>
-                        <option value="Feedback & Suggestions">Feedback & Suggestions</option>
-                        <option value="Other">Other</option>
-                      </select>
-                      <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                          <option value="" disabled>Select a subject</option>
+                          <option value="General Inquiry">General Inquiry</option>
+                          <option value="Sales & Pricing">Sales & Pricing</option>
+                          <option value="Partnerships & Collaborations">Partnerships & Collaborations</option>
+                          <option value="Become an Organiser">Become an Organiser</option>
+                          <option value="Technical Support">Technical Support</option>
+                          <option value="Billing & Payments">Billing & Payments</option>
+                          <option value="Refunds & Cancellations">Refunds & Cancellations</option>
+                          <option value="Feature Request">Feature Request</option>
+                          <option value="Feedback & Suggestions">Feedback & Suggestions</option>
+                          <option value="Other">Other</option>
+                        </select>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6" /></svg>
+                        </div>
                       </div>
-                    </div>
                     </div>
 
                     {formData.subject === 'Other' && (
                       <div className="animate-in fade-in slide-in-from-top-2 duration-300">
                         <label data-slot="label" className="items-center gap-2 font-medium select-none text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="customSubject">Please specify your subject *</label>
-                        <input 
-                          type="text" 
-                          id="customSubject" 
-                          name="customSubject" 
-                          required 
-                          placeholder="What is your inquiry about?" 
-                          className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white" 
-                          value={formData.customSubject} 
-                          onChange={handleChange} 
+                        <input
+                          type="text"
+                          id="customSubject"
+                          name="customSubject"
+                          required
+                          placeholder="What is your inquiry about?"
+                          className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
+                          value={formData.customSubject}
+                          onChange={handleChange}
                         />
                       </div>
                     )}

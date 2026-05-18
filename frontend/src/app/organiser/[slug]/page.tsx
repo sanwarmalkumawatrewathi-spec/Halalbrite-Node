@@ -6,6 +6,7 @@ import Footer from "@/Components/Footer";
 import { FiGlobe, FiFacebook, FiInstagram, FiTwitter, FiYoutube, FiLinkedin, FiUsers, FiCalendar, FiMail, FiMapPin } from "react-icons/fi";
 import Link from "next/link";
 import { getImageUrl } from "@/utils/imageUtils";
+import { useCurrency } from "@/context/CurrencyContext";
 
 interface Organiser {
   _id: string;
@@ -31,6 +32,7 @@ interface Organiser {
 
 export default function OrganiserProfile({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
+  const { formatPrice } = useCurrency();
   const [organiser, setOrganiser] = useState<Organiser | null>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
@@ -273,7 +275,7 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
                     <div>
                       <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Tickets from</p>
                       <p className="text-xl font-black text-gray-900">
-                        {event.ticketTypes?.[0]?.price ? `£${event.ticketTypes[0].price}` : 'Free'}
+                        {event.ticketTypes?.[0]?.price ? formatPrice(event.ticketTypes[0].price) : 'Free'}
                       </p>
                     </div>
                     <button className="bg-[#d32f2f] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-red-100 group-hover:scale-105 transition-all">

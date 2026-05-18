@@ -15,7 +15,7 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
     const [isSaving, setIsSaving] = useState(false);
     const logoInputRef = useRef<HTMLInputElement>(null);
     const [categories, setCategories] = useState<string[]>([]);
-    
+
     const [formData, setFormData] = useState({
         name: '',
         logo: '',

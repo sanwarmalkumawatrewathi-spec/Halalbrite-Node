@@ -110,6 +110,7 @@ exports.getEventById = async (req, res) => {
         if (mongoose.Types.ObjectId.isValid(id)) {
             event = await Event.findById(id)
                 .populate('organizer', '-password')
+                .populate('organizerProfile')
                 .populate('category');
         }
 
@@ -117,6 +118,7 @@ exports.getEventById = async (req, res) => {
         if (!event) {
             event = await Event.findOne({ slug: searchId })
                 .populate('organizer', '-password')
+                .populate('organizerProfile')
                 .populate('category');
         }
 
@@ -299,7 +301,8 @@ exports.getSavedEvents = async (req, res) => {
         const user = await User.findById(req.user._id).populate({
             path: 'savedEvents',
             populate: [
-                { path: 'organizer', select: 'username avatar' },
+                { path: 'organizer', select: 'username avatar slug' },
+                { path: 'organizerProfile', select: 'name slug logo' },
                 { path: 'category', select: 'name slug icon' }
             ]
         });
