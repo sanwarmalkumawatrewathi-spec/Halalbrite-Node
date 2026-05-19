@@ -21,7 +21,8 @@ class EmailService {
                 tls: {
                     rejectUnauthorized: false
                 },
-                connectionTimeout: 10000 // 10s connection timeout
+                connectionTimeout: 10000, // 10s connection timeout
+                family: 4 // Force IPv4 to avoid IPv6 ENETUNREACH on Render
             });
         }
 
@@ -36,7 +37,8 @@ class EmailService {
             tls: {
                 rejectUnauthorized: false
             },
-            connectionTimeout: 10000 // 10s connection timeout
+            connectionTimeout: 10000, // 10s connection timeout
+            family: 4 // Force IPv4 to avoid IPv6 ENETUNREACH on Render
         });
     }
 
