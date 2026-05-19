@@ -105,13 +105,32 @@ function TicketPreviewContent() {
     );
 
     const eventName = booking.event_name || booking.event?.title || booking.event_id?.title || "Event Confirmed";
-    const eventDate = booking.event_date || booking.event?.startDate || booking.event_id?.startDate;
-    const dateStr = eventDate ? new Date(eventDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Check Ticket';
 
-    // Time logic
-    const startTime = booking.event_time || booking.event?.startTime || booking.event_id?.startTime;
-    const endTime = booking.event?.endTime || booking.event_id?.endTime;
-    const timeStr = startTime ? (endTime && !startTime.includes('-') ? `${startTime} - ${endTime}` : startTime) : 'See Ticket';
+    // Robust date and time separation
+    const formatDate = (dateStr: string) => {
+        try {
+            if (!dateStr) return "";
+            const date = new Date(dateStr);
+            return date.toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric"
+            });
+        } catch (e) {
+            return dateStr || "";
+        }
+    };
+
+    const eventStartDate = booking.event?.startDate || booking.event_id?.startDate || booking.event_date;
+    const eventEndDate = booking.event?.endDate || booking.event_id?.endDate;
+    const eventStartTime = booking.event?.startTime || booking.event_id?.startTime || booking.event_time?.split(" - ")[0] || booking.event_time || "TBA";
+    const eventEndTime = booking.event?.endTime || booking.event_id?.endTime || (booking.event_time?.includes(" - ") ? booking.event_time.split(" - ")[1] : "") || "TBA";
+
+    const startDateFormatted = eventStartDate ? formatDate(eventStartDate) : "Check Ticket";
+    const endDateFormatted = eventEndDate ? formatDate(eventEndDate) : (eventStartDate ? formatDate(eventStartDate) : "Check Ticket");
+
+    const startDateTimeStr = `${startDateFormatted} • ${eventStartTime}`;
+    const endDateTimeStr = `${endDateFormatted} • ${eventEndTime}`;
 
     const venueName = booking.event_venue || booking.event?.location?.venueName || booking.event_id?.location?.venueName || "Venue Confirmed";
 
@@ -161,12 +180,11 @@ function TicketPreviewContent() {
                             {/* Ticket Header */}
                             <div className="flex items-center justify-between mb-6 sm:mb-8 pb-4 sm:pb-6 border-b-2 border-red-200 gap-2">
                                 <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                                    <div className="w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0">
-                                        <Calendar className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                                    <div className="h-10 sm:h-12 flex-shrink-0 flex items-center">
+                                        <img src="/images/logo.png" alt="Halalbrite Logo" className="h-full w-auto object-contain" />
                                     </div>
-                                    <div className="min-w-0">
-                                        <h2 className="text-red-900 text-lg sm:text-xl font-normal">Halalbrite</h2>
-                                        <p className="text-red-600 text-xs sm:text-sm font-medium uppercase tracking-wider">Event Ticket</p>
+                                    <div className="border-l-2 border-red-200 pl-3 sm:pl-4 h-8 flex items-center min-w-0">
+                                        <p className="text-red-600 text-xs sm:text-sm font-black uppercase tracking-widest truncate">Event Ticket</p>
                                     </div>
                                 </div>
                                 <div className="text-right flex-shrink-0">
@@ -190,8 +208,8 @@ function TicketPreviewContent() {
                                         <Calendar className="w-5 h-5 text-red-600" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Date</p>
-                                        <p className="text-gray-900 text-sm sm:text-base font-bold">{dateStr}</p>
+                                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Start Date & Time</p>
+                                        <p className="text-gray-900 text-sm sm:text-base font-bold">{startDateTimeStr}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
@@ -199,8 +217,8 @@ function TicketPreviewContent() {
                                         <Clock className="w-5 h-5 text-red-600" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Time</p>
-                                        <p className="text-gray-900 text-sm sm:text-base font-bold">{timeStr}</p>
+                                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">End Date & Time</p>
+                                        <p className="text-gray-900 text-sm sm:text-base font-bold">{endDateTimeStr}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3 sm:col-span-2">
@@ -222,18 +240,53 @@ function TicketPreviewContent() {
                                         <Ticket className="w-5 h-5 text-red-600" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-1">Ticket Details</p>
-                                        <div className="space-y-2">
+                                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-2">Ticket Details</p>
+                                        <div className="space-y-3">
                                             {booking.items && booking.items.length > 0 ? (
-                                                booking.items.map((item: any, idx: number) => (
-                                                    <div key={idx} className="flex justify-between items-center text-sm">
-                                                        <span className="text-gray-600 font-medium">{item.ticket_name}</span>
-                                                    </div>
-                                                ))
+                                                booking.items.map((item: any, idx: number) => {
+                                                    const symbolMap: { [key: string]: string } = {
+                                                        'EUR': '€',
+                                                        'GBP': '£',
+                                                        'USD': '$',
+                                                        'AUD': 'A$',
+                                                    };
+                                                    const code = (booking.currency || 'GBP').toUpperCase();
+                                                    const currencySymbol = symbolMap[code] || code;
+                                                    const itemQty = item.quantity || 1;
+                                                    const itemPrice = typeof item.price === 'number' ? item.price : 0;
+                                                    const itemTotal = typeof item.total === 'number' ? item.total : (itemPrice * itemQty);
+                                                    
+                                                    return (
+                                                        <div key={idx} className="flex justify-between items-center text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-gray-900 font-bold">{item.ticket_name}</span>
+                                                                <span className="text-gray-500 text-xs font-semibold">Qty: {itemQty} ticket(s)</span>
+                                                            </div>
+                                                            <span className="text-gray-900 font-black">
+                                                                {currencySymbol}{itemTotal.toFixed(2)}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })
                                             ) : (
-                                                <p className="text-gray-900 text-sm sm:text-base font-medium leading-relaxed">
-                                                    {booking.ticket_name || "Access to all conference sessions and networking areas"}
-                                                </p>
+                                                <div className="flex justify-between items-center text-sm">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-gray-900 font-bold">{booking.ticket_name || "General Admission"}</span>
+                                                        <span className="text-gray-500 text-xs font-semibold">Qty: {booking.quantity || 1} ticket(s)</span>
+                                                    </div>
+                                                    <span className="text-gray-900 font-black">
+                                                        {(() => {
+                                                            const symbolMap: { [key: string]: string } = {
+                                                                'EUR': '€',
+                                                                'GBP': '£',
+                                                                'USD': '$',
+                                                                'AUD': 'A$',
+                                                            };
+                                                            const code = (booking.currency || 'GBP').toUpperCase();
+                                                            return symbolMap[code] || code;
+                                                        })()}{(booking.amount_total || 0).toFixed(2)}
+                                                    </span>
+                                                </div>
                                             )}
                                         </div>
                                     </div>

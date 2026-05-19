@@ -788,13 +788,15 @@ export default function EventForm({ editId }: { editId?: string | null }) {
 
                 {/* Action Buttons */}
                 <div className="flex items-center justify-end gap-4 pt-4">
-                    <button
-                        type="button"
-                        onClick={handlePreview}
-                        className="px-6 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
-                    >
-                        Preview Event
-                    </button>
+                    {!isEditMode && (
+                        <button
+                            type="button"
+                            onClick={handlePreview}
+                            className="px-6 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+                        >
+                            Preview Event
+                        </button>
+                    )}
 
                     <button
                         type="submit"
@@ -809,7 +811,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                         ) : (
                             <>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {isEditMode ? 'Update Event' : 'Review & Publish'}
+                                {isEditMode ? 'Review and Update Event' : 'Review & Publish'}
                             </>
                         )}
                     </button>
@@ -826,6 +828,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                 }}
                 tickets={tickets}
                 organisations={organisations}
+                isEditMode={isEditMode}
             />
 
             <BecomeOrganizerModal
@@ -845,6 +848,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                     onClose={() => setShowSuccess(false)}
                     eventId={publishedEventId}
                     slug={publishedEventSlug}
+                    eventName={form.title}
                 />
             )}
         </div>

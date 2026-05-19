@@ -45,6 +45,17 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
   });
 
   useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
     fetchCategories();
   }, []);
 
@@ -233,22 +244,22 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
+    <div className="fixed inset-0 z-[999] flex items-start justify-center p-4 pt-24 pb-8 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+      <div className="bg-white border border-gray-200 rounded-[2rem] w-full max-w-2xl max-h-[calc(100vh-140px)] overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
 
         {/* Header */}
-        <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-red-50/50">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-red-50 rounded-t-[2rem]">
           <div>
-            <h3 className="text-2xl font-bold text-red-900">Add New Organisation</h3>
-            <p className="text-sm text-red-700/70">Create a professional profile for your events</p>
+            <h3 className="text-lg font-bold text-red-900">Add New Organisation</h3>
+            <p className="text-xs text-red-700/70">Create a professional profile for your events</p>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-red-100 rounded-full transition-colors">
-            <FiX className="text-2xl text-red-900" />
+          <button onClick={onClose} className="p-1.5 hover:bg-red-100 rounded-full transition-colors">
+            <FiX className="text-lg text-red-900" />
           </button>
         </div>
 
         {/* Form Content */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+        <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {error && (
             <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
               <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -257,13 +268,13 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
               {error}
             </div>
           )}
-          <form id="org-form" onSubmit={handleSubmit} className="space-y-8 max-w-2xl mx-auto">
+          <form id="org-form" onSubmit={handleSubmit} className="space-y-5 w-full">
 
-            <div className="space-y-8">
+            <div className="space-y-5">
               {/* Basic Info - Single Column */}
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-bold text-gray-800 mb-2">Organisation Name *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Organisation Name *</label>
                   <input
                     type="text"
                     name="name"
@@ -271,12 +282,12 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="e.g., Islamic Conference Society"
-                    className="w-full border bg-gray-50/50 border-gray-200 rounded-xl p-3.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                    className="w-full border borborder bg-gray-50/50 border-gray-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-800 mb-2">Organisation Logo</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Organisation Logo</label>
                   <input
                     type="file"
                     ref={logoInputRef}
@@ -286,48 +297,48 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
                   />
                   <div
                     onClick={() => logoInputRef.current?.click()}
-                    className={`border-2 border-dashed border-gray-200 rounded-2xl p-8 text-center bg-gray-50/30 cursor-pointer hover:border-red-400 hover:bg-red-50/20 transition-all group relative overflow-hidden ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
+                    className={`border-2 border-dashed border-gray-200 rounded-2xl p-5 text-center bg-gray-50/30 cursor-pointer hover:border-red-400 hover:bg-red-50/20 transition-all group relative overflow-hidden ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}
                   >
                     {isUploading ? (
-                      <div className="flex flex-col items-center py-2">
-                        <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full mb-2"></div>
-                        <p className="text-sm font-bold text-red-900">Uploading...</p>
+                      <div className="flex flex-col items-center py-1">
+                        <div className="animate-spin h-6 w-6 border-4 border-red-600 border-t-transparent rounded-full mb-1"></div>
+                        <p className="text-xs font-bold text-red-900">Uploading...</p>
                       </div>
                     ) : formData.logo ? (
                       <div className="flex flex-col items-center">
-                        <img src={formData.logo.startsWith('http') ? formData.logo : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '')}${formData.logo}`} alt="Preview" className="w-24 h-24 rounded-2xl object-cover mb-3 shadow-md" />
-                        <p className="text-xs font-bold text-red-600">Click to change logo</p>
+                        <img src={formData.logo.startsWith('http') ? formData.logo : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '')}${formData.logo}`} alt="Preview" className="w-20 h-20 rounded-2xl object-cover mb-2 shadow-md" />
+                        <p className="text-[10px] font-bold text-red-600">Click to change logo</p>
                       </div>
                     ) : (
                       <>
-                        <IoBusinessOutline className="text-4xl text-gray-300 mx-auto mb-2 group-hover:text-red-500 transition-colors" />
-                        <p className="text-sm font-bold text-gray-600">Click to upload logo</p>
-                        <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-widest">PNG, JPG up to 5MB</p>
+                        <IoBusinessOutline className="text-3xl text-gray-300 mx-auto mb-1 group-hover:text-red-500 transition-colors" />
+                        <p className="text-xs font-bold text-gray-600">Click to upload logo</p>
+                        <p className="text-[9px] text-gray-400 mt-0.5 uppercase tracking-widest">PNG, JPG up to 5MB</p>
                       </>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-800 mb-2">Website</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Website</label>
                   <input
                     type="text"
                     name="website"
                     value={formData.website}
                     onChange={handleInputChange}
                     placeholder="yourorganisation.com"
-                    className="w-full border bg-gray-50/50 border-gray-200 rounded-xl p-3.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                    className="w-full border borborder bg-gray-50/50 border-gray-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-800 mb-2">Country *</label>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1.5">Country *</label>
                   <select
                     name="country"
                     required
                     value={formData.country}
                     onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full border bg-gray-50/50 border-gray-200 rounded-xl p-3.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all"
+                    className="w-full border borborder bg-gray-50/50 border-gray-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                   >
                     <option value="">Select a country</option>
                     <optgroup label="Europe">
@@ -360,29 +371,29 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">Organisation Bio *</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">Organisation Bio *</label>
                 <textarea
                   name="bio"
                   required
-                  rows={4}
+                  rows={3}
                   value={formData.bio}
                   onChange={handleInputChange}
                   placeholder="Tell attendees about your organisation and its mission..."
-                  className="w-full border bg-gray-50/50 border-gray-200 rounded-xl p-3.5 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none transition-all"
+                  className="w-full border borborder bg-gray-50/50 border-gray-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none resize-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-800 mb-2">What Event Categories Do You Organise? *</label>
-                <p className="text-[10px] text-gray-500 mb-4 font-medium">Select multiple categories that best describe your events</p>
-                <div className="bg-white border border-gray-100 rounded-[2rem] p-6 shadow-sm">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
+                <label className="block text-xs font-semibold text-gray-700 mb-1">What Event Categories Do You Organise? *</label>
+                <p className="text-[9px] text-gray-400 mb-2.5 font-medium">Select multiple categories that best describe your events</p>
+                <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-y-3 gap-x-5">
                     {categories.map(cat => (
-                      <label key={cat} className="flex items-center gap-3 cursor-pointer group">
-                        <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${formData.categories.includes(cat) ? 'bg-red-600 border-red-600 shadow-md shadow-red-200' : 'bg-white border-gray-200 group-hover:border-red-300'}`}>
-                          {formData.categories.includes(cat) && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path d="M5 13l4 4L19 7" /></svg>}
+                      <label key={cat} className="flex items-center gap-2 cursor-pointer group">
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${formData.categories.includes(cat) ? 'bg-red-600 border-red-600 shadow-md shadow-red-200' : 'bg-white border-gray-200 group-hover:border-red-300'}`}>
+                          {formData.categories.includes(cat) && <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path d="M5 13l4 4L19 7" /></svg>}
                         </div>
-                        <span className={`text-xs font-bold transition-colors ${formData.categories.includes(cat) ? 'text-gray-900' : 'text-gray-600 group-hover:text-red-600'}`}>{cat}</span>
+                        <span className={`text-[11px] font-bold transition-colors ${formData.categories.includes(cat) ? 'text-gray-900' : 'text-gray-600 group-hover:text-red-600'}`}>{cat}</span>
                         <input type="checkbox" className="hidden" checked={formData.categories.includes(cat)} onChange={() => handleCategoryToggle(cat)} />
                       </label>
                     ))}
@@ -390,38 +401,38 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
                   <button
                     type="button"
                     onClick={() => setShowSuggestCategory(true)}
-                    className="mt-8 bg-red-50 text-red-600 px-5 py-2 rounded-xl text-[10px] font-bold border border-red-100 hover:bg-red-100 transition-all flex items-center gap-2"
+                    className="mt-4 bg-red-50 text-red-600 px-3.5 py-1.5 rounded-lg text-[9px] font-bold border border-red-100 hover:bg-red-100 transition-all flex items-center gap-1.5"
                   >
                     <span className="text-lg">+</span> Suggest New Category
                   </button>
 
                   {showSuggestCategory && (
-                    <div className="mt-6 bg-red-50/50 border border-red-100 rounded-2xl p-6 animate-in slide-in-from-top-4 duration-300">
-                      <label className="block text-[10px] font-bold text-red-900 mb-3 uppercase tracking-widest">Suggest a New Category</label>
-                      <div className="flex gap-3">
+                    <div className="mt-4 bg-red-50/50 border border-red-100 rounded-xl p-4 animate-in slide-in-from-top-4 duration-300">
+                      <label className="block text-[9px] font-bold text-red-900 mb-2 uppercase tracking-widest">Suggest a New Category</label>
+                      <div className="flex gap-2">
                         <input
                           type="text"
                           value={newCategoryName}
                           onChange={(e) => setNewCategoryName(e.target.value)}
                           placeholder="Enter custom category name..."
-                          className="flex-1 bg-white border-2 border-red-200 rounded-xl px-4 py-2 text-sm focus:border-red-500 outline-none transition-all"
+                          className="flex-1 bg-white border borborder border-gray-200 rounded-xl px-3 py-1.5 text-xs focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                         />
                         <button
                           type="button"
                           onClick={handleSuggestCategory}
-                          className="bg-red-400 text-white px-6 py-2 rounded-xl text-xs font-bold hover:bg-red-500 transition-all shadow-sm"
+                          className="bg-red-400 text-white px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-red-500 transition-all shadow-sm"
                         >
                           Add
                         </button>
                         <button
                           type="button"
                           onClick={() => setShowSuggestCategory(false)}
-                          className="bg-white border border-gray-200 text-gray-600 px-6 py-2 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all"
+                          className="bg-white border border-gray-200 text-gray-600 px-4 py-1.5 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all"
                         >
                           Cancel
                         </button>
                       </div>
-                      <p className="mt-3 text-[10px] text-red-700/60 font-medium italic">Suggest a category that isn't in our list. We'll review it for future use.</p>
+                      <p className="mt-2 text-[9px] text-red-700/60 font-medium italic">Suggest a category that isn't in our list. We'll review it for future use.</p>
                     </div>
                   )}
                 </div>
@@ -429,35 +440,35 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
             </div>
 
             {/* Social Media Section */}
-            <div className="bg-gray-50/30 border border-gray-100 rounded-3xl p-6">
-              <label className="block text-sm font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <div className="w-1.5 h-6 bg-red-600 rounded-full"></div>
+            <div className="bg-gray-50/30 border border-gray-100 rounded-2xl p-4">
+              <label className="block text-xs font-bold text-gray-800 mb-4 flex items-center gap-1.5">
+                <div className="w-1 h-4 bg-red-600 rounded-full"></div>
                 Social Media Links
               </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="flex items-center gap-2 text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider"><FiFacebook className="text-[#1877F2]" /> Facebook</label>
-                  <input type="text" name="facebook" value={formData.socialLinks.facebook} onChange={handleSocialChange} placeholder="facebook.com/yourpage" className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500/20" />
+                  <label className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider"><FiFacebook className="text-[#1877F2]" /> Facebook</label>
+                  <input type="text" name="facebook" value={formData.socialLinks.facebook} onChange={handleSocialChange} placeholder="facebook.com/yourpage" className="w-full bg-white border borborder border-gray-200 rounded-lg p-2 text-[11px] outline-none focus:ring-2 focus:ring-red-100 focus:border-red-400 transition-all" />
                 </div>
                 <div>
-                  <label className="flex items-center gap-2 text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider"><FiInstagram className="text-[#E4405F]" /> Instagram</label>
-                  <input type="text" name="instagram" value={formData.socialLinks.instagram} onChange={handleSocialChange} placeholder="@yourpage" className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500/20" />
+                  <label className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider"><FiInstagram className="text-[#E4405F]" /> Instagram</label>
+                  <input type="text" name="instagram" value={formData.socialLinks.instagram} onChange={handleSocialChange} placeholder="@yourpage" className="w-full bg-white border borborder border-gray-200 rounded-lg p-2 text-[11px] outline-none focus:ring-2 focus:ring-red-100 focus:border-red-400 transition-all" />
                 </div>
                 <div>
-                  <label className="flex items-center gap-2 text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider"><FiLinkedin className="text-[#0A66C2]" /> LinkedIn</label>
-                  <input type="text" name="linkedin" value={formData.socialLinks.linkedin} onChange={handleSocialChange} placeholder="linkedin.com/company/page" className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500/20" />
+                  <label className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider"><FiLinkedin className="text-[#0A66C2]" /> LinkedIn</label>
+                  <input type="text" name="linkedin" value={formData.socialLinks.linkedin} onChange={handleSocialChange} placeholder="linkedin.com/company/page" className="w-full bg-white border borborder border-gray-200 rounded-lg p-2 text-[11px] outline-none focus:ring-2 focus:ring-red-100 focus:border-red-400 transition-all" />
                 </div>
                 <div>
-                  <label className="flex items-center gap-2 text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider"><FiTwitter className="text-[#1DA1F2]" /> Twitter</label>
-                  <input type="text" name="twitter" value={formData.socialLinks.twitter} onChange={handleSocialChange} placeholder="@handle" className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500/20" />
+                  <label className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider"><FiTwitter className="text-[#1DA1F2]" /> Twitter</label>
+                  <input type="text" name="twitter" value={formData.socialLinks.twitter} onChange={handleSocialChange} placeholder="@handle" className="w-full bg-white border borborder border-gray-200 rounded-lg p-2 text-[11px] outline-none focus:ring-2 focus:ring-red-100 focus:border-red-400 transition-all" />
                 </div>
                 <div>
-                  <label className="flex items-center gap-2 text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider"><FiYoutube className="text-[#FF0000]" /> YouTube</label>
-                  <input type="text" name="youtube" value={formData.socialLinks.youtube} onChange={handleSocialChange} placeholder="youtube.com/@channel" className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500/20" />
+                  <label className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider"><FiYoutube className="text-[#FF0000]" /> YouTube</label>
+                  <input type="text" name="youtube" value={formData.socialLinks.youtube} onChange={handleSocialChange} placeholder="youtube.com/@channel" className="w-full bg-white border borborder border-gray-200 rounded-lg p-2 text-[11px] outline-none focus:ring-2 focus:ring-red-100 focus:border-red-400 transition-all" />
                 </div>
                 <div>
-                  <label className="flex items-center gap-2 text-[10px] font-bold text-gray-500 mb-1.5 uppercase tracking-wider"><FiLink className="text-gray-500" /> Other Link</label>
-                  <input type="text" name="otherWebsite" value={formData.socialLinks.otherWebsite} onChange={handleSocialChange} placeholder="yourwebsite.com" className="w-full bg-white border border-gray-200 rounded-lg p-2.5 text-xs outline-none focus:ring-2 focus:ring-red-500/20" />
+                  <label className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider"><FiLink className="text-gray-500" /> Other Link</label>
+                  <input type="text" name="otherWebsite" value={formData.socialLinks.otherWebsite} onChange={handleSocialChange} placeholder="yourwebsite.com" className="w-full bg-white border borborder border-gray-200 rounded-lg p-2 text-[11px] outline-none focus:ring-2 focus:ring-red-100 focus:border-red-400 transition-all" />
                 </div>
               </div>
             </div>
@@ -465,19 +476,19 @@ export default function CreateOrganisationModal({ isOpen, onClose, onSuccess }: 
         </div>
 
         {/* Footer */}
-        <div className="px-8 py-6 border-t border-gray-100 flex gap-4 bg-gray-50">
+        <div className="px-6 py-4 border-t border-gray-100 flex gap-3 bg-gray-50">
           <button
             type="submit"
             form="org-form"
             disabled={loading}
-            className="flex-1 bg-red-600 text-white py-3.5 rounded-2xl text-sm font-bold shadow-xl shadow-red-200 hover:bg-red-700 transition-all disabled:opacity-50 active:scale-[0.98]"
+            className="flex-1 bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md shadow-red-100 hover:bg-red-700 transition-all disabled:opacity-50 active:scale-[0.98]"
           >
             {loading ? "Creating Organisation..." : "Add Organisation"}
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-white border border-gray-200 text-gray-700 py-3.5 rounded-2xl text-sm font-bold hover:bg-gray-50 transition-all active:scale-[0.98]"
+            className="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-50 transition-all active:scale-[0.98]"
           >
             Cancel
           </button>

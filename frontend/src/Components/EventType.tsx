@@ -209,8 +209,8 @@ function EventTypeContent({
           name="meetingLink"
           value={form.meetingLink}
           onChange={handleChange}
-          placeholder="https://zoom.us/... or youtube live..."
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+          placeholder="Paste your Zoom, Google Meet, Youtube live, Teams or any other meeting link here "
+          className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
         />
       </div>
 

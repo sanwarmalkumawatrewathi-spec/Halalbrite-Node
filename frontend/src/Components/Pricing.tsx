@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useCurrency } from '@/context/CurrencyContext';
 
 export default function Pricing() {
+  const { currentCurrency, convertPrice } = useCurrency();
   const [ticketPrice, setTicketPrice] = useState(25);
   const [fees, setFees] = useState({
     feePercentage: 3,
@@ -41,9 +43,12 @@ export default function Pricing() {
 
   const calculateFees = () => {
     const price = Number(ticketPrice);
-    const hbFee = (price * (fees.feePercentage / 100)) + fees.fixedFee;
+    const convertedFixedFee = convertPrice(fees.fixedFee);
+    const convertedFixedStripeFee = convertPrice(fees.fixedStripeFee);
+
+    const hbFee = (price * (fees.feePercentage / 100)) + convertedFixedFee;
     const vat = hbFee * (fees.vatRate / 100);
-    const stripeFee = (price * (fees.stripeFeePercentage / 100)) + fees.fixedStripeFee;
+    const stripeFee = (price * (fees.stripeFeePercentage / 100)) + convertedFixedStripeFee;
 
     const totalFees = hbFee + vat + stripeFee;
     const attendeePays = price + totalFees;
@@ -110,7 +115,7 @@ export default function Pricing() {
                   <div className="bg-green-50 rounded-xl p-6">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-gray-700">Free Events</span>
-                      <span className="bg-green-600 text-white px-4 py-1 rounded-full">{fees.currency}0.00</span>
+                      <span className="bg-green-600 text-white px-4 py-1 rounded-full">{currentCurrency.symbol}0.00</span>
                     </div>
                     <p className="text-gray-600 text-sm">No platform fees for free events. Host community events at no cost!</p>
                   </div>
@@ -118,8 +123,8 @@ export default function Pricing() {
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-gray-700">Paid Events</span>
                       <div className="flex flex-col items-end gap-1">
-                        <span className="bg-red-500 text-white px-4 py-1 rounded-full text-sm">Halalbrite: {fees.feePercentage}% + {fees.currency}{fees.fixedFee.toFixed(2)}</span>
-                        <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm">Stripe: {fees.stripeFeePercentage}% + {fees.currency}{fees.fixedStripeFee.toFixed(2)}</span>
+                        <span className="bg-red-500 text-white px-4 py-1 rounded-full text-sm">Halalbrite: {fees.feePercentage}% + {currentCurrency.symbol}{convertPrice(fees.fixedFee).toFixed(2)}</span>
+                        <span className="bg-blue-500 text-white px-4 py-1 rounded-full text-sm">Stripe: {fees.stripeFeePercentage}% + {currentCurrency.symbol}{convertPrice(fees.fixedStripeFee).toFixed(2)}</span>
                       </div>
                     </div>
                     <p className="text-gray-600 text-sm">Per ticket sold. Includes payment processing fees.</p>
@@ -129,22 +134,22 @@ export default function Pricing() {
                     <div className="mb-6">
                       <div className="flex items-center justify-between mb-2">
                         <label className="text-gray-700 text-sm">Ticket Price</label>
-                        <span className="bg-gray-100 px-3 py-1 rounded-lg text-gray-900">{fees.currency}{Number(ticketPrice).toFixed(2)}</span>
+                        <span className="bg-gray-100 px-3 py-1 rounded-lg text-gray-900">{currentCurrency.symbol}{Number(ticketPrice).toFixed(2)}</span>
                       </div>
                       <input type="range" min="1" max="2000" step="1" className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-500" value={ticketPrice} onChange={(e) => setTicketPrice(Number(e.target.value))} />
                       <div className="flex justify-between text-xs text-gray-500 mt-1">
-                        <span>{fees.currency}1</span><span>{fees.currency}2000</span>
+                        <span>{currentCurrency.symbol}1</span><span>{currentCurrency.symbol}2000</span>
                       </div>
                     </div>
                     <div className="bg-white rounded-xl p-5 border-2 border-gray-200 space-y-3">
-                      <div className="flex justify-between text-sm"><span className="text-gray-600">Ticket Price</span><span className="text-gray-900">{fees.currency}{Number(ticketPrice).toFixed(2)}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-gray-600">Halalbrite Fee</span><span className="text-red-600">{fees.currency}{results.hbFee}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-gray-600">VAT ({fees.vatRate}%)</span><span className="text-red-600">{fees.currency}{results.vat}</span></div>
-                      <div className="flex justify-between text-sm"><span className="text-gray-600">Stripe Fee</span><span className="text-blue-600">{fees.currency}{results.stripeFee}</span></div>
-                      <div className="flex justify-between text-sm border-t pt-3"><span className="text-gray-600">Total Fees</span><span className="text-gray-900">{fees.currency}{results.totalFees}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-gray-600">Ticket Price</span><span className="text-gray-900">{currentCurrency.symbol}{Number(ticketPrice).toFixed(2)}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-gray-600">Halalbrite Fee</span><span className="text-red-600">{currentCurrency.symbol}{results.hbFee}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-gray-600">VAT ({fees.vatRate}%)</span><span className="text-red-600">{currentCurrency.symbol}{results.vat}</span></div>
+                      <div className="flex justify-between text-sm"><span className="text-gray-600">Stripe Fee</span><span className="text-blue-600">{currentCurrency.symbol}{results.stripeFee}</span></div>
+                      <div className="flex justify-between text-sm border-t pt-3"><span className="text-gray-600">Total Fees</span><span className="text-gray-900">{currentCurrency.symbol}{results.totalFees}</span></div>
                       <div className="border-t pt-3 space-y-2">
-                        <div className="flex justify-between"><span className="text-gray-900">Attendee Pays</span><span className="text-green-600">{fees.currency}{results.attendeePays}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-900">Organizer Receives</span><span className="text-green-600">{fees.currency}{results.organizerReceives}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-900">Attendee Pays</span><span className="text-green-600">{currentCurrency.symbol}{results.attendeePays}</span></div>
+                        <div className="flex justify-between"><span className="text-gray-900">Organizer Receives</span><span className="text-green-600">{currentCurrency.symbol}{results.organizerReceives}</span></div>
                       </div>
                     </div>
                   </div>

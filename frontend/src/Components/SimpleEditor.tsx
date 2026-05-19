@@ -67,59 +67,59 @@ export default function SimpleEditor({
       {/* Toolbar */}
       <div className="flex items-center gap-2 px-3 py-2 border-b bg-gray-50 flex-wrap">
         {/* Headings */}
-        <button className={btn} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
           H1
         </button>
-        <button className={btn} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
           H2
         </button>
-        <button className={btn} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
           H3
         </button>
 
         <div className="w-px h-5 bg-gray-300 mx-1" />
 
         {/* Text */}
-        <button className={btn} onClick={() => editor.chain().focus().setParagraph().run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().setParagraph().run()}>
           T
         </button>
-        <button className={btn} onClick={() => editor.chain().focus().toggleBold().run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().toggleBold().run()}>
           <FaBold size={14} />
         </button>
-        <button className={btn} onClick={() => editor.chain().focus().toggleItalic().run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().toggleItalic().run()}>
           <FaItalic size={14} />
         </button>
-        <button className={btn} onClick={() => editor.chain().focus().toggleUnderline().run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().toggleUnderline().run()}>
           <FaUnderline size={14} />
         </button>
 
         <div className="w-px h-5 bg-gray-300 mx-1" />
 
         {/* Lists */}
-        <button className={btn} onClick={() => editor.chain().focus().toggleBulletList().run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().toggleBulletList().run()}>
           <FaListUl size={14} />
         </button>
-        <button className={btn} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().toggleOrderedList().run()}>
           <FaListOl size={14} />
         </button>
 
         <div className="w-px h-5 bg-gray-300 mx-1" />
 
         {/* Align */}
-        <button className={btn} onClick={() => editor.chain().focus().setTextAlign("left").run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().setTextAlign("left").run()}>
           <FaAlignLeft size={14} />
         </button>
-        <button className={btn} onClick={() => editor.chain().focus().setTextAlign("center").run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().setTextAlign("center").run()}>
           <FaAlignCenter size={14} />
         </button>
-        <button className={btn} onClick={() => editor.chain().focus().setTextAlign("right").run()}>
+        <button type="button" className={btn} onClick={() => editor.chain().focus().setTextAlign("right").run()}>
           <FaAlignRight size={14} />
         </button>
 
         <div className="w-px h-5 bg-gray-300 mx-1" />
 
         {/* Link */}
-        <button className={btn} onClick={setLink}>
+        <button type="button" className={btn} onClick={setLink}>
           <FaLink size={14} />
         </button>
       </div>

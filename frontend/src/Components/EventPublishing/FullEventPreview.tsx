@@ -17,9 +17,10 @@ interface FullEventPreviewProps {
   eventData: any;
   tickets: any[];
   organisations: any[];
+  isEditMode?: boolean;
 }
 
-export default function FullEventPreview({ isOpen, onClose, onPublish, eventData, tickets, organisations }: FullEventPreviewProps) {
+export default function FullEventPreview({ isOpen, onClose, onPublish, eventData, tickets, organisations, isEditMode }: FullEventPreviewProps) {
   if (!isOpen) return null;
 
   const scrollToSection = (id: string) => {
@@ -60,7 +61,7 @@ export default function FullEventPreview({ isOpen, onClose, onPublish, eventData
         <div className="flex items-center gap-4">
           <div className="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest flex items-center gap-2 uppercase">
             <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>
-            Preview Mode
+            {isEditMode ? "Edit Preview Mode" : "Preview Mode"}
           </div>
           <span className="text-xs text-gray-500 font-medium hidden md:block italic">
             This is how your event will appear to attendees
@@ -68,16 +69,18 @@ export default function FullEventPreview({ isOpen, onClose, onPublish, eventData
         </div>
         <div className="flex items-center gap-4">
           <button 
+            type="button"
             onClick={onClose}
             className="px-5 py-2 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100 transition-all flex items-center gap-2"
           >
             <FiEdit3 className="text-lg" /> Edit Details
           </button>
           <button 
+            type="button"
             onClick={onPublish}
             className="px-8 py-2.5 rounded-xl bg-red-600 text-white text-sm font-bold hover:bg-red-700 transition-all flex items-center gap-2 shadow-lg shadow-red-200 active:scale-95"
           >
-            <FiCheck className="text-lg" /> Publish Event
+            <FiCheck className="text-lg" /> {isEditMode ? "Update Event" : "Publish Event"}
           </button>
         </div>
       </div>

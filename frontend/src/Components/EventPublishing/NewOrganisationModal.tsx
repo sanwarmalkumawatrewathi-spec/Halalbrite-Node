@@ -33,6 +33,17 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
     });
 
     useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = "hidden";
+        } else {
+            document.body.style.overflow = "unset";
+        }
+        return () => {
+            document.body.style.overflow = "unset";
+        };
+    }, [isOpen]);
+
+    useEffect(() => {
         const fetchCategories = async () => {
             try {
                 const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
@@ -162,22 +173,22 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+        <div className="fixed inset-0 z-[999] flex items-start justify-center p-4 pt-24 pb-8 bg-black/55 backdrop-blur-sm">
+            <div className="bg-white border border-gray-200 rounded-[2rem] w-full max-w-2xl max-h-[calc(100vh-140px)] overflow-hidden flex flex-col shadow-2xl animate-in zoom-in-95 duration-300">
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-red-50 rounded-t-[2rem]">
                     <div>
-                        <h3 className="text-xl font-bold text-red-900">Create Organisation Profile</h3>
-                        <p className="text-sm text-gray-500">This profile will be shown as the event organiser</p>
+                        <h3 className="text-lg font-bold text-red-900">Create Organisation Profile</h3>
+                        <p className="text-xs text-red-700/70">This profile will be shown as the event organiser</p>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <button onClick={onClose} className="p-1.5 hover:bg-red-100 rounded-full transition-colors">
+                        <svg className="w-5 h-5 text-red-900" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6">
+                <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-5">
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-bold text-gray-800 mb-1">Organisation Name *</label>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Organisation Name *</label>
                             <input
                                 type="text"
                                 name="name"
@@ -185,24 +196,24 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
                                 value={formData.name}
                                 onChange={handleInputChange}
                                 placeholder="e.g., Islamic Conference Society"
-                                className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none"
+                                className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-800 mb-1">Organisation Logo</label>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Organisation Logo</label>
                             <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
                             <div
                                 onClick={() => logoInputRef.current?.click()}
-                                className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center cursor-pointer hover:border-red-400 hover:bg-red-50/20 transition-all group"
+                                className="border-2 border-dashed border-gray-200 rounded-2xl p-5 text-center bg-gray-50/30 cursor-pointer hover:border-red-400 hover:bg-red-50/20 transition-all group"
                             >
                                 {isUploading ? (
-                                    <div className="animate-spin h-6 w-6 text-red-600 mx-auto" />
+                                    <div className="animate-spin h-6 w-6 border-4 border-red-600 border-t-transparent rounded-full mx-auto" />
                                 ) : formData.logo ? (
-                                    <img src={getImageUrl(formData.logo)} alt="Logo" className="w-16 h-16 object-cover rounded-lg mx-auto border border-gray-100 shadow-sm" />
+                                    <img src={getImageUrl(formData.logo)} alt="Logo" className="w-20 h-20 object-cover rounded-2xl mx-auto border border-gray-100 shadow-sm" />
                                 ) : (
                                     <>
-                                        <IoBusinessOutline className="text-3xl text-gray-400 mx-auto mb-1 group-hover:text-red-500" />
+                                        <IoBusinessOutline className="text-3xl text-gray-300 mx-auto mb-1 group-hover:text-red-500 transition-colors" />
                                         <p className="text-xs font-bold text-gray-600">Upload logo</p>
                                     </>
                                 )}
@@ -210,7 +221,7 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-800 mb-1">Organisation Bio *</label>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1.5">Organisation Bio *</label>
                             <textarea
                                 name="bio"
                                 required
@@ -218,19 +229,19 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
                                 value={formData.bio}
                                 onChange={handleInputChange}
                                 placeholder="Tell attendees about your organisation..."
-                                className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none resize-none"
+                                className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none resize-none transition-all"
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-bold text-gray-800 mb-2">Categories</label>
-                            <div className="flex flex-wrap gap-2">
+                            <label className="block text-xs font-semibold text-gray-700 mb-2">Categories</label>
+                            <div className="flex flex-wrap gap-1.5">
                                 {categories.map(cat => (
                                     <button
                                         key={cat}
                                         type="button"
                                         onClick={() => handleCategoryToggle(cat)}
-                                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${formData.categories.includes(cat) ? 'bg-red-600 text-white border-red-600' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-red-300'}`}
+                                        className={`px-3 py-1 rounded-full text-[11px] font-bold border transition-all ${formData.categories.includes(cat) ? 'bg-red-600 text-white border-red-600' : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-red-300'}`}
                                     >
                                         {cat}
                                     </button>
@@ -240,21 +251,21 @@ export default function NewOrganisationModal({ isOpen, onClose, onSuccess }: New
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiFacebook className="text-[#1877F2]" /> Facebook</label>
-                                <input type="text" name="facebook" value={formData.socialLinks.facebook} onChange={handleSocialChange} placeholder="facebook.com/yourpage" className="w-full border border-gray-200 rounded-lg p-2 text-xs outline-none" />
+                                <label className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider"><FiFacebook className="text-[#1877F2]" /> Facebook</label>
+                                <input type="text" name="facebook" value={formData.socialLinks.facebook} onChange={handleSocialChange} placeholder="facebook.com/yourpage" className="w-full border borborder border-gray-200 rounded-lg p-2 text-[11px] outline-none focus:ring-2 focus:ring-red-100 focus:border-red-400 transition-all" />
                             </div>
                             <div>
-                                <label className="flex items-center gap-2 text-xs font-bold text-gray-700 mb-1"><FiInstagram className="text-[#E4405F]" /> Instagram</label>
-                                <input type="text" name="instagram" value={formData.socialLinks.instagram} onChange={handleSocialChange} placeholder="instagram.com/yourpage" className="w-full border border-gray-200 rounded-lg p-2 text-xs outline-none" />
+                                <label className="flex items-center gap-1.5 text-[9px] font-bold text-gray-500 mb-1 uppercase tracking-wider"><FiInstagram className="text-[#E4405F]" /> Instagram</label>
+                                <input type="text" name="instagram" value={formData.socialLinks.instagram} onChange={handleSocialChange} placeholder="instagram.com/yourpage" className="w-full border borborder border-gray-200 rounded-lg p-2 text-[11px] outline-none focus:ring-2 focus:ring-red-100 focus:border-red-400 transition-all" />
                             </div>
                         </div>
                     </div>
 
                     <div className="flex gap-3 pt-4 sticky bottom-0 bg-white border-t border-gray-100 py-4">
-                        <button type="submit" disabled={isSaving} className="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition disabled:opacity-50">
+                        <button type="submit" disabled={isSaving} className="flex-1 bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md shadow-red-100 hover:bg-red-700 transition disabled:opacity-50 active:scale-[0.98]">
                             {isSaving ? "Saving..." : "Create Profile"}
                         </button>
-                        <button type="button" onClick={onClose} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition">
+                        <button type="button" onClick={onClose} className="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl text-xs font-bold hover:bg-gray-50 transition active:scale-[0.98]">
                             Cancel
                         </button>
                     </div>
