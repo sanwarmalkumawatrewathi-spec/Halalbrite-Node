@@ -1,6 +1,7 @@
 const nodemailer = require('nodemailer');
 const AppSetting = require('../models/appSetting.model');
 const EmailLog = require('../models/emailLog.model');
+const dns = require('dns');
 
 class EmailService {
     async getTransporter() {
@@ -22,7 +23,10 @@ class EmailService {
                     rejectUnauthorized: false
                 },
                 connectionTimeout: 10000, // 10s connection timeout
-                family: 4 // Force IPv4 to avoid IPv6 ENETUNREACH on Render
+                family: 4, // Force IPv4 to avoid IPv6 ENETUNREACH on Render
+                lookup: (hostname, options, callback) => {
+                    dns.lookup(hostname, { family: 4 }, callback);
+                }
             });
         }
 
@@ -38,7 +42,10 @@ class EmailService {
                 rejectUnauthorized: false
             },
             connectionTimeout: 10000, // 10s connection timeout
-            family: 4 // Force IPv4 to avoid IPv6 ENETUNREACH on Render
+            family: 4, // Force IPv4 to avoid IPv6 ENETUNREACH on Render
+            lookup: (hostname, options, callback) => {
+                dns.lookup(hostname, { family: 4 }, callback);
+            }
         });
     }
 
