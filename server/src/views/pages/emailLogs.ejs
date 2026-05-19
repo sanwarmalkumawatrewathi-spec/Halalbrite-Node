@@ -13,13 +13,14 @@
                     <th>Subject</th>
                     <th>Booking Ref</th>
                     <th>Status</th>
+                    <th>Details / Failure Reason</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <% if (logs.length === 0) { %>
                     <tr>
-                        <td colspan="7" class="text-center text-muted">No email logs found.</td>
+                        <td colspan="8" class="text-center text-muted">No email logs found.</td>
                     </tr>
                 <% } else { %>
                     <% logs.forEach(log => { %>
@@ -56,8 +57,19 @@
                                 <% if (log.status === 'sent') { %>
                                     <span class="badge badge-premium badge-success"><i class="fa-solid fa-check"></i> Sent</span>
                                 <% } else { %>
-                                    <span class="badge badge-premium badge-danger" title="<%= log.error %>">
+                                    <span class="badge badge-premium badge-danger">
                                         <i class="fa-solid fa-xmark"></i> Failed
+                                    </span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (log.status === 'sent') { %>
+                                    <span class="text-success" style="font-size: 11px; font-family: monospace; display: block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="<%= log.messageId %>">
+                                        <%= log.messageId || 'Success' %>
+                                    </span>
+                                <% } else { %>
+                                    <span class="text-danger" style="font-size: 11px; font-weight: 500; word-break: break-word; display: block; max-width: 250px; line-height: 1.3;">
+                                        <%= log.error || 'Connection timed out / Auth failed' %>
                                     </span>
                                 <% } %>
                             </td>

@@ -9,16 +9,19 @@ class EmailService {
 
         if (!smtp || !smtp.host) {
             console.warn('⚠️ SMTP settings not found in database. Falling back to environment variables.');
+            const envPort = parseInt(process.env.EMAIL_PORT || '2525', 10);
             return nodemailer.createTransport({
                 host: process.env.EMAIL_HOST || 'smtp.mailtrap.io',
-                port: process.env.EMAIL_PORT || 2525,
+                port: envPort,
+                secure: envPort === 465,
                 auth: {
                     user: process.env.EMAIL_USER,
                     pass: process.env.EMAIL_PASS,
                 },
                 tls: {
                     rejectUnauthorized: false
-                }
+                },
+                connectionTimeout: 10000 // 10s connection timeout
             });
         }
 
@@ -32,7 +35,8 @@ class EmailService {
             },
             tls: {
                 rejectUnauthorized: false
-            }
+            },
+            connectionTimeout: 10000 // 10s connection timeout
         });
     }
 
