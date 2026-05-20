@@ -374,3 +374,44 @@ exports.getEventLocations = async (req, res) => {
     }
 };
 
+// @desc    Duplicate an event
+// @route   POST /api/events/:id/duplicate
+// @access  Private/Organizer
+exports.duplicateEvent = async (req, res) => {
+    try {
+        const originalEvent = await Event.findById(req.params.id);
+        if (!originalEvent) {
+            return res.status(404).json({ success: false, message: 'Original event not found' });
+        }
+
+        // Check ownership
+        const isAdministrator = req.user.roles.some(r => r.slug === 'administrator');
+        if (originalEvent.organizer.toString() !== req.user._id.toString() && !isAdministrator) {
+            return res.status(403).json({ success: false, message: 'Not authorized to duplicate this event' });
+        }
+
+        // Clone the document, excluding keys we want to reset
+        const eventObject = originalEvent.toObject();
+        delete eventObject._id;
+        delete eventObject.id;
+        delete eventObject.createdAt;
+        delete eventObject.updatedAt;
+        delete eventObject.attendees;
+        delete eventObject.slug; // will generate a new unique slug on save
+
+        // Update properties for the duplicated copy
+        eventObject.title = `${originalEvent.title} (Copy)`;
+        eventObject.status = 'draft'; // duplicates are saved as draft by default
+
+        const duplicatedEvent = await Event.create(eventObject);
+
+        res.status(201).json({
+            success: true,
+            message: 'Event duplicated successfully',
+            data: duplicatedEvent
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
+

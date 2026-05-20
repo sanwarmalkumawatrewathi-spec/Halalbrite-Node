@@ -193,7 +193,7 @@ export default function CustomersTab() {
                 <div data-slot="table-container" className="relative w-full overflow-x-auto">
                   <table data-slot="table" className="w-full caption-bottom text-sm min-w-[1200px]">
                     <thead data-slot="table-header" className="[&amp;_tr]:border-b">
-                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b border-black transition-colors">
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[200px]">Customer</th>
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[220px]">Email</th>
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[200px]">Event</th>
@@ -210,7 +210,7 @@ export default function CustomersTab() {
                           const customerEmail = booking.customer_email || booking.user_id?.email || 'N/A';
                           const initials = customerName.substring(0, 2).toUpperCase();
                           return (
-                            <tr key={i} data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                            <tr key={i} data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b border-black/20 transition-colors">
                               <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
                                 <div className="flex items-center gap-3 whitespace-nowrap">
                                   <span data-slot="avatar" className="relative flex size-10 shrink-0 overflow-hidden rounded-full">
@@ -276,7 +276,7 @@ export default function CustomersTab() {
                 <div data-slot="table-container" className="relative w-full overflow-x-auto">
                   <table data-slot="table" className="w-full caption-bottom text-sm min-w-[1400px]">
                     <thead data-slot="table-header" className="[&amp;_tr]:border-b">
-                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b border-black transition-colors">
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[180px]">Customer</th>
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[220px]">Email</th>
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[200px]">Event</th>
@@ -288,7 +288,7 @@ export default function CustomersTab() {
                       </tr>
                     </thead>
                     <tbody data-slot="table-body" className="[&amp;_tr:last-child]:border-0">
-                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b border-black/20 transition-colors">
                         <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
                           <div className="flex items-center gap-3 whitespace-nowrap">
                             <span data-slot="avatar" className="relative flex size-10 shrink-0 overflow-hidden rounded-full"><span data-slot="avatar-fallback" className="flex size-full items-center justify-center rounded-full bg-red-100 text-red-700">SA</span></span>

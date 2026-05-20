@@ -59,7 +59,12 @@ export default function FeaturedEvents({ activeCategory, selectedCities = [], se
     return categoryMatch && cityMatch;
   }).slice(0, 10);
 
-  if (loading) return <div className="p-6 text-center">Loading events...</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center p-16 min-h-[350px] animate-in fade-in duration-300">
+      <div className="w-12 h-12 border-4 border-red-100 border-t-red-600 rounded-full animate-spin"></div>
+      <p className="mt-4 text-red-600 text-sm font-semibold tracking-wide animate-pulse">Loading Events...</p>
+    </div>
+  );
 
   return (
     <section className="p-6 rounded-xl max-w-7xl mx-auto">

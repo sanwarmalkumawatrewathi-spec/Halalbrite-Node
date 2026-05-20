@@ -504,7 +504,7 @@ function CheckoutContent() {
 
             <GuestCheckoutModal
                 isOpen={showGuestModal}
-                onClose={() => router.back()}
+                onClose={() => router.push(`/event/${event?.slug || eventId}`)}
                 onContinueAsGuest={() => {
                     setShowGuestModal(false);
                     setIsGuest(true);

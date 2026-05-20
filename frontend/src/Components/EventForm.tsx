@@ -319,7 +319,16 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         return data.url;
     };
 
-    const validateForm = () => {
+    const validateForm = (isDraft = false) => {
+        if (isDraft) {
+            if (!form.title) {
+                setStatus({ type: "error", message: "Please provide an Event Title to save as a draft." });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return false;
+            }
+            return true;
+        }
+
         const required = [
             { field: 'title', label: 'Event Title' },
             { field: 'category', label: 'Category' },
@@ -392,12 +401,17 @@ export default function EventForm({ editId }: { editId?: string | null }) {
 
     const handleSubmit = async (e: any) => {
         if (e) e.preventDefault();
-        if (!validateForm()) return;
+        if (!validateForm(false)) return;
         setShowReview(true);
     };
 
+    const handleSaveDraft = async () => {
+        if (!validateForm(true)) return;
+        await confirmPublish(false, true);
+    };
+
     const handlePreview = () => {
-        if (!validateForm()) return;
+        if (!validateForm(false)) return;
 
         const previewData = {
             ...form,
@@ -413,14 +427,14 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         window.open(`/event/preview?preview=true`, "_blank");
     };
 
-    const confirmPublish = async (isBypassingRoleCheck = false) => {
+    const confirmPublish = async (isBypassingRoleCheck = false, isDraft = false) => {
         if (!isOrganizer && !isBypassingRoleCheck) {
             setShowReview(false);
             setShowBecomeOrganizer(true);
             return;
         }
 
-        if (!isStripeConnected && !isEditMode) {
+        if (!isDraft && !isStripeConnected && !isEditMode) {
             setStatus({ type: "error", message: "Please connect your Stripe account in the Organizer Dashboard before publishing." });
             setShowReview(false);
             return;
@@ -469,7 +483,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
 
             const eventData = {
                 ...form,
-                status: 'published',
+                status: isDraft ? 'draft' : 'published',
                 banner: bannerUrl || (isEditMode ? undefined : ""),
                 thumbnail: thumbnailUrl || (isEditMode ? undefined : ""),
                 ticketTypes: formattedTickets,
@@ -503,19 +517,28 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             if (!res.ok) throw new Error(data.message || (isEditMode ? "Failed to update event" : "Failed to create event"));
 
             if (isEditMode) {
-                setStatus({ type: "success", message: "Event updated successfully! Redirecting..." });
+                setStatus({ type: "success", message: isDraft ? "Draft updated successfully! Redirecting..." : "Event updated successfully! Redirecting..." });
                 setTimeout(() => {
                     router.push("/organizer-dashboard");
                 }, 2000);
             } else {
-                const event = data.data || data;
-                setPublishedEventId(event._id);
-                setPublishedEventSlug(event.slug || event._id);
-                setShowSuccess(true);
+                if (isDraft) {
+                    setStatus({ type: "success", message: "Draft event created successfully! Redirecting..." });
+                    localStorage.removeItem('event_form_draft');
+                    localStorage.removeItem('event_tickets_draft');
+                    setTimeout(() => {
+                        router.push("/organizer-dashboard");
+                    }, 2000);
+                } else {
+                    const event = data.data || data;
+                    setPublishedEventId(event._id);
+                    setPublishedEventSlug(event.slug || event._id);
+                    setShowSuccess(true);
 
-                // Clear drafts
-                localStorage.removeItem('event_form_draft');
-                localStorage.removeItem('event_tickets_draft');
+                    // Clear drafts
+                    localStorage.removeItem('event_form_draft');
+                    localStorage.removeItem('event_tickets_draft');
+                }
             }
 
         } catch (error: any) {
@@ -853,6 +876,14 @@ export default function EventForm({ editId }: { editId?: string | null }) {
 
                 {/* Action Buttons */}
                 <div className="flex items-center justify-end gap-4 pt-4">
+                    <button
+                        type="button"
+                        onClick={handleSaveDraft}
+                        disabled={loading}
+                        className={`px-8 py-2.5 rounded-full text-sm font-bold text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 transition-all shadow-sm flex items-center gap-2 ${loading ? 'opacity-50 cursor-not-allowed scale-95' : 'hover:scale-105 active:scale-95'}`}
+                    >
+                        Save as Draft
+                    </button>
                     <button
                         type="submit"
                         disabled={loading}

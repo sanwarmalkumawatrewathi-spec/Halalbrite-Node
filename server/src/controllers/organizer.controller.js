@@ -178,37 +178,33 @@ exports.toggleFollow = async (req, res) => {
 
         if (!target) return res.status(404).json({ message: 'Target not found' });
 
-        // Cannot follow yourself (if target is User)
-        if (targetType === 'User' && target._id.toString() === userId.toString()) {
-            return res.status(400).json({ message: 'You cannot follow yourself' });
-        }
-
-        // Cannot follow your own organization (if target is Organizer)
-        if (targetType === 'Organizer' && target.user?.toString() === userId.toString()) {
-            return res.status(400).json({ message: 'You cannot follow your own organisation' });
-        }
-
         const user = await User.findById(userId);
-        const isFollowing = target.followers.some(fid => fid.toString() === userId.toString());
+        const targetIsUser = targetType === 'User' && target._id.toString() === userId.toString();
+        const actualTarget = targetIsUser ? user : target;
+
+        const isFollowing = actualTarget.followers.some(fid => fid.toString() === userId.toString());
 
         if (isFollowing) {
             // Unfollow
-            target.followers = target.followers.filter(fid => fid.toString() !== userId.toString());
-            // Remove from user's followed list (handle both if needed, but usually one)
+            actualTarget.followers = actualTarget.followers.filter(fid => fid.toString() !== userId.toString());
             user.followedOrganizers = user.followedOrganizers.filter(fid => fid.toString() !== target._id.toString());
         } else {
             // Follow
-            target.followers.push(userId);
+            actualTarget.followers.push(userId);
             user.followedOrganizers.push(target._id);
         }
 
-        await Promise.all([target.save(), user.save()]);
+        if (targetIsUser) {
+            await user.save();
+        } else {
+            await Promise.all([target.save(), user.save()]);
+        }
 
         res.json({
             success: true,
             message: isFollowing ? 'Unfollowed successfully' : 'Followed successfully',
             isFollowing: !isFollowing,
-            followersCount: target.followers.length
+            followersCount: actualTarget.followers.length
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

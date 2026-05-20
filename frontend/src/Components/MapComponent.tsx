@@ -63,7 +63,12 @@ export default function MapComponent(props: MapComponentProps) {
   }, [apiKey]);
 
   if (isSettingsLoading) {
-    return <div className="h-[500px] w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center mb-20 max-w-7xl mx-auto">Loading Map Settings...</div>;
+    return (
+      <div className="h-[500px] w-full bg-white border border-gray-100 rounded-2xl flex flex-col items-center justify-center mb-20 max-w-7xl mx-auto shadow-sm animate-in fade-in duration-300">
+        <div className="w-12 h-12 border-4 border-red-100 border-t-red-600 rounded-full animate-spin"></div>
+        <p className="mt-4 text-red-600 text-sm font-semibold tracking-wide animate-pulse">Loading Maps...</p>
+      </div>
+    );
   }
 
   if (!apiKey) {
@@ -145,7 +150,14 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
     );
   }
 
-  if (!isLoaded) return <div className={`w-full bg-gray-100 animate-pulse rounded-2xl flex items-center justify-center ${containerClassName}`} style={{ height }}>Loading Google Maps...</div>;
+  if (!isLoaded) {
+    return (
+      <div className={`w-full bg-white border border-gray-100 rounded-2xl flex flex-col items-center justify-center shadow-sm animate-in fade-in duration-300 ${containerClassName}`} style={{ height }}>
+        <div className="w-12 h-12 border-4 border-red-100 border-t-red-600 rounded-full animate-spin"></div>
+        <p className="mt-4 text-red-600 text-sm font-semibold tracking-wide animate-pulse">Loading Maps...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={containerClassName}>

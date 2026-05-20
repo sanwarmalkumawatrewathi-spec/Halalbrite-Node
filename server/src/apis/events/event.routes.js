@@ -8,7 +8,8 @@ const {
     deleteEvent,
     toggleSaveEvent,
     getSavedEvents,
-    getEventLocations
+    getEventLocations,
+    duplicateEvent
 } = require('../../controllers/event.controller');
 const { protect, authorize } = require('../../middlewares/auth.middleware');
 
@@ -20,6 +21,7 @@ router.post('/:id/save', protect, toggleSaveEvent);
 
 // Protected routes for Organizers and Admins
 router.post('/', protect, authorize('edit_events'), createEvent);
+router.post('/:id/duplicate', protect, authorize('edit_events'), duplicateEvent);
 router.put('/:id', protect, authorize('edit_events'), updateEvent);
 router.delete('/:id', protect, authorize('edit_events'), deleteEvent);
 

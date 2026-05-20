@@ -10,7 +10,12 @@ import Herosections from '@/Components/Herosections'
 import dynamic from 'next/dynamic'
 const MapComponent = dynamic(() => import('@/Components/MapComponent'), {
   ssr: false,
-  loading: () => <div className="h-[500px] w-full bg-gray-100 animate-pulse rounded-2xl" />
+  loading: () => (
+    <div className="h-[500px] w-full bg-white border border-gray-100 rounded-2xl flex flex-col items-center justify-center mb-20 max-w-7xl mx-auto shadow-sm">
+      <div className="w-12 h-12 border-4 border-red-100 border-t-red-600 rounded-full animate-spin"></div>
+      <p className="mt-4 text-red-600 text-sm font-semibold tracking-wide animate-pulse">Loading Maps...</p>
+    </div>
+  )
 });
 import React from 'react'
 

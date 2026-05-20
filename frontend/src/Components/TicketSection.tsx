@@ -36,6 +36,12 @@ export default function TicketSection({
     const handleChange = (i: number, field: string, value: any) => {
         const updated = [...tickets];
         updated[i][field] = value;
+        if (field === "saleStartDate") {
+            const currentEndDate = updated[i].saleEndDate;
+            if (currentEndDate && currentEndDate < value) {
+                updated[i].saleEndDate = value;
+            }
+        }
         setTickets(updated);
     };
 
@@ -236,6 +242,7 @@ export default function TicketSection({
                                                 <input
                                                     type="date"
                                                     value={t.saleEndDate}
+                                                    min={t.saleStartDate || undefined}
                                                     onChange={(e) => handleChange(i, "saleEndDate", e.target.value)}
                                                     className="w-full border borborder border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-red-100 outline-none bg-white"
                                                 />

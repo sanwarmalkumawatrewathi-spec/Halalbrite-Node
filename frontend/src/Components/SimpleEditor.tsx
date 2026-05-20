@@ -108,6 +108,9 @@ export default function SimpleEditor({
       setBubblePos(null);
     };
 
+    // Execute positioning calculation immediately when popover state changes
+    updateHandler();
+
     editor.on("selectionUpdate", updateHandler);
     editor.on("update", updateHandler);
     return () => {
@@ -154,7 +157,13 @@ export default function SimpleEditor({
       if (!/^https?:\/\//i.test(formattedUrl)) {
         formattedUrl = `https://${formattedUrl}`;
       }
-      editor.chain().focus().extendMarkRange("link").setLink({ href: formattedUrl }).run();
+      
+      const { empty } = editor.state.selection;
+      if (empty) {
+        editor.chain().focus().insertContent(`<a href="${formattedUrl}" target="_blank" rel="noopener noreferrer">${formattedUrl}</a>`).run();
+      } else {
+        editor.chain().focus().extendMarkRange("link").setLink({ href: formattedUrl }).run();
+      }
     }
     setIsLinkPopoverOpen(false);
     setLinkUrl("");
@@ -299,6 +308,7 @@ export default function SimpleEditor({
           type="button" 
           className={`${btn} ${editor.isActive("link") ? "bg-red-800 text-white" : ""}`}
           onClick={handleLinkClick}
+          onMouseDown={(e) => e.preventDefault()}
         >
           <FaLink size={14} />
         </button>

@@ -134,6 +134,53 @@ function SuccessContent() {
         }
     };
 
+    const eventObj = booking.event || (typeof booking.event_id === 'object' ? booking.event_id : null);
+    
+    const formatDate = (dateVal: any) => {
+        if (!dateVal) return "";
+        try {
+            return new Date(dateVal).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        } catch (e) {
+            return "";
+        }
+    };
+
+    const startDateRaw = eventObj?.startDate || booking.event_date;
+    const endDateRaw = eventObj?.endDate || startDateRaw;
+    const startTimeRaw = eventObj?.startTime || (booking.event_time && booking.event_time !== "TBA" ? booking.event_time.split(' - ')[0] : 'N/A');
+    const endTimeRaw = eventObj?.endTime || (booking.event_time && booking.event_time !== "TBA" ? booking.event_time.split(' - ')[1] : '');
+
+    const startDateStr = formatDate(startDateRaw);
+    const endDateStr = formatDate(endDateRaw);
+
+    const displayDate = startDateStr === endDateStr || !endDateStr ? startDateStr : `${startDateStr} — ${endDateStr}`;
+    const displayTime = startTimeRaw && endTimeRaw ? `${startTimeRaw} - ${endTimeRaw}` : (booking.event_time || 'N/A');
+
+    const loc = eventObj?.location;
+    const venueName = loc?.venueName || booking.event_venue || "Venue Confirmed";
+    
+    let addressParts = [];
+    if (loc?.address) addressParts.push(loc.address);
+    if (loc?.city) addressParts.push(loc.city);
+    if (loc?.postcode) addressParts.push(loc.postcode);
+    if (loc?.country) addressParts.push(loc.country || "United Kingdom");
+    
+    const fullAddress = addressParts.length > 0 ? addressParts.join(', ') : (booking.event_location || "Location Confirmed");
+
+    const handleShare = () => {
+        const eventUrl = `${window.location.origin}/event/${eventObj?.slug || booking.event_id}`;
+        if (navigator.share) {
+            navigator.share({
+                title: booking.event_name || 'Event',
+                text: `Check out this event: ${booking.event_name}`,
+                url: eventUrl,
+            }).catch(err => console.error(err));
+        } else {
+            navigator.clipboard.writeText(eventUrl);
+            alert("Event link copied to clipboard!");
+        }
+    };
+
     return (
         <div className="bg-[#fff9fa]  font-sans">
             <Header />
@@ -143,9 +190,7 @@ function SuccessContent() {
                     {/* TOP CONFIRMATION BANNER */}
                     <div className="bg-red-600 p-10 text-white text-center relative overflow-hidden">
                         <div className="flex justify-center mb-6">
-                            <div className="bg-red-950/40 rounded-2xl flex items-center justify-center mx-auto p-2 w-20 h-20 border border-red-500/30 shadow-inner">
-                                <img src="/images/logo.png" alt="Halalbrite Logo" className="w-full h-full object-contain" />
-                            </div>
+                            <img src="/images/logo.png" alt="Halalbrite Logo" className="h-16 w-auto object-contain" />
                         </div>
                         <h1 className="text-3xl font-bold mb-3 tracking-tight">Booking Confirmed!</h1>
                         <p className="text-red-100 text-sm font-medium">Your tickets have been sent to {booking.customer_email}</p>
@@ -171,19 +216,13 @@ function SuccessContent() {
                                 <div className="space-y-1.5">
                                     <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Date</p>
                                     <p className="text-sm font-bold text-gray-700">
-                                        {(booking.event_date ||
-                                            booking.event?.startDate ||
-                                            (typeof booking.event_id === 'object' ? (booking.event_id as any)?.startDate : null))
-                                            ? new Date(booking.event_date || booking.event?.startDate || (booking.event_id as any)?.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                                            : 'N/A'}
+                                        {displayDate || 'N/A'}
                                     </p>
                                 </div>
                                 <div className="space-y-1.5">
                                     <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Time</p>
                                     <p className="text-sm font-bold text-gray-700">
-                                        {booking.event_time && booking.event_time !== "TBA" ? booking.event_time :
-                                            (booking.event?.startTime ? `${booking.event.startTime}${booking.event.endTime ? ' - ' + booking.event.endTime : ''}` :
-                                                (typeof booking.event_id === 'object' && (booking.event_id as any)?.startTime ? `${(booking.event_id as any).startTime}${(booking.event_id as any).endTime ? ' - ' + (booking.event_id as any).endTime : ''}` : 'N/A'))}
+                                        {displayTime}
                                     </p>
                                 </div>
                             </div>
@@ -193,14 +232,9 @@ function SuccessContent() {
                                     <LocationIcon size={12} /> Location
                                 </p>
                                 <div className="text-sm font-bold text-gray-700 leading-relaxed">
-                                    <p>{booking.event_venue ||
-                                        booking.event?.location?.venueName ||
-                                        (typeof booking.event_id === 'object' ? (booking.event_id as any)?.location?.venueName : '') ||
-                                        "Venue Confirmed"}</p>
-                                    <p className="text-gray-500 font-medium">
-                                        {booking.event_location ||
-                                            (booking.event?.location?.city ? `${booking.event.location.address ? booking.event.location.address + ', ' : ''}${booking.event.location.city}` :
-                                                (typeof booking.event_id === 'object' && (booking.event_id as any)?.location?.city ? `${(booking.event_id as any).location.address ? (booking.event_id as any).location.address + ', ' : ''}${(booking.event_id as any).location.city}` : "Location Confirmed"))}
+                                    <p className="text-gray-800 font-extrabold">{venueName}</p>
+                                    <p className="text-gray-500 font-semibold text-xs mt-1">
+                                        • {fullAddress}
                                     </p>
                                 </div>
                             </div>
@@ -227,6 +261,7 @@ function SuccessContent() {
 
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
                                 <button
+                                    onClick={handleShare}
                                     className="w-full sm:w-auto bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl font-bold text-sm hover:border-red-200 hover:text-red-600 transition-all flex items-center justify-center gap-2"
                                 >
                                     <Share2 size={18} />

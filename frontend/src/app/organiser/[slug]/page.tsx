@@ -105,9 +105,6 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
       const res = await toggleFollowOrganizer(organiser._id);
       if (res.success) {
         setIsFollowing(!!res.isFollowing);
-        if (res.isFollowing) {
-          setShowFollowPrompt(true);
-        }
         setOrganiser(prev => prev ? { ...prev, stats: { ...prev.stats!, followersCount: res.followersCount !== undefined ? res.followersCount : prev.stats!.followersCount } } : null);
       } else {
         setPopupMessage({ title: "Action Failed", content: res.message || "Failed to follow organizer" });
@@ -219,16 +216,26 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
                 </div>
 
                 {/* Primary Actions */}
-                <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                  <button 
-                    onClick={toggleFollow}
-                    className="flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:bg-gray-50 transition-all active:scale-95"
-                  >
-                    <FiUsers className="text-lg" /> {isFollowing ? 'Following' : 'Follow'}
-                  </button>
+                <div className="flex flex-wrap items-start justify-center md:justify-start gap-4">
+                  <div className="flex flex-col items-center">
+                    <button 
+                      onClick={toggleFollow}
+                      className="flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:bg-gray-50 transition-all active:scale-95"
+                    >
+                      <FiUsers className="text-lg" /> {isFollowing ? 'Following' : 'Follow'}
+                    </button>
+                    {isFollowing && (
+                      <Link
+                        href="/myaccount?tab=saved"
+                        className="text-xs text-red-600 hover:text-red-700 hover:underline font-semibold mt-2 animate-in fade-in slide-in-from-top-1 duration-200"
+                      >
+                        View saved content
+                      </Link>
+                    )}
+                  </div>
                   <button 
                     onClick={() => setShowContactModal(true)}
-                    className="flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:bg-gray-50 transition-all active:scale-95"
+                    className="flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:bg-gray-50 transition-all active:scale-95 h-[48px]"
                   >
                     <FiMail className="text-lg" /> Contact Organiser
                   </button>
@@ -418,34 +425,7 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
         </div>
       )}
 
-      {/* Follow Success Modal */}
-      {showFollowPrompt && (
-        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-500">
-          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500 text-center p-8 sm:p-10">
-            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FiUsers className="text-[#d32f2f] text-3xl" />
-            </div>
-            <h3 className="text-2xl font-black text-gray-900 mb-3">You are now following {displayName}!</h3>
-            <p className="text-gray-500 font-medium mb-8 leading-relaxed text-sm sm:text-base">
-              You will receive updates and announcements about upcoming events. You can view all your followed organisers and saved events in your dashboard.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/myaccount?tab=saved"
-                className="flex-1 bg-[#d32f2f] text-white py-3.5 rounded-2xl font-bold text-sm shadow-xl shadow-red-100 hover:bg-red-700 transition-all active:scale-95 flex items-center justify-center"
-              >
-                View Saved Items
-              </Link>
-              <button
-                onClick={() => setShowFollowPrompt(false)}
-                className="flex-1 bg-gray-100 text-gray-700 py-3.5 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all active:scale-95"
-              >
-                Continue Browsing
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Error/Information Popup Modal */}
       {popupMessage && (

@@ -23,6 +23,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
   const [loading, setLoading] = useState(true);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [showFollowPrompt, setShowFollowPrompt] = useState(false);
 
   useEffect(() => {
     const isPreview = searchParams.get("preview") === "true";
@@ -276,6 +277,14 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                   >
                     {(activeOrgId && user?.followedOrganizers?.includes(activeOrgId)) ? "Following" : "Follow"}
                   </button>
+                  {activeOrgId && user?.followedOrganizers?.includes(activeOrgId) && (
+                    <Link
+                      href="/myaccount?tab=saved"
+                      className="text-xs text-red-600 hover:text-red-700 hover:underline font-semibold mt-1 self-center sm:self-end animate-in fade-in slide-in-from-top-1 duration-200"
+                    >
+                      View saved content
+                    </Link>
+                  )}
                 </div>
               )}
             </div>

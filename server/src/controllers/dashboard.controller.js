@@ -247,17 +247,45 @@ exports.getSavedItems = async (req, res) => {
             .populate({
                 path: 'savedEvents',
                 select: 'title startDate endDate price priceLabel banner location slug'
-            })
-            .populate({
-                path: 'followedOrganizers',
-                select: 'username avatar bio slug'
             });
+
+        const followedIds = user.followedOrganizers || [];
+        const resolvedOrgs = [];
+
+        for (const id of followedIds) {
+            if (!id) continue;
+            // 1. Try finding in Organizer collection
+            let org = await mongoose.model('Organizer').findById(id).select('name logo bio slug');
+            if (org) {
+                resolvedOrgs.push({
+                    _id: org._id,
+                    username: org.name,
+                    avatar: org.logo,
+                    bio: org.bio,
+                    slug: org.slug,
+                    type: 'Organizer'
+                });
+            } else {
+                // 2. Try finding in User collection
+                let usr = await User.findById(id).select('username avatar bio slug');
+                if (usr) {
+                    resolvedOrgs.push({
+                        _id: usr._id,
+                        username: usr.username,
+                        avatar: usr.avatar,
+                        bio: usr.bio,
+                        slug: usr.slug,
+                        type: 'User'
+                    });
+                }
+            }
+        }
 
         res.json({
             success: true,
             data: {
                 savedEvents: user.savedEvents || [],
-                followedOrganizers: user.followedOrganizers || []
+                followedOrganizers: resolvedOrgs
             }
         });
     } catch (error) {

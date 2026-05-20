@@ -118,7 +118,7 @@ export default function PayoutsTab() {
                 <div data-slot="table-container" className="relative w-full overflow-x-auto">
                   <table data-slot="table" className="w-full caption-bottom text-sm min-w-[700px]">
                     <thead data-slot="table-header" className="[&amp;_tr]:border-b">
-                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b border-black transition-colors">
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Date</th>
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Amount</th>
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Status</th>
@@ -135,7 +135,7 @@ export default function PayoutsTab() {
                             : "bg-amber-100 text-amber-800 hover:bg-amber-100";
 
                           return (
-                            <tr key={i} data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                            <tr key={i} data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b border-black/20 transition-colors">
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">
                                 {new Date(p.createdAt).toLocaleDateString()}
                               </td>

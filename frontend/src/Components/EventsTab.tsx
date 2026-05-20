@@ -53,6 +53,25 @@ export default function EventsTab() {
     setShowDeleteModal(true);
   };
 
+  const handleDuplicate = async (eventId: string) => {
+    try {
+      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${API_URL}/api/events/${eventId}/duplicate`, {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.message || "Failed to duplicate event");
+      fetchEvents();
+    } catch (error) {
+      console.error("Duplicate Error:", error);
+      alert(error instanceof Error ? error.message : "Failed to duplicate event");
+    }
+  };
+
   const confirmDelete = async () => {
     if (!eventToDelete) return;
     setDeletingId(eventToDelete._id);
@@ -107,7 +126,7 @@ export default function EventsTab() {
                 <div data-slot="table-container" className="relative w-full overflow-x-auto">
                   <table data-slot="table" className="w-full caption-bottom text-sm min-w-[1000px]">
                     <thead data-slot="table-header" className="[&amp;_tr]:border-b">
-                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                      <tr data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b border-black transition-colors">
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[300px]">Event</th>
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Category</th>
                         <th data-slot="table-head" className="text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] w-[150px]">Date</th>
@@ -121,7 +140,7 @@ export default function EventsTab() {
                       {events.length > 0 ? (
                         events.map((e, i) => {
                           const eventDate = new Date(e.startDate);
-                          const isPast = eventDate < new Date();
+                          const isPast = e.status !== 'draft' && eventDate < new Date();
                           const status = isPast ? 'past' : e.status;
 
                           let badgeStyles = "bg-gray-100 text-gray-800 hover:bg-gray-100";
@@ -129,7 +148,7 @@ export default function EventsTab() {
                           else if (status === 'draft') badgeStyles = "bg-amber-100 text-amber-800 hover:bg-amber-100";
 
                           return (
-                            <tr key={i} data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
+                            <tr key={i} data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b border-black/20 transition-colors">
                               <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
                                 <div
                                   onClick={() => router.push(`/event/${e.slug || e._id}`)}
@@ -164,18 +183,68 @@ export default function EventsTab() {
                               </td>
                               <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-right">
                                 <div className="flex justify-end gap-2 whitespace-nowrap">
-                                  <button onClick={() => router.push(`/event/${e.slug || e._id}`)} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap cursor-pointer  text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 rounded-md bg-transparent text-gray-500 hover:bg-red-50 ">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-eye w-4 h-4"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                                    <span className="sr-only">View</span>
-                                  </button>
-                                  <button onClick={() => router.push(`/post-an-event?edit=${e._id}`)} data-slot="button" className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium cursor-pointer transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground hover:bg-red-50 dark:hover:bg-accent/50 h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-edit w-4 h-4"><path d="M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v10"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10.4 12.6a2 2 0 1 1 3 3L8 21l-4 1 1-4Z"></path></svg>
-                                    <span className="sr-only">Edit</span>
-                                  </button>
-                                  <button onClick={() => handleDelete(e)} disabled={deletingId === e._id} data-slot="button" className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap cursor-pointer  text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 rounded-md bg-transparent text-red-600 hover:bg-red-50 ">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash2 w-4 h-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>
-                                    <span className="sr-only">Delete</span>
-                                  </button>
+                                <div className="flex justify-end gap-2 whitespace-nowrap">
+                                  {/* View Button */}
+                                  <div className="relative group/tooltip">
+                                    <button 
+                                      onClick={() => router.push(`/event/${e.slug || e._id}`)} 
+                                      data-slot="button" 
+                                      className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 rounded-md bg-transparent text-gray-500 hover:bg-red-50 "
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-eye w-4 h-4"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                      <span className="sr-only">View</span>
+                                    </button>
+                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 text-[10px] font-semibold text-white bg-gray-900 rounded shadow-md opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap z-30">
+                                      View
+                                    </span>
+                                  </div>
+
+                                  {/* Edit Button */}
+                                  <div className="relative group/tooltip">
+                                    <button 
+                                      onClick={() => router.push(`/post-an-event?edit=${e._id}`)} 
+                                      data-slot="button" 
+                                      className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium cursor-pointer transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive hover:bg-accent hover:text-accent-foreground hover:bg-red-50 dark:hover:bg-accent/50 h-8 w-8 rounded-md gap-1.5 justify-center"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-edit w-4 h-4"><path d="M12 22h6a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v10"></path><path d="M14 2v4a2 2 0 0 0 2 2h4"></path><path d="M10.4 12.6a2 2 0 1 1 3 3L8 21l-4 1 1-4Z"></path></svg>
+                                      <span className="sr-only">Edit</span>
+                                    </button>
+                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 text-[10px] font-semibold text-white bg-gray-900 rounded shadow-md opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap z-30">
+                                      Edit
+                                    </span>
+                                  </div>
+
+                                  {/* Duplicate/Copy Button */}
+                                  <div className="relative group/tooltip">
+                                    <button 
+                                      onClick={() => handleDuplicate(e._id)} 
+                                      data-slot="button" 
+                                      className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 rounded-md bg-transparent text-gray-500 hover:bg-red-50 "
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-copy w-4 h-4"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg>
+                                      <span className="sr-only">Copy</span>
+                                    </button>
+                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 text-[10px] font-semibold text-white bg-gray-900 rounded shadow-md opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap z-30">
+                                      Copy
+                                    </span>
+                                  </div>
+
+                                  {/* Delete Button */}
+                                  <div className="relative group/tooltip">
+                                    <button 
+                                      onClick={() => handleDelete(e)} 
+                                      disabled={deletingId === e._id} 
+                                      data-slot="button" 
+                                      className="inline-flex cursor-pointer items-center justify-center whitespace-nowrap text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-8 w-8 rounded-md bg-transparent text-red-600 hover:bg-red-50 "
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash2 w-4 h-4"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>
+                                      <span className="sr-only">Delete</span>
+                                    </button>
+                                    <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 text-[10px] font-semibold text-white bg-gray-900 rounded shadow-md opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity whitespace-nowrap z-30">
+                                      Delete
+                                    </span>
+                                  </div>
+                                </div>
                                 </div>
                               </td>
                             </tr>
