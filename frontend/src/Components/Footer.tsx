@@ -10,7 +10,7 @@ export default function Footer() {
     const companyPages = [
         { title: "About Us", slug: "aboutus" },
         { title: "How It Works", slug: "how-it-works" },
-        { title: "Contact", slug: "contact" },
+        { title: "Contact & Help Centre", slug: "contact" },
         { title: "Careers", slug: "careers" }
     ];
 

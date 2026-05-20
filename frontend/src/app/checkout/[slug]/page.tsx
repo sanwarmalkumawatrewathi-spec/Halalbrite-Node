@@ -186,7 +186,20 @@ function CheckoutContent() {
         }
     };
 
-    if (loading) return <div className=" flex items-center justify-center h-screen">Loading...</div>;
+    if (loading) return (
+        <div className="min-h-screen bg-[#fff9fa] flex flex-col items-center justify-center p-6 text-center">
+            <div className="relative mb-4">
+                <div className="absolute inset-0 bg-red-100 rounded-full blur-xl opacity-40 animate-pulse"></div>
+                <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 border-4 border-red-100 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-red-600 rounded-full border-t-transparent animate-spin"></div>
+                </div>
+            </div>
+            <p className="text-red-600 font-bold text-lg animate-pulse tracking-wide">
+                Loading...
+            </p>
+        </div>
+    );
     if (!event || checkoutItems.length === 0) return <div className=" flex items-center justify-center text-red-600 h-screen">Invalid Session</div>;
 
     const itemsWithPricing = checkoutItems.map((item: any) => {
@@ -503,7 +516,20 @@ function CheckoutContent() {
 
 export default function CheckoutPage() {
     return (
-        <Suspense fallback={<div>Loading checkout...</div>}>
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#fff9fa] flex flex-col items-center justify-center p-6 text-center">
+                <div className="relative mb-4">
+                    <div className="absolute inset-0 bg-red-100 rounded-full blur-xl opacity-40 animate-pulse"></div>
+                    <div className="relative w-16 h-16">
+                        <div className="absolute inset-0 border-4 border-red-100 rounded-full"></div>
+                        <div className="absolute inset-0 border-4 border-red-600 rounded-full border-t-transparent animate-spin"></div>
+                    </div>
+                </div>
+                <p className="text-red-600 font-bold text-lg animate-pulse tracking-wide">
+                    Loading...
+                </p>
+            </div>
+        }>
             <CheckoutContent />
         </Suspense>
     );

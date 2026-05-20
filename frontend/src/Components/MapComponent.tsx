@@ -183,7 +183,7 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
         )}
 
         {/* Display all events markers if provided */}
-        {events && events.map((event) => {
+        {events && events.map((event, index) => {
           const coords = event.location?.geometry?.coordinates;
           if (!coords || coords.length !== 2) return null;
 
@@ -191,7 +191,7 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
 
           return (
             <Marker
-              key={event._id}
+              key={event._id || `marker-${index}`}
               position={position}
               onClick={() => {
                 setSelectedEvent(event);

@@ -30,6 +30,17 @@ exports.getEvents = async (req, res) => {
             query.startDate = {};
             if (startDate) query.startDate.$gte = new Date(startDate);
             if (endDate) query.startDate.$lte = new Date(endDate);
+        } else {
+            // Default: do not show expired events (end date is in the future)
+            const now = new Date();
+            query.$and = query.$and || [];
+            query.$and.push({
+                $or: [
+                    { endDate: { $gte: now } },
+                    { endDate: { $exists: false }, startDate: { $gte: now } },
+                    { endDate: null, startDate: { $gte: now } }
+                ]
+            });
         }
 
         // 2. Category Filtering (Support single or multiple)
@@ -66,13 +77,18 @@ exports.getEvents = async (req, res) => {
         // 5. Search & City
         if (search) {
             const searchRegex = { $regex: search, $options: 'i' };
-            query.$or = [
+            const searchOr = [
                 { title: searchRegex },
                 { description: searchRegex },
                 { organizerName: searchRegex },
                 { "location.venueName": searchRegex },
                 { "location.city": searchRegex }
             ];
+            if (query.$and) {
+                query.$and.push({ $or: searchOr });
+            } else {
+                query.$or = searchOr;
+            }
         } else if (city) {
             if (Array.isArray(city)) {
                 query["location.city"] = { $in: city.map(c => new RegExp(c, 'i')) };

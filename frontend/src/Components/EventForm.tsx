@@ -17,6 +17,13 @@ export default function EventForm({ editId }: { editId?: string | null }) {
     const { user, isOrganizer, becomeOrganizer, isStripeConnected } = useAuth();
     const router = useRouter();
     const isEditMode = !!editId;
+    const todayStr = (() => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    })();
     const [categories, setCategories] = useState<any[]>([]);
     const [organisations, setOrganisations] = useState<any[]>([]);
     const [isLoadingOrganisations, setIsLoadingOrganisations] = useState(false);
@@ -104,6 +111,22 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         if (savedForm) {
             try {
                 const parsed = JSON.parse(savedForm);
+                
+                // Clear invalid/expired blob preview URLs and empty serialized File objects
+                if (parsed.bannerPreview && parsed.bannerPreview.startsWith('blob:')) {
+                    parsed.banner = null;
+                    parsed.bannerPreview = "";
+                } else if (parsed.banner && typeof parsed.banner === 'object' && !(parsed.banner instanceof File)) {
+                    parsed.banner = null;
+                }
+                
+                if (parsed.thumbnailPreview && parsed.thumbnailPreview.startsWith('blob:')) {
+                    parsed.thumbnail = null;
+                    parsed.thumbnailPreview = "";
+                } else if (parsed.thumbnail && typeof parsed.thumbnail === 'object' && !(parsed.thumbnail instanceof File)) {
+                    parsed.thumbnail = null;
+                }
+
                 setForm(prev => ({ ...prev, ...parsed }));
             } catch (e) { console.error("Error loading saved form", e); }
         }
@@ -266,7 +289,15 @@ export default function EventForm({ editId }: { editId?: string | null }) {
 
     const handleChange = (e: any) => {
         const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+        setForm((prev) => {
+            const updated = { ...prev, [name]: value };
+            if (name === "startDate") {
+                if (!prev.endDate || prev.endDate < value) {
+                    updated.endDate = value;
+                }
+            }
+            return updated;
+        });
     };
 
     const [loading, setLoading] = useState(false);
@@ -297,6 +328,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             { field: 'endDate', label: 'End Date' },
             { field: 'startTime', label: 'Start Time' },
             { field: 'endTime', label: 'End Time' },
+            { field: 'organizerProfile', label: 'Organiser Profile' },
         ];
 
         const missing = required.filter(r => !form[r.field as keyof typeof form]);
@@ -325,6 +357,12 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             return false;
         }
 
+        if (form.thumbnailType === 'different' && !form.thumbnailPreview && !form.thumbnail) {
+            setStatus({ type: "error", message: "Please upload a thumbnail image." });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            return false;
+        }
+
         if (tickets.length === 0) {
             setStatus({ type: "error", message: "Please add at least one ticket type." });
             return false;
@@ -333,6 +371,18 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         for (const ticket of tickets) {
             if (!ticket.name || ticket.price === undefined || ticket.quantity === undefined) {
                 setStatus({ type: "error", message: "Please complete all ticket details (Name, Price, Quantity)." });
+                return false;
+            }
+            if (!ticket.saleStartDate || !ticket.saleStartTime || !ticket.saleEndDate || !ticket.saleEndTime) {
+                setStatus({ type: "error", message: `Please fill in all sales start and end dates/times for ticket: "${ticket.name || 'Untitled'}".` });
+                return false;
+            }
+            
+            // Check that ticket sales start is before sales end
+            const saleStart = new Date(`${ticket.saleStartDate}T${ticket.saleStartTime}`);
+            const saleEnd = new Date(`${ticket.saleEndDate}T${ticket.saleEndTime}`);
+            if (saleEnd <= saleStart) {
+                setStatus({ type: "error", message: `Ticket "${ticket.name}" sales end date/time must be after its start date/time.` });
                 return false;
             }
         }
@@ -387,11 +437,19 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             // 1. Handle Banner Upload (if file is selected)
             if (form.banner instanceof File) {
                 bannerUrl = await handleUpload(form.banner);
+            } else if (bannerUrl && bannerUrl.startsWith('blob:')) {
+                throw new Error("The event banner image could not be uploaded because the file session has expired. Please re-upload your event banner.");
             }
 
             // 2. Handle Thumbnail Upload
-            if (form.thumbnailType === "different" && form.thumbnail) {
-                thumbnailUrl = await handleUpload(form.thumbnail as unknown as File);
+            if (form.thumbnailType === "different") {
+                if (form.thumbnail instanceof File) {
+                    thumbnailUrl = await handleUpload(form.thumbnail as unknown as File);
+                } else if (form.thumbnailPreview && form.thumbnailPreview.startsWith('blob:')) {
+                    throw new Error("The thumbnail image could not be uploaded because the file session has expired. Please re-upload your thumbnail.");
+                } else {
+                    thumbnailUrl = form.thumbnailPreview;
+                }
             } else {
                 thumbnailUrl = bannerUrl;
             }
@@ -546,7 +604,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500 w-6 h-6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                                 </div>
                                 <p className="text-sm font-semibold text-gray-700">{form.bannerPreview ? 'Click to upload new banner' : 'Click to upload banner image'}</p>
-                                <p className="text-xs text-gray-400 mt-1">Recommended: 1920x1080px (16:9 ratio), Max size 2.5MB</p>
+                                <p className="text-xs text-gray-400 mt-1">Recommended: 1080x1920px (9:16 ratio), Max size 2.5MB</p>
                             </div>
                         </div>
                     </div>
@@ -707,9 +765,10 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                             <input
                                 type="date"
                                 name="startDate"
+                                min={todayStr}
                                 value={form.startDate}
                                 onChange={handleChange}
-                                className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                                 required
                             />
                         </div>
@@ -722,9 +781,10 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                             <input
                                 type="date"
                                 name="endDate"
+                                min={form.startDate || todayStr}
                                 value={form.endDate}
                                 onChange={handleChange}
-                                className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                                 required
                             />
                         </div>
@@ -770,7 +830,12 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                 <EventType form={form} setForm={setForm} onlyLocation={true} />
 
                 {/* Card 3: Ticket Types */}
-                <TicketSection tickets={tickets} setTickets={setTickets} />
+                <TicketSection 
+                    tickets={tickets} 
+                    setTickets={setTickets} 
+                    eventStartDate={form.startDate} 
+                    eventStartTime={form.startTime} 
+                />
 
                 {/* Status Messages */}
                 {status.message && (
@@ -788,16 +853,6 @@ export default function EventForm({ editId }: { editId?: string | null }) {
 
                 {/* Action Buttons */}
                 <div className="flex items-center justify-end gap-4 pt-4">
-                    {!isEditMode && (
-                        <button
-                            type="button"
-                            onClick={handlePreview}
-                            className="px-6 py-2.5 rounded-full border border-gray-200 text-sm font-bold text-gray-600 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
-                        >
-                            Preview Event
-                        </button>
-                    )}
-
                     <button
                         type="submit"
                         disabled={loading}
@@ -811,7 +866,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                         ) : (
                             <>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                {isEditMode ? 'Review and Update Event' : 'Review & Publish'}
+                                {isEditMode ? 'Preview and Update Event' : 'Preview and Publish Event'}
                             </>
                         )}
                     </button>

@@ -430,7 +430,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
           onClick={() => setIsPopupOpen(false)}
         >
           <div
-            className="relative bg-black w-full max-w-[500px] h-full max-h-[700px] rounded-[30px] shadow-2xl flex flex-col items-center justify-center overflow-hidden animate-in zoom-in-95 duration-300"
+            className="relative bg-black w-full max-w-[450px] aspect-[9/16] max-h-[85vh] rounded-[30px] shadow-2xl flex flex-col items-center justify-center overflow-hidden animate-in zoom-in-95 duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button - Top Right inside the modal */}

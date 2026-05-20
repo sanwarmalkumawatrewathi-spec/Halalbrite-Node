@@ -14,14 +14,22 @@ import { FiTrendingUp } from "react-icons/fi";
 
 export default function DashboardTab() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get("tab") || "Overview";
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState("Overview");
   const [isTabLoading, setIsTabLoading] = useState(false);
 
   useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab && tab !== activeTab) {
-      setActiveTab(tab);
+    const paramTab = searchParams.get("tab");
+    if (paramTab) {
+      setActiveTab(paramTab);
+      localStorage.setItem("last_organizer_tab", paramTab);
+    } else {
+      const storedTab = localStorage.getItem("last_organizer_tab");
+      if (storedTab) {
+        setActiveTab(storedTab);
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", storedTab);
+        window.history.replaceState(null, "", url.toString());
+      }
     }
   }, [searchParams]);
 
@@ -29,6 +37,12 @@ export default function DashboardTab() {
     if (tabName === activeTab) return;
     setIsTabLoading(true);
     setActiveTab(tabName);
+    localStorage.setItem("last_organizer_tab", tabName);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", tabName);
+    window.history.replaceState(null, "", url.toString());
+
     setTimeout(() => {
       setIsTabLoading(false);
     }, 500);

@@ -24,7 +24,7 @@ function TicketPreviewContent() {
 
                 const res = await fetch(`${baseUrl}/api/bookings/${bookingId}`, { headers });
                 let result = await res.json();
-                
+
                 if (!res.ok || result.success === false) {
                     console.error("Fetch booking failed:", result.message);
                     setLoading(false);
@@ -37,7 +37,7 @@ function TicketPreviewContent() {
                 if (data && data.event_id) {
                     const isPopulated = typeof data.event_id === 'object';
                     const eventObj = isPopulated ? data.event_id : null;
-                    
+
                     if (!data.event_name && eventObj?.title) data.event_name = eventObj.title;
                     if (!data.event_date && eventObj?.startDate) data.event_date = eventObj.startDate;
                     if (!data.event_time && eventObj?.startTime) {
@@ -93,8 +93,17 @@ function TicketPreviewContent() {
     };
 
     if (loading) return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <div className="w-12 h-12 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
+        <div className="min-h-screen bg-[#fff9fa] flex flex-col items-center justify-center p-6 text-center">
+            <div className="relative mb-4">
+                <div className="absolute inset-0 bg-red-100 rounded-full blur-xl opacity-40 animate-pulse"></div>
+                <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 border-4 border-red-100 rounded-full"></div>
+                    <div className="absolute inset-0 border-4 border-red-600 rounded-full border-t-transparent animate-spin"></div>
+                </div>
+            </div>
+            <p className="text-red-600 font-bold text-lg animate-pulse tracking-wide">
+                Loading...
+            </p>
         </div>
     );
 
@@ -181,7 +190,12 @@ function TicketPreviewContent() {
                             <div className="flex items-center justify-between mb-6 sm:mb-8 pb-4 sm:pb-6 border-b-2 border-red-200 gap-2">
                                 <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                                     <div className="h-10 sm:h-12 flex-shrink-0 flex items-center">
-                                        <img src="/images/logo.png" alt="Halalbrite Logo" className="h-full w-auto object-contain" />
+                                        <img 
+                                            src="/images/logo.png" 
+                                            alt="Halalbrite Logo" 
+                                            className="h-full w-auto object-contain" 
+                                            style={{ filter: 'brightness(0) saturate(100%) invert(21%) sepia(84%) saturate(5947%) hue-rotate(354deg) brightness(93%) contrast(92%)' }}
+                                        />
                                     </div>
                                     <div className="border-l-2 border-red-200 pl-3 sm:pl-4 h-8 flex items-center min-w-0">
                                         <p className="text-red-600 text-xs sm:text-sm font-black uppercase tracking-widest truncate">Event Ticket</p>
@@ -255,7 +269,7 @@ function TicketPreviewContent() {
                                                     const itemQty = item.quantity || 1;
                                                     const itemPrice = typeof item.price === 'number' ? item.price : 0;
                                                     const itemTotal = typeof item.total === 'number' ? item.total : (itemPrice * itemQty);
-                                                    
+
                                                     return (
                                                         <div key={idx} className="flex justify-between items-center text-sm border-b border-gray-100 pb-2 last:border-0 last:pb-0">
                                                             <div className="flex flex-col">
@@ -417,7 +431,20 @@ export default function TicketPreview() {
     return (
         <>
             <Header />
-            <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+            <Suspense fallback={
+                <div className="min-h-screen bg-[#fff9fa] flex flex-col items-center justify-center p-6 text-center">
+                    <div className="relative mb-4">
+                        <div className="absolute inset-0 bg-red-100 rounded-full blur-xl opacity-40 animate-pulse"></div>
+                        <div className="relative w-16 h-16">
+                            <div className="absolute inset-0 border-4 border-red-100 rounded-full"></div>
+                            <div className="absolute inset-0 border-4 border-red-600 rounded-full border-t-transparent animate-spin"></div>
+                        </div>
+                    </div>
+                    <p className="text-red-600 font-bold text-lg animate-pulse tracking-wide">
+                        Loading...
+                    </p>
+                </div>
+            }>
                 <TicketPreviewContent />
             </Suspense>
             <Footer />

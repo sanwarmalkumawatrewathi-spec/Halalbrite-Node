@@ -47,8 +47,20 @@ export default function SavedEvents() {
       const contentType = response.headers.get("content-type");
       if (response.ok && contentType && contentType.includes("application/json")) {
         const data = await response.json();
-        setSavedEvents(data.data?.savedEvents || []);
-        setFollowedOrganizers(data.data?.followedOrganizers || []);
+        const rawEvents = data.data?.savedEvents || [];
+        const rawOrgs = data.data?.followedOrganizers || [];
+        
+        const uniqueEvents = rawEvents.filter(
+          (event: SavedEvent, index: number, self: SavedEvent[]) =>
+            self.findIndex(e => e._id === event._id) === index
+        );
+        const uniqueOrgs = rawOrgs.filter(
+          (org: Organizer, index: number, self: Organizer[]) =>
+            self.findIndex(o => o._id === org._id) === index
+        );
+
+        setSavedEvents(uniqueEvents);
+        setFollowedOrganizers(uniqueOrgs);
       } else {
         console.error("Failed to fetch saved data:", response.status, await response.text());
       }
@@ -81,7 +93,12 @@ export default function SavedEvents() {
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading saved items...</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center p-16 min-h-[300px]">
+      <div className="w-10 h-10 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
+      <p className="mt-3 text-red-600 text-sm font-semibold tracking-wide animate-pulse">Loading saved items...</p>
+    </div>
+  );
 
   return (
     <div className="mb-20">
@@ -110,40 +127,46 @@ export default function SavedEvents() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {savedEvents.map((event) => (
-                <Link href={`/event/${event.slug || event._id}`}>
-                  <div key={event._id} className="group relative flex flex-col bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:border-red-300 cursor-pointer transition duration-300">
-                    {/* Banner */}
-                    <div className="h-40 overflow-hidden relative">
-                      <img
-                        src={event.banner ? getImageUrl(event.banner) : "/images/noimage.jpg"}
-                        alt={event.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
-                        onError={(e: any) => {
-                          e.target.onerror = null;
-                          e.target.src = "/images/noimage.jpg";
-                        }}
-                      />
-
-                    </div>
-
-                    {/* Info */}
-                    <div className="p-4 flex flex-col flex-grow">
-
-                      <h3 className="font-bold text-gray-900 leading-tight text-[18px] mb-2 line-clamp-1">{event.title}</h3>
-                      <div className="flex items-center gap-2 text-gray-600 text-[16px]  uppercase mb-0">
-                        <span>{new Date(event.startDate).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                      </div>
-                      <div className="text-gray-600 text-[16px] mb-4">
-                        <span className="line-clamp-1">{event.location.venueName || event.location.city}</span>
+                  <div key={event._id} className="group relative flex flex-col bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:border-red-300 transition duration-300">
+                    <Link href={`/event/${event.slug || event._id}`} className="block cursor-pointer flex-grow flex flex-col">
+                      {/* Banner */}
+                      <div className="h-40 overflow-hidden relative">
+                        <img
+                          src={event.banner ? getImageUrl(event.banner) : "/images/noimage.jpg"}
+                          alt={event.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                          onError={(e: any) => {
+                            e.target.onerror = null;
+                            e.target.src = "/images/noimage.jpg";
+                          }}
+                        />
                       </div>
 
-                      <div className="mt-auto flex gap-5 items-center justify-between border-t border-gray-50 pt-3">
+                      {/* Info */}
+                      <div className="p-4 flex flex-col flex-grow">
+                        <h3 className="font-bold text-gray-900 leading-tight text-[18px] mb-2 line-clamp-1">{event.title}</h3>
+                        <div className="flex items-center gap-2 text-gray-600 text-[16px] uppercase mb-0">
+                          <span>{new Date(event.startDate).toLocaleDateString('en-GB', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                        </div>
+                        <div className="text-gray-600 text-[16px] mb-4">
+                          <span className="line-clamp-1">{event.location.venueName || event.location.city}</span>
+                        </div>
+                      </div>
+                    </Link>
+
+                    {/* Actions Footer */}
+                    <div className="px-4 pb-4 mt-auto">
+                      <div className="flex gap-5 items-center justify-between border-t border-gray-50 pt-3">
                         <Link href={`/event/${event.slug || event._id}`} className="text-white inline-flex items-center justify-center whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary-foreground rounded-md gap-1.5 px-3 has-[>svg]:px-2.5 flex-1 bg-red-600 hover:bg-red-700 text-xs sm:text-sm h-8 sm:h-9">
                           Get Tickets
                         </Link>
                         <div className=" ">
                           <button
-                            onClick={() => unsaveEvent(event._id)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              unsaveEvent(event._id);
+                            }}
                             className="bg-white/90 backdrop-blur-sm p-2 cursor-pointer rounded-[5px] border-[1px solid #999999ff] text-red-600 hover:bg-red-600 hover:text-white transition shadow-sm"
                             title="Remove from saved"
                           >
@@ -153,10 +176,8 @@ export default function SavedEvents() {
                           </button>
                         </div>
                       </div>
-
                     </div>
                   </div>
-                </Link>
 
               ))}
             </div>

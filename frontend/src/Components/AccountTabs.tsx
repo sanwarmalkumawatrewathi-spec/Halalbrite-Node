@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import MyTickets from "../Components/MyTickets";
 import SavedEvents from "../Components/SavedEvents";
 import SettingsTab from "../Components/SettingsTab";
@@ -51,7 +52,33 @@ const tabs = [
 ];
 
 export default function AccountTabs() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState("profile");
+
+  useEffect(() => {
+    const paramTab = searchParams.get("tab");
+    if (paramTab) {
+      setActiveTab(paramTab);
+      localStorage.setItem("last_account_tab", paramTab);
+    } else {
+      const storedTab = localStorage.getItem("last_account_tab");
+      if (storedTab) {
+        setActiveTab(storedTab);
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", storedTab);
+        window.history.replaceState(null, "", url.toString());
+      }
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId);
+    localStorage.setItem("last_account_tab", tabId);
+
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", tabId);
+    window.history.replaceState(null, "", url.toString());
+  };
 
   return (
     <div className="max-w-7xl mx-auto max-w-7xl2" suppressHydrationWarning>
@@ -84,7 +111,7 @@ export default function AccountTabs() {
                 aria-selected={isActive}
                 data-state={isActive ? "active" : "inactive"}
                 data-slot="tabs-trigger"
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className="dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-xl border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 flex-shrink-0 data-[state=active]:bg-red-600 data-[state=active]:text-white"
                 tabIndex={isActive ? 0 : -1}
               >
@@ -98,7 +125,7 @@ export default function AccountTabs() {
 
       {/* Content */}
       <div className="mt-4">
-        {activeTab === "profile" && <ProfileTab setActiveTab={setActiveTab} />}
+        {activeTab === "profile" && <ProfileTab setActiveTab={handleTabChange} />}
         {activeTab === "tickets" && <MyTickets />}
         {activeTab === "saved" && <SavedEvents />}
         {activeTab === "settings" && <SettingsTab />}

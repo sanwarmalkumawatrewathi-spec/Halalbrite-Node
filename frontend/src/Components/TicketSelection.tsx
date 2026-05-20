@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useCurrency } from "@/context/CurrencyContext";
+import { Clock } from "lucide-react";
 
 type Ticket = {
   _id: string;
@@ -25,7 +26,7 @@ export default function TicketSelection({ tickets, eventId, eventEndDate }: Tick
   const [settings, setSettings] = useState<any>(null);
   const { currentCurrency, formatPrice } = useCurrency();
 
-  const displayTickets = tickets || [];
+  const displayTickets = tickets ? [...tickets].sort((a, b) => a.price - b.price) : [];
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -240,7 +241,9 @@ export default function TicketSelection({ tickets, eventId, eventEndDate }: Tick
 
                     {/* Sales End/Start or Ended Label */}
                     <span className="flex items-center gap-1.5 text-[13px] text-gray-500 font-medium">
-                      <span className="text-gray-400">🕐</span>
+                      <span className="bg-[#0b2c5d] text-white rounded-full p-0.5 inline-flex items-center justify-center flex-shrink-0">
+                        <Clock size={11} className="stroke-[2.5]" />
+                      </span>
                       {hasEventEnded ? (
                         <span className="text-red-600 font-bold">Event Ended</span>
                       ) : isTicketSoldOut ? (

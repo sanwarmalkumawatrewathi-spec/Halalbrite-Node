@@ -41,7 +41,7 @@ interface AuthContextType {
   becomeOrganizer: () => Promise<any>;
   refreshUser: () => Promise<void>;
   toggleSavedEvent: (eventId: string) => Promise<{ success: boolean, message: string, saved?: boolean }>;
-  toggleFollowOrganizer: (organizerId: string) => Promise<{ success: boolean, message: string, isFollowing?: boolean }>;
+  toggleFollowOrganizer: (organizerId: string) => Promise<{ success: boolean, message: string, isFollowing?: boolean, followersCount?: number }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -260,7 +260,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const token = localStorage.getItem('token');
       if (!token || !user) return { success: false, message: 'Not logged in' };
 
-      const response = await fetch(`${API_URL}/api/dashboard/user/follow-organizer/${organizerId}`, {
+      const response = await fetch(`${API_URL}/api/organizers/${organizerId}/follow`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -279,7 +279,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const updatedUser = { ...user, followedOrganizers: newFollowed };
         setUser(updatedUser);
         localStorage.setItem('Halalbrite_user', JSON.stringify(updatedUser));
-        return { success: true, message: data.message, isFollowing: data.isFollowing };
+        return { success: true, message: data.message, isFollowing: data.isFollowing, followersCount: data.followersCount };
       }
       return { success: false, message: data.message };
     } catch (error: any) {

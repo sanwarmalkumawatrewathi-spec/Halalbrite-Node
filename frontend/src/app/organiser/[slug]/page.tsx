@@ -7,6 +7,7 @@ import { FiGlobe, FiFacebook, FiInstagram, FiTwitter, FiYoutube, FiLinkedin, FiU
 import Link from "next/link";
 import { getImageUrl } from "@/utils/imageUtils";
 import { useCurrency } from "@/context/CurrencyContext";
+import { useAuth } from "@/context/authContext";
 
 interface Organiser {
   _id: string;
@@ -33,6 +34,7 @@ interface Organiser {
 export default function OrganiserProfile({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params);
   const { formatPrice } = useCurrency();
+  const { user, toggleFollowOrganizer } = useAuth();
   const [organiser, setOrganiser] = useState<Organiser | null>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
@@ -47,11 +49,22 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
   });
   const [submittingContact, setSubmittingContact] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showFollowPrompt, setShowFollowPrompt] = useState(false);
+  const [popupMessage, setPopupMessage] = useState<{ title?: string, content: string } | null>(null);
 
   useEffect(() => {
     fetchOrganiser();
     fetchEvents("upcoming");
   }, [slug]);
+
+  useEffect(() => {
+    if (user && organiser) {
+      const isFollowingOrg = user.followedOrganizers?.includes(organiser._id);
+      setIsFollowing(!!isFollowingOrg);
+    } else {
+      setIsFollowing(false);
+    }
+  }, [user, organiser]);
 
   const fetchOrganiser = async () => {
     try {
@@ -84,20 +97,20 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
 
   const toggleFollow = async () => {
     try {
-      const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
-      const token = localStorage.getItem('token');
-      if (!token) {
-        alert("Please login to follow organisers");
+      if (!user) {
+        setPopupMessage({ title: "Login Required", content: "Please login to follow organisers" });
         return;
       }
-      const res = await fetch(`${API_URL}/api/organizers/${organiser?._id || slug}/follow`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setIsFollowing(data.isFollowing);
-        setOrganiser(prev => prev ? { ...prev, stats: { ...prev.stats!, followersCount: data.followersCount } } : null);
+      if (!organiser) return;
+      const res = await toggleFollowOrganizer(organiser._id);
+      if (res.success) {
+        setIsFollowing(!!res.isFollowing);
+        if (res.isFollowing) {
+          setShowFollowPrompt(true);
+        }
+        setOrganiser(prev => prev ? { ...prev, stats: { ...prev.stats!, followersCount: res.followersCount !== undefined ? res.followersCount : prev.stats!.followersCount } } : null);
+      } else {
+        setPopupMessage({ title: "Action Failed", content: res.message || "Failed to follow organizer" });
       }
     } catch (error) {
       console.error("Error toggling follow:", error);
@@ -120,11 +133,11 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
         setShowContactModal(false);
         setContactForm({ fullName: "", email: "", subject: "", message: "" });
       } else {
-        alert(data.message || "Failed to send message");
+        setPopupMessage({ title: "Failed to Send", content: data.message || "Failed to send message" });
       }
     } catch (error) {
       console.error("Error sending message:", error);
-      alert("An error occurred. Please try again.");
+      setPopupMessage({ title: "Error", content: "An error occurred. Please try again." });
     } finally {
       setSubmittingContact(false);
     }
@@ -137,163 +150,165 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
   const initials = organiser.username.substring(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen bg-gray-50" suppressHydrationWarning>
+    <div className="min-h-screen flex flex-col bg-gray-50" suppressHydrationWarning>
       <Header />
 
-      {/* Hero Section */}
-      <div className="bg-[#d32f2f] pt-12 pb-24 md:pb-32">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
-            
-            {/* Organizer Logo */}
-            <div className="relative shrink-0">
-              <div className="w-40 h-40 md:w-48 md:h-48 bg-white/10 rounded-[2.5rem] border-[6px] border-white/20 shadow-2xl flex items-center justify-center text-white text-6xl font-bold overflow-hidden backdrop-blur-md">
-                {organiser.avatar ? (
-                  <img src={getImageUrl(organiser.avatar)} alt={displayName} className="w-full h-full object-cover" />
-                ) : (
-                  initials
-                )}
-              </div>
-              <div className="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow-lg border-4 border-[#d32f2f]">
-                <FiUsers className="text-[#d32f2f] text-xl" />
-              </div>
-            </div>
-
-            {/* Organizer Details */}
-            <div className="flex-1 text-center md:text-left text-white pt-2">
-              <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">{displayName}</h1>
+      <div className="flex-1">
+        {/* Hero Section */}
+        <div className="bg-[#d32f2f] pt-12 pb-24 md:pb-32">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-10">
               
-              <div className="flex flex-wrap justify-center md:justify-start items-center gap-x-6 gap-y-3 mb-6 text-sm font-medium text-white/90">
-                <div className="flex items-center gap-2">
-                  <FiUsers className="text-lg" />
-                  <span>{organiser.stats?.followersCount?.toLocaleString() || 0} followers</span>
+              {/* Organizer Logo */}
+              <div className="relative shrink-0">
+                <div className="w-40 h-40 md:w-48 md:h-48 bg-white/10 rounded-[2.5rem] border-[6px] border-white/20 shadow-2xl flex items-center justify-center text-white text-6xl font-bold overflow-hidden backdrop-blur-md">
+                  {organiser.avatar ? (
+                    <img src={getImageUrl(organiser.avatar)} alt={displayName} className="w-full h-full object-cover" />
+                  ) : (
+                    initials
+                  )}
                 </div>
-                {organiser.categories && organiser.categories.length > 0 && (
+                <div className="absolute -bottom-2 -right-2 bg-white p-2 rounded-full shadow-lg border-4 border-[#d32f2f]">
+                  <FiUsers className="text-[#d32f2f] text-xl" />
+                </div>
+              </div>
+
+              {/* Organizer Details */}
+              <div className="flex-1 text-center md:text-left text-white pt-2">
+                <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight">{displayName}</h1>
+                
+                <div className="flex flex-wrap justify-center md:justify-start items-center gap-x-6 gap-y-3 mb-6 text-sm font-medium text-white/90">
                   <div className="flex items-center gap-2">
-                    <FiCalendar className="text-lg" />
-                    <span>{organiser.categories.join(", ")}</span>
+                    <FiUsers className="text-lg" />
+                    <span>{organiser.stats?.followersCount?.toLocaleString() || 0} followers</span>
                   </div>
-                )}
-              </div>
+                  {organiser.categories && organiser.categories.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <FiCalendar className="text-lg" />
+                      <span>{organiser.categories.join(", ")}</span>
+                    </div>
+                  )}
+                </div>
 
-              <p className="text-lg text-white/90 max-w-3xl mb-8 leading-relaxed font-medium">
-                {organiser.bio || "Welcome to our organiser profile. We host amazing events for the community."}
-              </p>
+                <p className="text-lg text-white/90 max-w-3xl mb-8 leading-relaxed font-medium">
+                  {organiser.bio || "Welcome to our organiser profile. We host amazing events for the community."}
+                </p>
 
-              {/* Social Pills */}
-              <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-8">
-                {organiser.socialLinks?.website && (
-                  <a href={organiser.socialLinks.website} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
-                    <FiGlobe className="text-[#d32f2f] text-sm" /> Website
-                  </a>
-                )}
-                {organiser.socialLinks?.facebook && (
-                  <a href={organiser.socialLinks.facebook} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
-                    <FiFacebook className="text-[#d32f2f] text-sm" /> Facebook
-                  </a>
-                )}
-                {organiser.socialLinks?.twitter && (
-                  <a href={organiser.socialLinks.twitter} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
-                    <FiTwitter className="text-[#d32f2f] text-sm" /> Twitter
-                  </a>
-                )}
-                {organiser.socialLinks?.instagram && (
-                  <a href={organiser.socialLinks.instagram} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
-                    <FiInstagram className="text-[#d32f2f] text-sm" /> Instagram
-                  </a>
-                )}
-              </div>
+                {/* Social Pills */}
+                <div className="flex flex-wrap justify-center md:justify-start gap-3 mb-8">
+                  {organiser.socialLinks?.website && (
+                    <a href={organiser.socialLinks.website} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
+                      <FiGlobe className="text-[#d32f2f] text-sm" /> Website
+                    </a>
+                  )}
+                  {organiser.socialLinks?.facebook && (
+                    <a href={organiser.socialLinks.facebook} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
+                      <FiFacebook className="text-[#d32f2f] text-sm" /> Facebook
+                    </a>
+                  )}
+                  {organiser.socialLinks?.twitter && (
+                    <a href={organiser.socialLinks.twitter} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
+                      <FiTwitter className="text-[#d32f2f] text-sm" /> Twitter
+                    </a>
+                  )}
+                  {organiser.socialLinks?.instagram && (
+                    <a href={organiser.socialLinks.instagram} target="_blank" className="flex items-center gap-2 bg-white px-4 py-2 rounded-full text-xs font-bold text-gray-900 shadow-sm hover:bg-gray-50 transition-all">
+                      <FiInstagram className="text-[#d32f2f] text-sm" /> Instagram
+                    </a>
+                  )}
+                </div>
 
-              {/* Primary Actions */}
-              <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                <button 
-                  onClick={toggleFollow}
-                  className="flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:bg-gray-50 transition-all active:scale-95"
-                >
-                  <FiUsers className="text-lg" /> {isFollowing ? 'Following' : 'Follow'}
-                </button>
-                <button 
-                  onClick={() => setShowContactModal(true)}
-                  className="flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:bg-gray-50 transition-all active:scale-95"
-                >
-                  <FiMail className="text-lg" /> Contact Organiser
-                </button>
+                {/* Primary Actions */}
+                <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                  <button 
+                    onClick={toggleFollow}
+                    className="flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:bg-gray-50 transition-all active:scale-95"
+                  >
+                    <FiUsers className="text-lg" /> {isFollowing ? 'Following' : 'Follow'}
+                  </button>
+                  <button 
+                    onClick={() => setShowContactModal(true)}
+                    className="flex items-center gap-2 bg-white text-gray-900 px-8 py-3 rounded-xl text-sm font-bold shadow-xl shadow-black/10 hover:bg-gray-50 transition-all active:scale-95"
+                  >
+                    <FiMail className="text-lg" /> Contact Organiser
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Events Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 mb-24">
-        
-        {/* Tab Switcher */}
-        <div className="inline-flex items-center bg-white p-1 rounded-2xl shadow-xl border border-gray-100 mb-12">
-          <button
-            onClick={() => handleTabChange("upcoming")}
-            className={`px-8 py-3 rounded-xl text-sm font-extrabold transition-all ${activeTab === "upcoming" ? 'bg-[#d32f2f] text-white shadow-lg shadow-red-200' : 'text-gray-500 hover:bg-gray-50'}`}
-          >
-            Upcoming Events
-          </button>
-          <button
-            onClick={() => handleTabChange("past")}
-            className={`px-8 py-3 rounded-xl text-sm font-extrabold transition-all ${activeTab === "past" ? 'bg-[#d32f2f] text-white shadow-lg shadow-red-200' : 'text-gray-500 hover:bg-gray-50'}`}
-          >
-            Past Events
-          </button>
-        </div>
+        {/* Events Section */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 mb-24">
+          
+          {/* Tab Switcher */}
+          <div className="inline-flex items-center bg-white p-1 rounded-2xl shadow-xl border border-gray-100 mb-12">
+            <button
+              onClick={() => handleTabChange("upcoming")}
+              className={`px-8 py-3 rounded-xl text-sm font-extrabold transition-all ${activeTab === "upcoming" ? 'bg-[#d32f2f] text-white shadow-lg shadow-red-200' : 'text-gray-500 hover:bg-gray-50'}`}
+            >
+              Upcoming Events
+            </button>
+            <button
+              onClick={() => handleTabChange("past")}
+              className={`px-8 py-3 rounded-xl text-sm font-extrabold transition-all ${activeTab === "past" ? 'bg-[#d32f2f] text-white shadow-lg shadow-red-200' : 'text-gray-500 hover:bg-gray-50'}`}
+            >
+              Past Events
+            </button>
+          </div>
 
-        {/* Event Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {events.length > 0 ? (
-            events.map((event) => (
-              <Link href={`/event/${event.slug || event._id}`} key={event._id} className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 flex flex-col">
-                <div className="relative h-64 overflow-hidden">
-                  <img src={getImageUrl(event.thumbnail || event.banner)} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                  <div className="absolute top-5 left-5 bg-white px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest text-gray-900 shadow-sm border border-gray-100">
-                    {event.category?.name || "Event"}
+          {/* Event Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {events.length > 0 ? (
+              events.map((event) => (
+                <Link href={`/event/${event.slug || event._id}`} key={event._id} className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 flex flex-col">
+                  <div className="relative h-64 overflow-hidden">
+                    <img src={getImageUrl(event.thumbnail || event.banner)} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                    <div className="absolute top-5 left-5 bg-white px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest text-gray-900 shadow-sm border border-gray-100">
+                      {event.category?.name || "Event"}
+                    </div>
                   </div>
-                </div>
-                
-                <div className="p-8 flex-1 flex flex-col">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-[#d32f2f] transition-colors line-clamp-2 min-h-[3.5rem]">
-                    {event.title}
-                  </h3>
                   
-                  <div className="space-y-3 mb-8">
-                    <div className="flex items-center gap-3 text-sm font-semibold text-gray-500">
-                      <FiCalendar className="text-[#d32f2f] text-lg shrink-0" />
-                      <span>{new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} at {event.startTime}</span>
+                  <div className="p-8 flex-1 flex flex-col">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-[#d32f2f] transition-colors line-clamp-2 min-h-[3.5rem]">
+                      {event.title}
+                    </h3>
+                    
+                    <div className="space-y-3 mb-8">
+                      <div className="flex items-center gap-3 text-sm font-semibold text-gray-500">
+                        <FiCalendar className="text-[#d32f2f] text-lg shrink-0" />
+                        <span>{new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} at {event.startTime}</span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm font-semibold text-gray-500">
+                        <FiMapPin className="text-[#d32f2f] text-lg shrink-0" />
+                        <span>{event.location?.city}, {event.location?.country}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-3 text-sm font-semibold text-gray-500">
-                      <FiMapPin className="text-[#d32f2f] text-lg shrink-0" />
-                      <span>{event.location?.city}, {event.location?.country}</span>
-                    </div>
-                  </div>
 
-                  <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Tickets from</p>
-                      <p className="text-xl font-black text-gray-900">
-                        {event.ticketTypes?.[0]?.price ? formatPrice(event.ticketTypes[0].price) : 'Free'}
-                      </p>
+                    <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Tickets from</p>
+                        <p className="text-xl font-black text-gray-900">
+                          {event.ticketTypes?.[0]?.price ? formatPrice(event.ticketTypes[0].price) : 'Free'}
+                        </p>
+                      </div>
+                      <button className="bg-[#d32f2f] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-red-100 group-hover:scale-105 transition-all">
+                        Get Tickets
+                      </button>
                     </div>
-                    <button className="bg-[#d32f2f] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-red-100 group-hover:scale-105 transition-all">
-                      Get Tickets
-                    </button>
                   </div>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100 shadow-sm">
+                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <FiCalendar className="text-gray-300 text-3xl" />
                 </div>
-              </Link>
-            ))
-          ) : (
-            <div className="col-span-full py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100 shadow-sm">
-              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                <FiCalendar className="text-gray-300 text-3xl" />
+                <p className="text-xl font-bold text-gray-900 mb-2">No events found</p>
+                <p className="text-gray-500 font-medium">This organiser hasn't scheduled any {activeTab} events yet.</p>
               </div>
-              <p className="text-xl font-bold text-gray-900 mb-2">No events found</p>
-              <p className="text-gray-500 font-medium">This organiser hasn't scheduled any {activeTab} events yet.</p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -398,6 +413,58 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
               className="w-full bg-[#d32f2f] text-white py-4 rounded-2xl font-bold text-sm shadow-xl shadow-red-100 hover:bg-red-700 transition-all active:scale-95"
             >
               Great, thanks!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Follow Success Modal */}
+      {showFollowPrompt && (
+        <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-500">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500 text-center p-8 sm:p-10">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FiUsers className="text-[#d32f2f] text-3xl" />
+            </div>
+            <h3 className="text-2xl font-black text-gray-900 mb-3">You are now following {displayName}!</h3>
+            <p className="text-gray-500 font-medium mb-8 leading-relaxed text-sm sm:text-base">
+              You will receive updates and announcements about upcoming events. You can view all your followed organisers and saved events in your dashboard.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/myaccount?tab=saved"
+                className="flex-1 bg-[#d32f2f] text-white py-3.5 rounded-2xl font-bold text-sm shadow-xl shadow-red-100 hover:bg-red-700 transition-all active:scale-95 flex items-center justify-center"
+              >
+                View Saved Items
+              </Link>
+              <button
+                onClick={() => setShowFollowPrompt(false)}
+                className="flex-1 bg-gray-100 text-gray-700 py-3.5 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-all active:scale-95"
+              >
+                Continue Browsing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Error/Information Popup Modal */}
+      {popupMessage && (
+        <div className="fixed inset-0 z-[10002] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500 text-center p-8">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-5">
+              <svg className="w-8 h-8 text-[#d32f2f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">{popupMessage.title || "Notice"}</h3>
+            <p className="text-gray-500 font-medium mb-6 leading-relaxed text-sm">
+              {popupMessage.content}
+            </p>
+            <button
+              onClick={() => setPopupMessage(null)}
+              className="w-full bg-[#d32f2f] text-white py-3.5 rounded-2xl font-bold text-sm shadow-xl shadow-red-100 hover:bg-red-700 transition-all active:scale-95"
+            >
+              Okay
             </button>
           </div>
         </div>

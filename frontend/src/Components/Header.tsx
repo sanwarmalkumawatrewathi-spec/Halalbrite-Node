@@ -22,6 +22,7 @@ export default function Header() {
   const { currentCurrency, allCurrencies, setCurrency } = useCurrency();
   const router = useRouter();
   const [showStripeModal, setShowStripeModal] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
   // Prevent body scroll when menu is open
   useEffect(() => {
@@ -56,7 +57,12 @@ export default function Header() {
 
           {/* Logo */}
           <Link href="/" className="  logoside">
-            <img src="/images/logo.png" alt="Logo" className="w-full img-fluid" />
+            <img 
+              src="/images/logo.png" 
+              alt="Logo" 
+              className="w-full img-fluid" 
+              style={{ filter: 'brightness(0) saturate(100%) invert(21%) sepia(84%) saturate(5947%) hue-rotate(354deg) brightness(93%) contrast(92%)' }}
+            />
           </Link>
 
           {/* Header Actions */}
@@ -129,15 +135,22 @@ export default function Header() {
                   onClick={() => setOpen(!open)}
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer"
                 >
-                  {user.avatar ? (
-                    <img src={getImageUrl(user.avatar)} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
+                  {user.avatar && !avatarError ? (
+                    <img
+                      src={getImageUrl(user.avatar)}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full object-cover"
+                      onError={() => setAvatarError(true)}
+                    />
                   ) : (
                     <div className="w-10 h-10 text-[18px] cursor-pointer sm:w-9 sm:h-9 sm:text-[15px] bg-red-100  flex items-center justify-center rounded-full text-red-600 font-bold">
-                      {user.username.charAt(0).toUpperCase()}
+                      {user.username ? user.username.charAt(0).toUpperCase() : 'U'}
                     </div>
                   )}
-                  <span className="hidden sm:block text-sm font-medium text-gray-800">{user.username}</span>
-                  <FaChevronDown className="text-xs text-gray-600 sm:visible  hidden" />
+                  <span className="hidden sm:block text-sm font-medium text-gray-800">
+                    Salam {user.username ? user.username.split(" ")[0] : ""}
+                  </span>
+                  <FaChevronDown className={`text-xs text-gray-600 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
                 </div>
 
                 {open && (

@@ -80,7 +80,12 @@ export default function EventsTab() {
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading events...</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center p-16 min-h-[300px]">
+      <div className="w-10 h-10 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
+      <p className="mt-3 text-red-600 text-sm font-semibold tracking-wide animate-pulse">Loading events...</p>
+    </div>
+  );
 
   return (
     <div className="max-w-full mx-auto p-0 space-y-6">
@@ -126,19 +131,22 @@ export default function EventsTab() {
                           return (
                             <tr key={i} data-slot="table-row" className="hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors">
                               <td data-slot="table-cell" className="p-2 align-middle whitespace-nowrap [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px]">
-                                <div className="flex items-center gap-3 whitespace-nowrap">
+                                <div
+                                  onClick={() => router.push(`/event/${e.slug || e._id}`)}
+                                  className="flex items-center gap-3 whitespace-nowrap cursor-pointer group"
+                                >
                                   <div className="w-10 h-10 rounded overflow-hidden shrink-0">
                                     <img
                                       src={e.banner ? (e.banner.startsWith('http') ? e.banner : `${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '')}${e.banner}`) : "/images/noimage.jpg"}
                                       alt=""
-                                      className="w-full h-full object-cover"
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                       onError={(e: any) => {
                                         e.target.onerror = null;
                                         e.target.src = "/images/noimage.jpg";
                                       }}
                                     />
                                   </div>
-                                  <span className="font-medium text-gray-900 truncate max-w-[200px]" title={e.title}>{e.title}</span>
+                                  <span className="font-medium text-gray-900 truncate max-w-[200px] group-hover:text-red-600 transition-colors duration-300" title={e.title}>{e.title}</span>
                                 </div>
                               </td>
                               <td data-slot="table-cell" className="p-2 align-middle [&amp;:has([role=checkbox])]:pr-0 [&amp;>[role=checkbox]]:translate-y-[2px] text-gray-600 whitespace-nowrap">{e.category?.name || 'General'}</td>

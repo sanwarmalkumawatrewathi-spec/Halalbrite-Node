@@ -28,7 +28,7 @@ function SuccessContent() {
 
                 // 2. If booking is still pending, trigger a verification
                 if (data && data.payment_status === 'pending') {
-                    const verifyRes = await fetch(`${baseUrl}/api/payments/booking/${bookingId}/verify`, { 
+                    const verifyRes = await fetch(`${baseUrl}/api/payments/booking/${bookingId}/verify`, {
                         method: 'POST',
                         headers
                     });
@@ -45,7 +45,7 @@ function SuccessContent() {
                 if (data && data.event_id) {
                     const isPopulated = typeof data.event_id === 'object';
                     const eventObj = isPopulated ? data.event_id : null;
-                    
+
                     if (!data.event_name && eventObj?.title) data.event_name = eventObj.title;
                     if (!data.event_date && eventObj?.startDate) data.event_date = eventObj.startDate;
                     if (!data.event_time && eventObj?.startTime) {
@@ -142,15 +142,9 @@ function SuccessContent() {
                 <div className="bg-white rounded-[32px] shadow-2xl shadow-red-100/50 overflow-hidden border border-red-50">
                     {/* TOP CONFIRMATION BANNER */}
                     <div className="bg-red-600 p-10 text-white text-center relative overflow-hidden">
-                        {/* Decorative Icons (simplified placeholders for the screenshot's confetti/icons) */}
-                        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
-                            <div className="absolute top-4 left-4 rotate-12"><Calendar size={60} /></div>
-                            <div className="absolute bottom-4 right-4 -rotate-12"><Calendar size={60} /></div>
-                        </div>
-
                         <div className="flex justify-center mb-6">
-                            <div className="bg-white/20 p-5 rounded-full backdrop-blur-md">
-                                <Calendar size={40} className="text-white" />
+                            <div className="bg-red-950/40 rounded-2xl flex items-center justify-center mx-auto p-2 w-20 h-20 border border-red-500/30 shadow-inner">
+                                <img src="/images/logo.png" alt="Halalbrite Logo" className="w-full h-full object-contain" />
                             </div>
                         </div>
                         <h1 className="text-3xl font-bold mb-3 tracking-tight">Booking Confirmed!</h1>
@@ -167,29 +161,29 @@ function SuccessContent() {
                         {/* EVENT DETAILS CARD */}
                         <div className="bg-[#fff5f6] rounded-3xl p-8 space-y-6">
                             <h2 className="text-xl font-bold text-red-800 leading-tight">
-                                {booking.event_name || 
-                                 booking.event?.title || 
-                                 (typeof booking.event_id === 'object' ? (booking.event_id as any)?.title : '') || 
-                                 "Event Confirmed"}
+                                {booking.event_name ||
+                                    booking.event?.title ||
+                                    (typeof booking.event_id === 'object' ? (booking.event_id as any)?.title : '') ||
+                                    "Event Confirmed"}
                             </h2>
 
                             <div className="grid grid-cols-2 gap-8">
                                 <div className="space-y-1.5">
                                     <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Date</p>
                                     <p className="text-sm font-bold text-gray-700">
-                                        {(booking.event_date || 
-                                          booking.event?.startDate || 
-                                          (typeof booking.event_id === 'object' ? (booking.event_id as any)?.startDate : null))
-                                          ? new Date(booking.event_date || booking.event?.startDate || (booking.event_id as any)?.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-                                          : 'N/A'}
+                                        {(booking.event_date ||
+                                            booking.event?.startDate ||
+                                            (typeof booking.event_id === 'object' ? (booking.event_id as any)?.startDate : null))
+                                            ? new Date(booking.event_date || booking.event?.startDate || (booking.event_id as any)?.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                                            : 'N/A'}
                                     </p>
                                 </div>
                                 <div className="space-y-1.5">
                                     <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Time</p>
                                     <p className="text-sm font-bold text-gray-700">
-                                      {booking.event_time && booking.event_time !== "TBA" ? booking.event_time : 
-                                       (booking.event?.startTime ? `${booking.event.startTime}${booking.event.endTime ? ' - ' + booking.event.endTime : ''}` : 
-                                       (typeof booking.event_id === 'object' && (booking.event_id as any)?.startTime ? `${(booking.event_id as any).startTime}${(booking.event_id as any).endTime ? ' - ' + (booking.event_id as any).endTime : ''}` : 'N/A'))}
+                                        {booking.event_time && booking.event_time !== "TBA" ? booking.event_time :
+                                            (booking.event?.startTime ? `${booking.event.startTime}${booking.event.endTime ? ' - ' + booking.event.endTime : ''}` :
+                                                (typeof booking.event_id === 'object' && (booking.event_id as any)?.startTime ? `${(booking.event_id as any).startTime}${(booking.event_id as any).endTime ? ' - ' + (booking.event_id as any).endTime : ''}` : 'N/A'))}
                                     </p>
                                 </div>
                             </div>
@@ -199,14 +193,14 @@ function SuccessContent() {
                                     <LocationIcon size={12} /> Location
                                 </p>
                                 <div className="text-sm font-bold text-gray-700 leading-relaxed">
-                                    <p>{booking.event_venue || 
-                                       booking.event?.location?.venueName || 
-                                       (typeof booking.event_id === 'object' ? (booking.event_id as any)?.location?.venueName : '') || 
-                                       "Venue Confirmed"}</p>
+                                    <p>{booking.event_venue ||
+                                        booking.event?.location?.venueName ||
+                                        (typeof booking.event_id === 'object' ? (booking.event_id as any)?.location?.venueName : '') ||
+                                        "Venue Confirmed"}</p>
                                     <p className="text-gray-500 font-medium">
-                                      {booking.event_location || 
-                                       (booking.event?.location?.city ? `${booking.event.location.address ? booking.event.location.address + ', ' : ''}${booking.event.location.city}` : 
-                                       (typeof booking.event_id === 'object' && (booking.event_id as any)?.location?.city ? `${(booking.event_id as any).location.address ? (booking.event_id as any).location.address + ', ' : ''}${(booking.event_id as any).location.city}` : "Location Confirmed"))}
+                                        {booking.event_location ||
+                                            (booking.event?.location?.city ? `${booking.event.location.address ? booking.event.location.address + ', ' : ''}${booking.event.location.city}` :
+                                                (typeof booking.event_id === 'object' && (booking.event_id as any)?.location?.city ? `${(booking.event_id as any).location.address ? (booking.event_id as any).location.address + ', ' : ''}${(booking.event_id as any).location.city}` : "Location Confirmed"))}
                                     </p>
                                 </div>
                             </div>

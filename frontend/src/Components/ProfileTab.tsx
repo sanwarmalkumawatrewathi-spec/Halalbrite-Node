@@ -22,6 +22,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
   });
 
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar || null);
+  const [avatarError, setAvatarError] = useState(false);
 
   // Cropper State
   const [imageSrc, setImageSrc] = useState<string | null>(null);
@@ -126,6 +127,7 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
           const updatedUser = await updateRes.json();
           updateUser(updatedUser.data || updatedUser);
           setAvatarPreview(data.url);
+          setAvatarError(false);
           setShowCropper(false);
           showAlert("Success", "Profile photo updated successfully!", "success");
         } else {
@@ -218,12 +220,13 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
           <div data-slot="card-content" className="flex flex-col items-center [&:last-child]:pb-6 p-4 sm:p-6">
             <div className="relative">
               <span data-slot="avatar" className="relative flex shrink-0 overflow-hidden rounded-full w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 bg-gray-100 border border-gray-200">
-                {(avatarPreview || user.avatar) ? (
+                {((avatarPreview || user.avatar) && !avatarError) ? (
                   <img
                     data-slot="avatar-image"
                     className="aspect-square w-full h-full object-cover"
                     src={getImageUrl(avatarPreview || user.avatar)}
                     alt="Avatar"
+                    onError={() => setAvatarError(true)}
                   />
                 ) : (
                   <div className="w-full h-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-4xl sm:text-5xl md:text-6xl">

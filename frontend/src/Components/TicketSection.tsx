@@ -3,7 +3,17 @@ import { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
 import { useCurrency } from "@/context/CurrencyContext";
 
-export default function TicketSection({ tickets, setTickets }: { tickets: any[], setTickets: any }) {
+export default function TicketSection({ 
+    tickets, 
+    setTickets,
+    eventStartDate,
+    eventStartTime
+}: { 
+    tickets: any[], 
+    setTickets: any,
+    eventStartDate?: string,
+    eventStartTime?: string
+}) {
     const [settings, setSettings] = useState<any>(null);
     const { currentCurrency } = useCurrency();
 
@@ -49,6 +59,33 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
     const removeTicket = (index: number) => {
         const updated = tickets.filter((_, i) => i !== index);
         setTickets(updated);
+    };
+
+    const formatEventStart = (dateStr?: string, timeStr?: string) => {
+        if (!dateStr) return "";
+        try {
+            const parts = dateStr.split('-');
+            let displayDate = dateStr;
+            if (parts.length === 3) {
+                displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            
+            let displayTime = "";
+            if (timeStr) {
+                const timeParts = timeStr.split(':');
+                if (timeParts.length >= 2) {
+                    let hours = parseInt(timeParts[0]);
+                    const minutes = timeParts[1];
+                    const ampm = hours >= 12 ? 'pm' : 'am';
+                    hours = hours % 12;
+                    hours = hours ? hours : 12;
+                    displayTime = ` - ${hours}:${minutes}${ampm}`;
+                }
+            }
+            return `Event Starts: ${displayDate}${displayTime}`;
+        } catch (e) {
+            return "";
+        }
     };
 
     // 💰 Fee calculation
@@ -212,7 +249,14 @@ export default function TicketSection({ tickets, setTickets }: { tickets: any[],
                                         </div>
                                     </div>
                                 </div>
-                                <p className="text-[10px] text-gray-400 italic px-1">Set when tickets will be available for purchase</p>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
+                                    <p className="text-[10px] text-gray-400 italic">Set when tickets will be available for purchase</p>
+                                    {eventStartDate && (
+                                        <p className="text-xs font-bold text-slate-600">
+                                            {formatEventStart(eventStartDate, eventStartTime)}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Fee Breakdown */}

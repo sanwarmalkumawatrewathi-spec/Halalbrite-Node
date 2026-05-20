@@ -262,7 +262,12 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps) {
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading stats...</div>;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center p-16 min-h-[300px]">
+      <div className="w-10 h-10 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
+      <p className="mt-3 text-red-600 text-sm font-semibold tracking-wide animate-pulse">Loading stats...</p>
+    </div>
+  );
 
   const stats = data?.stats || {
     availableBalance: 0,

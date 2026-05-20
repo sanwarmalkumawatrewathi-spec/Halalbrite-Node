@@ -48,10 +48,10 @@ export default function FullEventPreview({ isOpen, onClose, onPublish, eventData
   };
 
   const selectedOrg = organisations.find(o => o._id === eventData.organizerProfile);
-  const bannerImage = eventData.banner;
-  const displayImage = typeof bannerImage === 'string' && bannerImage.startsWith('blob:') 
-    ? bannerImage 
-    : (getImageUrl(bannerImage) || "/images/noimage.jpg");
+  const bannerImage = eventData.bannerPreview || eventData.banner;
+  const displayImage = typeof bannerImage === 'string'
+    ? ((bannerImage.startsWith('blob:') || bannerImage.startsWith('http')) ? bannerImage : (getImageUrl(bannerImage) || "/images/noimage.jpg"))
+    : (typeof File !== 'undefined' && bannerImage instanceof File ? URL.createObjectURL(bannerImage) : "/images/noimage.jpg");
 
   return (
     <div className="fixed top-16 inset-x-0 bottom-0 z-[9000] bg-white overflow-y-auto animate-in fade-in duration-300">
@@ -180,13 +180,19 @@ export default function FullEventPreview({ isOpen, onClose, onPublish, eventData
                   <FiEdit3 /> Edit Tickets
                 </div>
                 <TicketSelection 
-                  tickets={tickets.map((t, i) => ({
-                    ...t,
-                    _id: t._id || `preview-${i}`,
-                    price: Number(t.price) || 0,
-                    quantity: Number(t.quantity) || 0,
-                    description: t.description || "No description provided."
-                  }))} 
+                  tickets={tickets.map((t, i) => {
+                    const startStr = t.saleStartDate && t.saleStartTime ? `${t.saleStartDate}T${t.saleStartTime}` : t.saleStart;
+                    const endStr = t.saleEndDate && t.saleEndTime ? `${t.saleEndDate}T${t.saleEndTime}` : t.saleEnd;
+                    return {
+                      ...t,
+                      _id: t._id || `preview-${i}`,
+                      price: Number(t.price) || 0,
+                      quantity: Number(t.quantity) || 0,
+                      description: t.description || "No description provided.",
+                      saleStart: startStr,
+                      saleEnd: endStr
+                    };
+                  })} 
                   eventId={eventData._id}
                 />
               </div>
@@ -219,11 +225,29 @@ export default function FullEventPreview({ isOpen, onClose, onPublish, eventData
                     <h4 className="font-bold text-gray-900">Location</h4>
                   </div>
                   <div className="text-sm text-gray-600 leading-relaxed">
-                    <p className="font-bold text-gray-900 mb-1">{eventData.venue || "Venue TBA"}</p>
                     {eventData.eventType === 'online' ? (
-                      <p className="text-red-600 font-medium">Online Event - Link shared after booking</p>
+                      <div>
+                        <p className="text-red-600 font-bold mb-1">Online Event</p>
+                        {eventData.meetingLink ? (
+                          <p className="text-xs text-gray-500 break-all">
+                            Meeting Link: <span className="font-semibold text-gray-700">{eventData.meetingLink}</span>
+                          </p>
+                        ) : (
+                          <p className="text-xs text-gray-400 italic">No meeting link provided yet</p>
+                        )}
+                      </div>
                     ) : (
-                      <p>{eventData.location?.address || "Address not specified"}</p>
+                      <div className="space-y-1">
+                        <p className="font-bold text-gray-900">{eventData.venue || "Venue TBA"}</p>
+                        {eventData.address && <p>{eventData.address}</p>}
+                        {(eventData.city || eventData.postcode) && (
+                          <p>{eventData.city}{eventData.city && eventData.postcode && ", "}{eventData.postcode}</p>
+                        )}
+                        {eventData.country && <p>{eventData.country}</p>}
+                        {!eventData.address && !eventData.city && !eventData.postcode && !eventData.venue && (
+                          <p className="text-xs text-gray-400 italic">Location details TBA</p>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -243,19 +267,21 @@ export default function FullEventPreview({ isOpen, onClose, onPublish, eventData
         </section>
 
         {/* Map Section */}
-        <section className="max-w-7xl mx-auto px-6 mb-12">
-          <div className="bg-white rounded-3xl shadow-xl p-8" id="map-section">
-            <h4 className="text-xl font-bold text-red-900 mb-6">Location Map</h4>
-            <div className="rounded-2xl overflow-hidden border border-gray-100">
-              <MapComponent
-                center={eventData.location?.geometry?.coordinates || [eventData.lng, eventData.lat]}
-                events={[{ ...eventData, location: { ...eventData.location, geometry: { coordinates: [eventData.lng, eventData.lat] } } }]}
-                height="400px"
-                containerClassName="w-full"
-              />
+        {eventData.eventType !== 'online' && (eventData.lng || eventData.location?.geometry?.coordinates?.[0]) && (
+          <section className="max-w-7xl mx-auto px-6 mb-12">
+            <div className="bg-white rounded-3xl shadow-xl p-8" id="map-section">
+              <h4 className="text-xl font-bold text-red-900 mb-6">Location Map</h4>
+              <div className="rounded-2xl overflow-hidden border border-gray-100">
+                <MapComponent
+                  center={eventData.location?.geometry?.coordinates || [eventData.lng, eventData.lat]}
+                  events={[{ ...eventData, location: { ...eventData.location, geometry: { coordinates: [eventData.lng, eventData.lat] } } }]}
+                  height="400px"
+                  containerClassName="w-full"
+                />
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <Footer />
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -287,8 +288,19 @@ export default function Contact() {
             <h2 className="mb-3 sm:mb-4 text-xl sm:text-2xl md:text-3xl">Still Have Questions?</h2>
             <p className="text-red-100 text-sm sm:text-base md:text-lg mb-6 sm:mb-8 max-w-2xl mx-auto px-2 sm:px-0">We're here to help! Reach out to our support team and we'll get back to you as soon as possible.</p>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
-              <button data-slot="button" className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-10 has-[>svg]:px-4 bg-white text-red-600 hover:bg-red-50 rounded-lg sm:rounded-xl px-6 sm:px-8 text-sm sm:text-base">Send a Message</button>
-              <button data-slot="button" className="bg-white inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 has-[>svg]:px-4 border-2 border-white text-[rgb(231,0,11)] hover:bg-white/10 rounded-lg sm:rounded-xl px-6 sm:px-8 text-sm sm:text-base">Learn More About Us</button>
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                data-slot="button"
+                className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive h-10 has-[>svg]:px-4 bg-white text-red-600 hover:bg-red-50 rounded-lg sm:rounded-xl px-6 sm:px-8 text-sm sm:text-base"
+              >
+                Send a Message
+              </button>
+              <Link
+                href="/aboutus"
+                className="bg-white inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive bg-background hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 h-10 has-[>svg]:px-4 border-2 border-white text-[rgb(231,0,11)] hover:bg-white/10 rounded-lg sm:rounded-xl px-6 sm:px-8 text-sm sm:text-base"
+              >
+                Learn More About Us
+              </Link>
             </div>
           </div>
         </div>
