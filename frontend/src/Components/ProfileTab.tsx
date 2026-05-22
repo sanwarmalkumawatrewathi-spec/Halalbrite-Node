@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/authContext";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import CustomModal from "./CustomModal";
 import { getImageUrl } from "@/utils/imageUtils";
 import Cropper from 'react-easy-crop';
@@ -23,6 +23,11 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
 
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user?.avatar || null);
   const [avatarError, setAvatarError] = useState(false);
+
+  // Reset avatar error status when the user's avatar image updates
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.avatar, avatarPreview]);
 
   // Cropper State
   const [imageSrc, setImageSrc] = useState<string | null>(null);

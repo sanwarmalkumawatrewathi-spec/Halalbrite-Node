@@ -8,6 +8,7 @@ import Link from "next/link";
 import { getImageUrl } from "@/utils/imageUtils";
 import { useCurrency } from "@/context/CurrencyContext";
 import { useAuth } from "@/context/authContext";
+import EventCard from "@/Components/EventCard";
 
 interface Organiser {
   _id: string;
@@ -265,46 +266,27 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
           </div>
 
           {/* Event Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {events.length > 0 ? (
               events.map((event) => (
-                <Link href={`/event/${event.slug || event._id}`} key={event._id} className="group bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 flex flex-col">
-                  <div className="relative h-64 overflow-hidden">
-                    <img src={getImageUrl(event.thumbnail || event.banner)} alt={event.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                    <div className="absolute top-5 left-5 bg-white px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest text-gray-900 shadow-sm border border-gray-100">
-                      {event.category?.name || "Event"}
-                    </div>
-                  </div>
-                  
-                  <div className="p-8 flex-1 flex flex-col">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-[#d32f2f] transition-colors line-clamp-2 min-h-[3.5rem]">
-                      {event.title}
-                    </h3>
-                    
-                    <div className="space-y-3 mb-8">
-                      <div className="flex items-center gap-3 text-sm font-semibold text-gray-500">
-                        <FiCalendar className="text-[#d32f2f] text-lg shrink-0" />
-                        <span>{new Date(event.startDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} at {event.startTime}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm font-semibold text-gray-500">
-                        <FiMapPin className="text-[#d32f2f] text-lg shrink-0" />
-                        <span>{event.location?.city}, {event.location?.country}</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-auto pt-6 border-t border-gray-50 flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5">Tickets from</p>
-                        <p className="text-xl font-black text-gray-900">
-                          {event.ticketTypes?.[0]?.price ? formatPrice(event.ticketTypes[0].price) : 'Free'}
-                        </p>
-                      </div>
-                      <button className="bg-[#d32f2f] text-white px-6 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-red-100 group-hover:scale-105 transition-all">
-                        Get Tickets
-                      </button>
-                    </div>
-                  </div>
-                </Link>
+                <EventCard
+                  key={event._id}
+                  id={event._id}
+                  slug={event.slug}
+                  title={event.title}
+                  organizer={displayName}
+                  organizerId={organiser._id}
+                  organizerSlug={organiser.slug}
+                  startDate={event.startDate}
+                  endDate={event.endDate}
+                  startTime={event.startTime}
+                  endTime={event.endTime}
+                  location={`${event.location?.city || "Online"}`}
+                  price={event.price ?? event.ticketTypes?.[0]?.price ?? 0}
+                  priceLabel={event.priceLabel}
+                  image={event.thumbnail || event.banner}
+                  category={event.category?.name || "Event"}
+                />
               ))
             ) : (
               <div className="col-span-full py-24 text-center bg-white rounded-[3rem] border-2 border-dashed border-gray-100 shadow-sm">

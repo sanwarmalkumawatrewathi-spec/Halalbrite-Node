@@ -14,6 +14,9 @@ const {
     getInquiries,
     getFAQs,
     getOrders,
+    exportOrdersCSV,
+    exportUsersCSV,
+    exportEventsCSV,
     getOrderDetail,
     getFAQForm,
     saveFAQ,
@@ -96,6 +99,9 @@ router.get('/cms', protectAdminView, getCMS);
 router.get('/inquiries', protectAdminView, getInquiries);
 router.get('/faqs', protectAdminView, getFAQs);
 router.get('/orders', protectAdminView, getOrders);
+router.get('/orders/export', protectAdminView, exportOrdersCSV);
+router.get('/users/export', protectAdminView, exportUsersCSV);
+router.get('/events/export', protectAdminView, exportEventsCSV);
 router.get('/orders/view/:id', protectAdminView, getOrderDetail);
 router.post('/orders/mark-paid/:id', protectAdminView, markOrderPaid);
 

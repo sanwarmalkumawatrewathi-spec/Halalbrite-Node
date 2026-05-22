@@ -62,10 +62,16 @@
                                         </td>
                                         <td style="padding: 16px 24px;">
                                             <div class="flex justify-end gap-3">
-                                                <a href="/admin/stripe/login-link/<%= org._id %>" target="_blank"
-                                                    class="text-indigo-600"
-                                                    style="font-weight: 700; font-size: 0.85rem;"
-                                                    title="Dashboard">Dashboard</a>
+                                                <% if (org.accountId || org.stripeConnectedId || org.stripe_account_id) { %>
+                                                    <a href="/admin/stripe/login-link/<%= org._id %>" target="_blank"
+                                                        class="text-indigo-600"
+                                                        style="font-weight: 700; font-size: 0.85rem;"
+                                                        title="Dashboard">Dashboard</a>
+                                                <% } else { %>
+                                                    <span class="text-slate-400 cursor-not-allowed"
+                                                        style="font-weight: 700; font-size: 0.85rem;"
+                                                        title="No Stripe account connected">Dashboard</span>
+                                                <% } %>
                                                 <a href="/admin/stripe/transactions?organizer=<%= org._id %>"
                                                     class="text-slate-600" style="font-weight: 700; font-size: 0.85rem;"
                                                     title="History">History</a>

@@ -113,11 +113,14 @@ export default function Signuppage() {
         {/* Logo and Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4 cursor-pointer hover:opacity-80 transition-opacity">
-            <svg viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-32 h-32">
-              <text x="50" y="60" textAnchor="middle" fill="#DC2626" fontSize="60" fontFamily="cursive, 'Apple Chancery', 'Comic Sans MS', fantasy" fontWeight="700" strokeWidth="2.5" stroke="#DC2626" paintOrder="stroke">H</text>
-              <circle cx="50" cy="38" r="3" fill="#EF4444"></circle>
-              <text x="50" y="92" textAnchor="middle" fill="#DC2626" fontSize="24" fontFamily="'Trebuchet MS', 'Arial Rounded MT Bold', Verdana, sans-serif" fontWeight="700">Halalbrite</text>
-            </svg>
+            <Link href="/">
+              <img
+                src="/images/logo.png"
+                alt="Logo"
+                className="h-20 w-auto object-contain"
+                style={{ filter: 'brightness(0) saturate(100%) invert(21%) sepia(84%) saturate(5947%) hue-rotate(354deg) brightness(93%) contrast(92%)' }}
+              />
+            </Link>
           </div>
           <p className="text-gray-600">Connect with your community</p>
         </div>

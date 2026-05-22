@@ -124,9 +124,8 @@ export default function EventCard({
         {/* Date */}
         <div className="flex items-start gap-2 text-gray-500 text-[11px] leading-tight">
           <Calendar size={14} className="text-red-600 mt-0.5 flex-shrink-0" />
-          <div className="flex flex-row flex-wrap items-center gap-x-2 gap-y-0.5 sm:flex-col sm:items-start sm:gap-1">
+          <div className="flex flex-col items-start gap-1">
             <p className="flex gap-1 items-center text-[12px]"><span className="text-[13px] font-bold text-gray-700">Start:</span> {formatEventDate(startDate, startTime)}</p>
-            <span className="inline sm:hidden text-gray-300">|</span>
             <p className="flex gap-1 items-center text-[12px]"><span className="text-[13px] font-bold text-gray-700">End:</span> {formatEventDate(endDate, endTime)}</p>
           </div>
         </div>

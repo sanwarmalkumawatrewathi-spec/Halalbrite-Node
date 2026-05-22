@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import OverviewTab from "../Components/OverviewTab";
 import CustomersTab from "../Components/CustomersTab";
 import EventsTab from "../Components/EventsTab";
@@ -14,6 +14,8 @@ import { FiTrendingUp } from "react-icons/fi";
 
 export default function DashboardTab() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("Overview");
   const [isTabLoading, setIsTabLoading] = useState(false);
 
@@ -21,15 +23,8 @@ export default function DashboardTab() {
     const paramTab = searchParams.get("tab");
     if (paramTab) {
       setActiveTab(paramTab);
-      localStorage.setItem("last_organizer_tab", paramTab);
     } else {
-      const storedTab = localStorage.getItem("last_organizer_tab");
-      if (storedTab) {
-        setActiveTab(storedTab);
-        const url = new URL(window.location.href);
-        url.searchParams.set("tab", storedTab);
-        window.history.replaceState(null, "", url.toString());
-      }
+      setActiveTab("Overview");
     }
   }, [searchParams]);
 
@@ -37,11 +32,10 @@ export default function DashboardTab() {
     if (tabName === activeTab) return;
     setIsTabLoading(true);
     setActiveTab(tabName);
-    localStorage.setItem("last_organizer_tab", tabName);
 
-    const url = new URL(window.location.href);
-    url.searchParams.set("tab", tabName);
-    window.history.replaceState(null, "", url.toString());
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tabName);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
 
     setTimeout(() => {
       setIsTabLoading(false);

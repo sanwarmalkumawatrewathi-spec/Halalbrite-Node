@@ -90,6 +90,7 @@ export default function MapComponent(props: MapComponentProps) {
 
 function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventId, height = "500px", containerClassName = "rounded-2xl overflow-hidden shadow-xl max-w-7xl mx-auto border-4 border-white mb-20" }: MapComponentProps & { apiKey: string }) {
   const { formatPrice } = useCurrency();
+  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: apiKey,
@@ -98,6 +99,25 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
 
   const [selectedEvent, setSelectedEvent] = useState<MapEvent | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+
+  const getInitialCenter = () => {
+    if (center && center.length === 2) {
+      return { lat: center[1], lng: center[0] };
+    } else if (events && events.length > 0) {
+      const firstWithCoords = events.find((e) => e.location?.geometry?.coordinates);
+      if (firstWithCoords) {
+        const coords = firstWithCoords.location!.geometry!.coordinates;
+        return { lat: coords[1], lng: coords[0] };
+      }
+    }
+    return defaultCenter;
+  };
+
+  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>(getInitialCenter);
+  const [zoom, setZoom] = useState<number>(center ? 13 : 6);
+
+  const prevSelectedEventId = useRef<string | null | undefined>(selectedEventId);
+  const prevEvents = useRef<MapEvent[]>(events || []);
 
   // Sync selectedEvent with selectedEventId prop from parent
   useEffect(() => {
@@ -111,6 +131,40 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
     }
   }, [selectedEventId, events]);
 
+  useEffect(() => {
+    // 1. Center prop takes highest priority
+    if (center && center.length === 2) {
+      setMapCenter({ lat: center[1], lng: center[0] });
+      setZoom(13);
+    }
+    // 2. If selectedEventId changed to a truthy ID, center on that event
+    else if (selectedEventId && selectedEventId !== prevSelectedEventId.current) {
+      const selected = events?.find(e => e._id === selectedEventId);
+      const coords = selected?.location?.geometry?.coordinates;
+      if (coords && coords.length === 2) {
+        setMapCenter({ lat: coords[1], lng: coords[0] });
+        setZoom(13);
+      }
+    }
+    // 3. If selectedEventId did NOT just change from truthy to null,
+    // and events changed, center on the first event of the new list
+    else if (
+      (!selectedEventId) &&
+      (prevSelectedEventId.current === null) &&
+      (JSON.stringify(events?.map(e => e._id)) !== JSON.stringify(prevEvents.current?.map(e => e._id)))
+    ) {
+      const firstWithCoords = events?.find((e) => e.location?.geometry?.coordinates);
+      if (firstWithCoords) {
+        const coords = firstWithCoords.location!.geometry!.coordinates;
+        setMapCenter({ lat: coords[1], lng: coords[0] });
+        setZoom(6);
+      }
+    }
+
+    prevSelectedEventId.current = selectedEventId;
+    prevEvents.current = events || [];
+  }, [selectedEventId, center, events]);
+
   const onLoad = useCallback(function callback(map: google.maps.Map) {
     setMap(map);
   }, []);
@@ -119,22 +173,18 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
     setMap(null);
   }, []);
 
-  // Determine map center
-  const getCenter = () => {
-    if (center && center.length === 2) {
-      return { lat: center[1], lng: center[0] };
-    } else if (events && events.length > 0) {
-      const firstWithCoords = events.find((e) => e.location?.geometry?.coordinates);
-      if (firstWithCoords) {
-        const coords = firstWithCoords.location!.geometry!.coordinates;
-        return { lat: coords[1], lng: coords[0] };
+  const handleIdle = () => {
+    if (map) {
+      const currentCenter = map.getCenter();
+      const currentZoom = map.getZoom();
+      if (currentCenter) {
+        setMapCenter({ lat: currentCenter.lat(), lng: currentCenter.lng() });
+      }
+      if (currentZoom !== undefined) {
+        setZoom(currentZoom);
       }
     }
-    return defaultCenter;
   };
-
-  const mapCenter = getCenter();
-  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
 
   if (loadError) {
     return (
@@ -164,9 +214,10 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
       <GoogleMap
         mapContainerStyle={{ width: "100%", height }}
         center={mapCenter}
-        zoom={center ? 13 : 6}
+        zoom={zoom}
         onLoad={onLoad}
         onUnmount={onUnmount}
+        onIdle={handleIdle}
         options={{
           disableDefaultUI: false,
           zoomControl: true,

@@ -3,13 +3,13 @@ import { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
 import { useCurrency } from "@/context/CurrencyContext";
 
-export default function TicketSection({ 
-    tickets, 
+export default function TicketSection({
+    tickets,
     setTickets,
     eventStartDate,
     eventStartTime
-}: { 
-    tickets: any[], 
+}: {
+    tickets: any[],
     setTickets: any,
     eventStartDate?: string,
     eventStartTime?: string
@@ -75,7 +75,7 @@ export default function TicketSection({
             if (parts.length === 3) {
                 displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
             }
-            
+
             let displayTime = "";
             if (timeStr) {
                 const timeParts = timeStr.split(':');
@@ -106,10 +106,10 @@ export default function TicketSection({
         }
         // Use backend settings or fallbacks
         const feePercentage = settings?.feePercentage ?? 0;
-        const fixedFee = settings?.fixedFee ?? 0;
+        const fixedFee = (settings?.fixedFee ?? 0) * currentCurrency.rate;
         const vatRate = settings?.vatRate ?? 0;
         const stripePercentage = settings?.stripeFeePercentage ?? 3;
-        const fixedStripe = settings?.fixedStripeFee ?? 0.3;
+        const fixedStripe = (settings?.fixedStripeFee ?? 0.3) * currentCurrency.rate;
 
         const platform = price * (feePercentage / 100) + fixedFee;
         const vat = platform * (vatRate / 100);
@@ -278,7 +278,7 @@ export default function TicketSection({
                                 {Number(t.price) > 0 ? (
                                     <div className="space-y-2 text-xs">
                                         <div className="flex justify-between text-gray-600">
-                                            <span>Platform Fee ({settings?.feePercentage ?? 0}% + {currentCurrency.symbol}{settings?.fixedFee ?? 0})</span>
+                                            <span>Platform Fee ({settings?.feePercentage ?? 0}% + {currentCurrency.symbol}{((settings?.fixedFee ?? 0) * currentCurrency.rate).toFixed(2)})</span>
                                             <span>{currentCurrency.symbol}{fees.platform}</span>
                                         </div>
                                         <div className="flex justify-between text-gray-600">
@@ -286,7 +286,7 @@ export default function TicketSection({
                                             <span>{currentCurrency.symbol}{fees.vat}</span>
                                         </div>
                                         <div className="flex justify-between text-gray-600">
-                                            <span>Stripe Processing Fee ({settings?.stripeFeePercentage ?? 3}% + {currentCurrency.symbol}{settings?.fixedStripeFee ?? 0.3})</span>
+                                            <span>Stripe Processing Fee ({settings?.stripeFeePercentage ?? 3}% + {currentCurrency.symbol}{((settings?.fixedStripeFee ?? 0.3) * currentCurrency.rate).toFixed(2)})</span>
                                             <span>{currentCurrency.symbol}{fees.stripe}</span>
                                         </div>
                                         <div className="flex justify-between font-bold text-gray-900 border-t border-red-100 pt-2 mt-1">

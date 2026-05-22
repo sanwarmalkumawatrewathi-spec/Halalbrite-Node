@@ -12,9 +12,11 @@ import BecomeOrganizerModal from "./EventPublishing/BecomeOrganizerModal";
 import PublishSuccess from "./EventPublishing/PublishSuccess";
 import { useRouter } from "next/navigation";
 import CreateOrganisationModal from "@/Components/CreateOrganisationModal";
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function EventForm({ editId }: { editId?: string | null }) {
     const { user, isOrganizer, becomeOrganizer, isStripeConnected } = useAuth();
+    const { currentCurrency } = useCurrency();
     const router = useRouter();
     const isEditMode = !!editId;
     const todayStr = (() => {
@@ -215,8 +217,10 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                         const mappedTickets = ev.ticketTypes.map((t: any) => {
                             const startD = t.saleStart ? new Date(t.saleStart) : null;
                             const endD = t.saleEnd ? new Date(t.saleEnd) : null;
+                            const priceInActiveCurrency = t.price ? Number((Number(t.price) * currentCurrency.rate).toFixed(2)) : 0;
                             return {
                                 ...t,
+                                price: priceInActiveCurrency,
                                 saleStartDate: toDateStr(startD),
                                 saleStartTime: toTimeStr(startD),
                                 saleEndDate: toDateStr(endD),
@@ -472,8 +476,10 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             const formattedTickets = tickets.map(t => {
                 const saleStart = t.saleStartDate && t.saleStartTime ? `${t.saleStartDate}T${t.saleStartTime}:00` : null;
                 const saleEnd = t.saleEndDate && t.saleEndTime ? `${t.saleEndDate}T${t.saleEndTime}:00` : null;
+                const priceInBase = t.price ? Number((Number(t.price) / currentCurrency.rate).toFixed(2)) : 0;
                 return {
                     ...t,
+                    price: priceInBase,
                     saleStart,
                     saleEnd
                 };

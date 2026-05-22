@@ -8,6 +8,7 @@ import { getImageUrl } from "@/utils/imageUtils";
 import dynamic from 'next/dynamic';
 import Footer from '@/Components/Footer';
 import TicketSelection from '@/Components/TicketSelection';
+import { useCurrency } from '@/context/CurrencyContext';
 const MapComponent = dynamic(() => import("@/Components/MapComponent"), { ssr: false });
 
 interface FullEventPreviewProps {
@@ -21,6 +22,7 @@ interface FullEventPreviewProps {
 }
 
 export default function FullEventPreview({ isOpen, onClose, onPublish, eventData, tickets, organisations, isEditMode }: FullEventPreviewProps) {
+  const { currentCurrency } = useCurrency();
   if (!isOpen) return null;
 
   const scrollToSection = (id: string) => {
@@ -186,7 +188,7 @@ export default function FullEventPreview({ isOpen, onClose, onPublish, eventData
                     return {
                       ...t,
                       _id: t._id || `preview-${i}`,
-                      price: Number(t.price) || 0,
+                      price: (Number(t.price) || 0) / currentCurrency.rate,
                       quantity: Number(t.quantity) || 0,
                       description: t.description || "No description provided.",
                       saleStart: startStr,

@@ -1,3 +1,8 @@
+<%
+  const filtersObj = typeof filters !== 'undefined' ? filters : { search: '', event: '', status: '', minAmount: '', maxAmount: '' };
+  const eventsListArr = typeof eventsList !== 'undefined' ? eventsList : [];
+  const queryStr = typeof queryString !== 'undefined' ? queryString : '';
+%>
 <div class="form-header-premium">
     <div class="header-left">
         <h1 class="page-title">All Orders & Ticket Sales</h1>
@@ -5,9 +10,76 @@
                 orders.length %>
         </p>
     </div>
+    <div class="header-right">
+        <a href="/admin/orders/export<%= queryStr ? '?' + queryStr : '' %>" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-file-csv"></i> Export to CSV
+        </a>
+    </div>
 </div>
 
 <div class="form-container">
+    <!-- Premium Search & Filter Bar -->
+    <form method="GET" action="/admin/orders" class="bg-[var(--card-bg)] border-b border-[var(--border-color)] p-4 sm:p-6 mb-6 rounded-2xl border border-[var(--border-color)]">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            <!-- Search bar -->
+            <div class="md:col-span-3">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Search Order/Customer</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[var(--text-muted)]">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="search" value="<%= filtersObj.search %>" placeholder="Search by name, email or reference..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)]" />
+                </div>
+            </div>
+
+            <!-- Event Filter -->
+            <div class="md:col-span-3">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Event</label>
+                <select name="event" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)] cursor-pointer">
+                    <option value="" class="bg-[var(--card-bg)] text-[var(--text-main)]">All Events</option>
+                    <% eventsListArr.forEach(evt => { %>
+                        <option value="<%= evt._id %>" <%= filtersObj.event === evt._id.toString() ? 'selected' : '' %> class="bg-[var(--card-bg)] text-[var(--text-main)]"><%= evt.title %></option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Status</label>
+                <select name="status" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)] cursor-pointer">
+                    <option value="" class="bg-[var(--card-bg)] text-[var(--text-main)]">All Statuses</option>
+                    <option value="paid" <%= filtersObj.status === 'paid' ? 'selected' : '' %> class="bg-[var(--card-bg)] text-[var(--text-main)]">Paid</option>
+                    <option value="pending" <%= filtersObj.status === 'pending' ? 'selected' : '' %> class="bg-[var(--card-bg)] text-[var(--text-main)]">Pending</option>
+                    <option value="free" <%= filtersObj.status === 'free' ? 'selected' : '' %> class="bg-[var(--card-bg)] text-[var(--text-main)]">Free</option>
+                    <option value="cancelled" <%= filtersObj.status === 'cancelled' ? 'selected' : '' %> class="bg-[var(--card-bg)] text-[var(--text-main)]">Cancelled</option>
+                    <option value="refunded" <%= filtersObj.status === 'refunded' ? 'selected' : '' %> class="bg-[var(--card-bg)] text-[var(--text-main)]">Refunded</option>
+                </select>
+            </div>
+
+            <!-- Min Amount Filter -->
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Min Price</label>
+                <input type="number" step="0.01" name="minAmount" value="<%= filtersObj.minAmount %>" placeholder="e.g. 10" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)]" />
+            </div>
+
+            <!-- Max Amount Filter -->
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Max Price</label>
+                <input type="number" step="0.01" name="maxAmount" value="<%= filtersObj.maxAmount %>" placeholder="e.g. 100" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)]" />
+            </div>
+        </div>
+        
+        <div class="flex flex-wrap gap-2 mt-4 justify-end">
+            <% if (filtersObj.search || filtersObj.event || filtersObj.status || filtersObj.minAmount || filtersObj.maxAmount) { %>
+                <a href="/admin/orders" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[var(--text-main)] font-semibold text-sm transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Reset
+                </a>
+            <% } %>
+            <button type="submit" class="px-5 py-2 rounded-lg bg-primary hover:bg-primary/95 text-white font-semibold text-sm transition-all shadow-md shadow-primary/10 flex items-center gap-2">
+                <i class="fa-solid fa-filter"></i> Apply Filters
+            </button>
+        </div>
+    </form>
     <div class="form-section-card">
         <div class="table-responsive">
             <table class="modern-table">
@@ -18,6 +90,7 @@
                         <th>Ticket Details</th>
                         <th>Amount</th>
                         <th>Revenue Split</th>
+                        <th>Date & Time</th>
                         <th>Status</th>
                         <th class="text-right">Actions</th>
                     </tr>
@@ -25,7 +98,7 @@
                 <tbody>
                     <% if (orders.length===0) { %>
                         <tr>
-                            <td colspan="7" class="text-center py-12 text-slate-400">
+                            <td colspan="8" class="text-center py-12 text-slate-400">
                                 <i class="fa-solid fa-receipt text-4xl block mb-4 opacity-20"></i>
                                 No orders found yet.
                             </td>
@@ -72,6 +145,14 @@
                                         </div>
                                     </td>
                                     <td>
+                                        <span class="text-slate-700 text-sm font-semibold">
+                                            <%= order.createdAt ? new Date(order.createdAt).toLocaleString('en-GB', { 
+                                                day: '2-digit', month: 'short', year: 'numeric',
+                                                hour: '2-digit', minute: '2-digit' 
+                                            }) : 'N/A' %>
+                                        </span>
+                                    </td>
+                                    <td>
                                         <span
                                             class="badge badge-premium <%= order.payment_status === 'paid' ? 'badge-success' : 'badge-warning' %>">
                                             <%= order.payment_status %>
@@ -104,14 +185,14 @@
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <% if (typeof currentPage !=='undefined' && currentPage> 1) { %>
-                            <a href="/admin/orders?page=<%= currentPage - 1 %>"
+                            <a href="/admin/orders?page=<%= currentPage - 1 %><%= queryStr ? '&' + queryStr : '' %>"
                                 class="btn btn-outline btn-sm">Previous</a>
                             <% } %>
 
                                 <% if (typeof currentPage !=='undefined' && typeof totalPages !=='undefined' ) { %>
                                     <% for(let i=Math.max(1, currentPage - 2); i <=Math.min(totalPages, currentPage +
                                         2); i++) { %>
-                                        <a href="/admin/orders?page=<%= i %>"
+                                        <a href="/admin/orders?page=<%= i %><%= queryStr ? '&' + queryStr : '' %>"
                                             class="btn btn-sm <%= i === currentPage ? 'btn-primary' : 'btn-outline' %>">
                                             <%= i %>
                                         </a>
@@ -120,7 +201,7 @@
 
                                                 <% if (typeof currentPage !=='undefined' && typeof totalPages
                                                     !=='undefined' && currentPage < totalPages) { %>
-                                                    <a href="/admin/orders?page=<%= currentPage + 1 %>"
+                                                    <a href="/admin/orders?page=<%= currentPage + 1 %><%= queryStr ? '&' + queryStr : '' %>"
                                                         class="btn btn-outline btn-sm">Next</a>
                                                     <% } %>
                     </div>

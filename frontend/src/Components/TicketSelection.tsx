@@ -184,7 +184,7 @@ export default function TicketSelection({ tickets, eventId, eventEndDate }: Tick
           const count = qty[ticket._id] || 0;
           const isProcessing = loading === ticket._id;
           const feeData = calcFees(ticket.price);
-          
+
           const { hasEventEnded, isSaleStarted, isSaleEnded, isTicketSoldOut, isAvailable } = getTicketStatus(ticket);
 
           // Display price with fees if ticket.chargeCustomer is true or undefined (default)
@@ -193,11 +193,10 @@ export default function TicketSelection({ tickets, eventId, eventEndDate }: Tick
           return (
             <div
               key={ticket._id}
-              className={`group bg-white p-6 rounded-3xl border transition-all duration-300 ${
-                isAvailable 
-                  ? "border-gray-100 hover:border-red-100 hover:shadow-xl hover:shadow-red-50/50" 
+              className={`group bg-white p-6 rounded-3xl border transition-all duration-300 ${isAvailable
+                  ? "border-gray-100 hover:border-red-100 hover:shadow-xl hover:shadow-red-50/50"
                   : "border-gray-200 opacity-60 bg-gray-50/50"
-              }`}
+                }`}
             >
               {/* TOP INFO */}
               <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
@@ -219,7 +218,7 @@ export default function TicketSelection({ tickets, eventId, eventEndDate }: Tick
                       </span>
                     )}
                   </div>
-                  
+
                   {/* Status Labels (e.g. Left count, Sales End date) */}
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 justify-start md:justify-end">
                     {isAvailable && (
@@ -277,11 +276,10 @@ export default function TicketSelection({ tickets, eventId, eventEndDate }: Tick
                   <button
                     disabled={!isAvailable || count >= ticket.quantity}
                     onClick={() => handleChange(ticket._id, "inc")}
-                    className={`w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-600 font-bold transition-all shadow-sm ${
-                      !isAvailable || count >= ticket.quantity 
-                        ? 'opacity-30 cursor-not-allowed' 
+                    className={`w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-600 font-bold transition-all shadow-sm ${!isAvailable || count >= ticket.quantity
+                        ? 'opacity-30 cursor-not-allowed'
                         : 'hover:bg-red-50 hover:text-red-600 hover:border-red-100'
-                    }`}
+                      }`}
                   >
                     +
                   </button>
@@ -291,13 +289,12 @@ export default function TicketSelection({ tickets, eventId, eventEndDate }: Tick
                 <button
                   disabled={isProcessing || !isAvailable}
                   onClick={() => handleBuyNow(ticket)}
-                  className={`flex-1 relative overflow-hidden py-4 rounded-2xl font-bold text-white transition-all duration-300 transform h-[48px] active:scale-95 flex items-center justify-center ${
-                    isProcessing || !isAvailable
+                  className={`flex-1 relative overflow-hidden py-4 rounded-2xl font-bold text-white transition-all duration-300 transform h-[48px] active:scale-95 flex items-center justify-center ${isProcessing || !isAvailable
                       ? "bg-gray-300 cursor-not-allowed text-gray-500 shadow-none border-0"
                       : (selectedTicketTypes.length > 1
                         ? "bg-[#c5c9d1] hover:bg-gray-400"
                         : (count > 0 ? "bg-red-600 hover:bg-red-700 shadow-lg shadow-red-100" : "bg-[#f28e9d] hover:bg-red-600"))
-                  }`}
+                    }`}
                 >
                   {isProcessing ? (
                     <div className="flex items-center gap-2">

@@ -145,6 +145,22 @@ function SuccessContent() {
         }
     };
 
+    const formatEventDate = (dateStr: any, timeStr?: string) => {
+        if (!dateStr) return "";
+        try {
+            const date = new Date(dateStr);
+            const datePart = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            const dayPart = date.toLocaleDateString('en-US', { weekday: 'short' });
+            return `${datePart} • ${dayPart} ${timeStr || ""}`;
+        } catch (e) {
+            return "";
+        }
+    };
+
     const startDateRaw = eventObj?.startDate || booking.event_date;
     const endDateRaw = eventObj?.endDate || startDateRaw;
     const startTimeRaw = eventObj?.startTime || (booking.event_time && booking.event_time !== "TBA" ? booking.event_time.split(' - ')[0] : 'N/A');
@@ -190,7 +206,7 @@ function SuccessContent() {
                     {/* TOP CONFIRMATION BANNER */}
                     <div className="bg-red-600 p-10 text-white text-center relative overflow-hidden">
                         <div className="flex justify-center mb-6">
-                            <img src="/images/logo.png" alt="Halalbrite Logo" className="h-16 w-auto object-contain" />
+                            <img src="/images/logo.png" alt="Halalbrite Logo" className="h-24 w-auto object-contain" />
                         </div>
                         <h1 className="text-3xl font-bold mb-3 tracking-tight">Booking Confirmed!</h1>
                         <p className="text-red-100 text-sm font-medium">Your tickets have been sent to {booking.customer_email}</p>
@@ -212,18 +228,11 @@ function SuccessContent() {
                                     "Event Confirmed"}
                             </h2>
 
-                            <div className="grid grid-cols-2 gap-8">
-                                <div className="space-y-1.5">
-                                    <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Date</p>
-                                    <p className="text-sm font-bold text-gray-700">
-                                        {displayDate || 'N/A'}
-                                    </p>
-                                </div>
-                                <div className="space-y-1.5">
-                                    <p className="text-[10px] font-black text-red-400 uppercase tracking-widest">Time</p>
-                                    <p className="text-sm font-bold text-gray-700">
-                                        {displayTime}
-                                    </p>
+                            <div className="flex items-start gap-2.5 text-gray-700 text-sm font-semibold leading-tight">
+                                <Calendar size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                                <div className="flex flex-col items-start gap-1">
+                                    <p className="flex gap-1.5 items-center text-[12px]"><span className="text-[13px] font-bold text-gray-700">Start:</span> <span className="text-gray-500 font-medium">{formatEventDate(startDateRaw, startTimeRaw)}</span></p>
+                                    <p className="flex gap-1.5 items-center text-[12px]"><span className="text-[13px] font-bold text-gray-700">End:</span> <span className="text-gray-500 font-medium">{formatEventDate(endDateRaw, endTimeRaw)}</span></p>
                                 </div>
                             </div>
 

@@ -24,6 +24,11 @@ export default function Header() {
   const [showStripeModal, setShowStripeModal] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
+  // Reset avatar error status when user avatar changes (e.g. on new upload)
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.avatar]);
+
   // Prevent body scroll when menu is open
   useEffect(() => {
     if (isMenuOpen) {
@@ -148,7 +153,7 @@ export default function Header() {
                     </div>
                   )}
                   <span className="hidden sm:block text-sm font-medium text-gray-800">
-                    Salam {user.username ? user.username.split(" ")[0] : ""}
+                    Salam, {user.firstName || (user.username ? user.username.split(" ")[0] : "")}
                   </span>
                   <FaChevronDown className={`text-xs text-gray-600 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
                 </div>

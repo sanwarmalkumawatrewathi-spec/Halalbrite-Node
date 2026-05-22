@@ -17,7 +17,7 @@ textarea {
 }
 
 .logoside {
-    width: 70px;
+    width: 140px;
     height: auto;
 
 }
@@ -131,4 +131,31 @@ textarea {
 
 .prose a:hover, .prose-red a:hover {
     color: #991b1b; /* red-800 */
+}
+
+/* Google Maps InfoWindow Close Button Fix */
+.gm-style-iw button.gm-ui-hover-effect {
+  opacity: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: white !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+  width: 28px !important;
+  height: 28px !important;
+  padding: 0 !important;
+  top: 8px !important;
+  right: 8px !important;
+  z-index: 99999 !important;
+}
+
+.gm-style-iw button.gm-ui-hover-effect img,
+.gm-style-iw button.gm-ui-hover-effect svg,
+.gm-style-iw button.gm-ui-hover-effect span {
+  max-width: none !important;
+  width: 12px !important;
+  height: 12px !important;
+  margin: 0 !important;
+  display: block !important;
 }

@@ -266,24 +266,75 @@ exports.getUsers = async (req, res) => {
         const limit = 20;
         const skip = (page - 1) * limit;
 
-        const [users, total] = await Promise.all([
-            User.find()
+        const query = {};
+
+        // Search Username/Email
+        if (req.query.search && req.query.search.trim() !== '') {
+            const searchRegex = new RegExp(req.query.search.trim(), 'i');
+            query.$or = [
+                { username: searchRegex },
+                { email: searchRegex }
+            ];
+        }
+
+        // Role Filter
+        if (req.query.role && req.query.role.trim() !== '') {
+            query.roles = req.query.role;
+        }
+
+        // Status Filter
+        if (req.query.status && req.query.status.trim() !== '') {
+            query.status = req.query.status;
+        }
+
+        // Joined Date Filter
+        const hasJoinedFrom = req.query.joinedFrom && req.query.joinedFrom.trim() !== '';
+        const hasJoinedTo = req.query.joinedTo && req.query.joinedTo.trim() !== '';
+        if (hasJoinedFrom || hasJoinedTo) {
+            query.createdAt = {};
+            if (hasJoinedFrom) {
+                query.createdAt.$gte = new Date(req.query.joinedFrom);
+            }
+            if (hasJoinedTo) {
+                const endOfDay = new Date(req.query.joinedTo);
+                endOfDay.setHours(23, 59, 59, 999);
+                query.createdAt.$lte = endOfDay;
+            }
+        }
+
+        const [users, total, roles] = await Promise.all([
+            User.find(query)
                 .populate('roles')
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
-            User.countDocuments()
+            User.countDocuments(query),
+            Role.find().sort({ name: 1 })
         ]);
 
         const totalPages = Math.ceil(total / limit);
+
+        // Build query string for pagination links
+        const queryParams = { ...req.query };
+        delete queryParams.page;
+        const queryString = new URLSearchParams(queryParams).toString();
 
         res.render('pages/users', {
             activePage: 'users',
             admin: req.user,
             users,
+            roles,
             currentPage: page,
             totalPages,
-            totalRecords: total
+            totalRecords: total,
+            filters: {
+                search: req.query.search || '',
+                role: req.query.role || '',
+                status: req.query.status || '',
+                joinedFrom: req.query.joinedFrom || '',
+                joinedTo: req.query.joinedTo || ''
+            },
+            queryString
         });
     } catch (error) {
         res.status(500).send(error.message);
@@ -387,25 +438,92 @@ exports.getEvents = async (req, res) => {
         const limit = 20;
         const skip = (page - 1) * limit;
 
-        const [events, total] = await Promise.all([
-            Event.find()
+        const query = {};
+
+        // Search Title / Organizer name
+        if (req.query.search && req.query.search.trim() !== '') {
+            const searchRegex = new RegExp(req.query.search.trim(), 'i');
+            query.$or = [
+                { title: searchRegex },
+                { organizerName: searchRegex }
+            ];
+        }
+
+        // Category Filter
+        if (req.query.category && req.query.category.trim() !== '') {
+            query.category = req.query.category;
+        }
+
+        // Organizer Filter
+        if (req.query.organizer && req.query.organizer.trim() !== '') {
+            query.organizer = req.query.organizer;
+        }
+
+        // Status Filter
+        if (req.query.status && req.query.status.trim() !== '') {
+            query.status = req.query.status;
+        }
+
+        // Start Date Filter
+        const hasDateFrom = req.query.startDateFrom && req.query.startDateFrom.trim() !== '';
+        const hasDateTo = req.query.startDateTo && req.query.startDateTo.trim() !== '';
+        if (hasDateFrom || hasDateTo) {
+            query.startDate = {};
+            if (hasDateFrom) {
+                query.startDate.$gte = new Date(req.query.startDateFrom);
+            }
+            if (hasDateTo) {
+                const endOfDay = new Date(req.query.startDateTo);
+                endOfDay.setHours(23, 59, 59, 999);
+                query.startDate.$lte = endOfDay;
+            }
+        }
+
+        // Fetch categories & roles to resolve organizers
+        const [adminRole, organizerRole] = await Promise.all([
+            Role.findOne({ slug: 'administrator' }),
+            Role.findOne({ slug: 'organizer' })
+        ]);
+
+        const [events, total, categories, organizers] = await Promise.all([
+            Event.find(query)
                 .populate('category')
                 .populate('organizer', 'username')
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
-            Event.countDocuments()
+            Event.countDocuments(query),
+            Category.find().sort({ name: 1 }),
+            User.find({
+                roles: { $in: [adminRole?._id, organizerRole?._id].filter(id => id) }
+            }).select('username _id').sort({ username: 1 })
         ]);
 
         const totalPages = Math.ceil(total / limit);
+
+        // Build query string for pagination links
+        const queryParams = { ...req.query };
+        delete queryParams.page;
+        const queryString = new URLSearchParams(queryParams).toString();
 
         res.render('pages/events', {
             activePage: 'events',
             admin: req.user,
             events,
+            categories,
+            organizers,
             currentPage: page,
             totalPages,
-            totalRecords: total
+            totalRecords: total,
+            filters: {
+                search: req.query.search || '',
+                category: req.query.category || '',
+                organizer: req.query.organizer || '',
+                status: req.query.status || '',
+                startDateFrom: req.query.startDateFrom || '',
+                startDateTo: req.query.startDateTo || ''
+            },
+            queryString
         });
     } catch (error) {
         res.status(500).send(error.message);
@@ -534,30 +652,366 @@ exports.getOrders = async (req, res) => {
         const limit = 20;
         const skip = (page - 1) * limit;
 
-        const [orders, total] = await Promise.all([
-            Booking.find()
+        const query = {};
+
+        // Search: Customer name, email, or Booking Reference
+        if (req.query.search && req.query.search.trim() !== '') {
+            const searchRegex = new RegExp(req.query.search.trim(), 'i');
+            query.$or = [
+                { customer_name: searchRegex },
+                { customer_email: searchRegex },
+                { booking_reference: searchRegex }
+            ];
+        }
+
+        // Event filter
+        if (req.query.event && req.query.event.trim() !== '') {
+            query.event_id = req.query.event;
+        }
+
+        // Status filter
+        if (req.query.status && req.query.status.trim() !== '') {
+            query.payment_status = req.query.status;
+        }
+
+        // Amount filters
+        const hasMinAmount = req.query.minAmount && req.query.minAmount.trim() !== '';
+        const hasMaxAmount = req.query.maxAmount && req.query.maxAmount.trim() !== '';
+        if (hasMinAmount || hasMaxAmount) {
+            query.amount_total = {};
+            if (hasMinAmount) {
+                query.amount_total.$gte = parseFloat(req.query.minAmount);
+            }
+            if (hasMaxAmount) {
+                query.amount_total.$lte = parseFloat(req.query.maxAmount);
+            }
+        }
+
+        const [orders, total, eventsList] = await Promise.all([
+            Booking.find(query)
                 .populate('user_id', 'username email')
                 .populate('event_id', 'title')
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
-            Booking.countDocuments()
+            Booking.countDocuments(query),
+            Event.find().select('title _id').sort({ title: 1 })
         ]);
 
         const totalPages = Math.ceil(total / limit);
 
         // Auto-verify any pending orders found in the list
         await verifyPendingBookings(orders);
+
+        // Build query string for pagination links
+        const queryParams = { ...req.query };
+        delete queryParams.page;
+        const queryString = new URLSearchParams(queryParams).toString();
         
         res.render('pages/orders', {
             activePage: 'orders',
             admin: req.user,
             orders,
+            eventsList,
             currentPage: page,
             totalPages,
-            totalRecords: total
+            totalRecords: total,
+            filters: {
+                search: req.query.search || '',
+                event: req.query.event || '',
+                status: req.query.status || '',
+                minAmount: req.query.minAmount || '',
+                maxAmount: req.query.maxAmount || ''
+            },
+            queryString
         });
     } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
+// @desc    Export Orders to CSV
+// @route   GET /admin/orders/export
+exports.exportOrdersCSV = async (req, res) => {
+    console.log('📋 Admin: Exporting filtered orders to CSV...');
+    try {
+        const query = {};
+
+        // Search: Customer name, email, or Booking Reference
+        if (req.query.search && req.query.search.trim() !== '') {
+            const searchRegex = new RegExp(req.query.search.trim(), 'i');
+            query.$or = [
+                { customer_name: searchRegex },
+                { customer_email: searchRegex },
+                { booking_reference: searchRegex }
+            ];
+        }
+
+        // Event filter
+        if (req.query.event && req.query.event.trim() !== '') {
+            query.event_id = req.query.event;
+        }
+
+        // Status filter
+        if (req.query.status && req.query.status.trim() !== '') {
+            query.payment_status = req.query.status;
+        }
+
+        // Amount filters
+        const hasMinAmount = req.query.minAmount && req.query.minAmount.trim() !== '';
+        const hasMaxAmount = req.query.maxAmount && req.query.maxAmount.trim() !== '';
+        if (hasMinAmount || hasMaxAmount) {
+            query.amount_total = {};
+            if (hasMinAmount) {
+                query.amount_total.$gte = parseFloat(req.query.minAmount);
+            }
+            if (hasMaxAmount) {
+                query.amount_total.$lte = parseFloat(req.query.maxAmount);
+            }
+        }
+
+        const orders = await Booking.find(query)
+            .populate('user_id', 'username email')
+            .populate('event_id', 'title')
+            .sort({ createdAt: -1 });
+
+        const headers = [
+            'Booking Reference',
+            'Customer Name',
+            'Customer Email',
+            'Customer Phone',
+            'Event Title',
+            'Ticket Name',
+            'Quantity',
+            'Amount Total',
+            'Platform Fee',
+            'Organizer Amount',
+            'Currency',
+            'Payment Status',
+            'Transaction Date'
+        ];
+
+        const clean = (val) => {
+            if (val === undefined || val === null) return '""';
+            let str = String(val).replace(/"/g, '""');
+            return `"${str}"`;
+        };
+
+        const rows = orders.map(order => {
+            const customerName = order.customer_name || (order.user_id ? order.user_id.username : 'Guest');
+            const customerEmail = order.customer_email || (order.user_id ? order.user_id.email : '');
+            const customerPhone = order.customer_phone || '';
+            const eventTitle = order.event_id ? order.event_id.title : (order.event_name || 'Deleted Event');
+            const dateStr = order.createdAt ? new Date(order.createdAt).toISOString() : '';
+
+            return [
+                clean(order.booking_reference),
+                clean(customerName),
+                clean(customerEmail),
+                clean(customerPhone),
+                clean(eventTitle),
+                clean(order.ticket_name),
+                order.quantity || 0,
+                order.amount_total || 0,
+                order.platform_fee || 0,
+                order.organizer_amount || 0,
+                clean(order.currency || 'GBP'),
+                clean(order.payment_status),
+                clean(dateStr)
+            ].join(',');
+        });
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=orders_export_${Date.now()}.csv`);
+        res.status(200).send(csvContent);
+    } catch (error) {
+        console.error('❌ Error exporting CSV:', error);
+        res.status(500).send(error.message);
+    }
+};
+
+// @desc    Export Users to CSV
+// @route   GET /admin/users/export
+exports.exportUsersCSV = async (req, res) => {
+    console.log('📋 Admin: Exporting filtered users to CSV...');
+    try {
+        const query = {};
+
+        // Role Filter
+        if (req.query.role && req.query.role.trim() !== '') {
+            query.roles = req.query.role;
+        }
+
+        // Status Filter
+        if (req.query.status && req.query.status.trim() !== '') {
+            query.status = req.query.status;
+        }
+
+        // Search Filter
+        if (req.query.search && req.query.search.trim() !== '') {
+            const searchRegex = new RegExp(req.query.search.trim(), 'i');
+            query.$or = [
+                { username: searchRegex },
+                { email: searchRegex }
+            ];
+        }
+
+        // Joined Date Filter
+        const hasJoinedFrom = req.query.joinedFrom && req.query.joinedFrom.trim() !== '';
+        const hasJoinedTo = req.query.joinedTo && req.query.joinedTo.trim() !== '';
+        if (hasJoinedFrom || hasJoinedTo) {
+            query.createdAt = {};
+            if (hasJoinedFrom) {
+                query.createdAt.$gte = new Date(req.query.joinedFrom);
+            }
+            if (hasJoinedTo) {
+                const endOfDay = new Date(req.query.joinedTo);
+                endOfDay.setHours(23, 59, 59, 999);
+                query.createdAt.$lte = endOfDay;
+            }
+        }
+
+        const users = await User.find(query)
+            .populate('roles', 'name slug')
+            .sort({ createdAt: -1 });
+
+        const headers = [
+            'Username',
+            'Email',
+            'Roles',
+            'Status',
+            'Stripe Account ID',
+            'Joined Date'
+        ];
+
+        const clean = (val) => {
+            if (val === undefined || val === null) return '""';
+            let str = String(val).replace(/"/g, '""');
+            return `"${str}"`;
+        };
+
+        const rows = users.map(user => {
+            const rolesStr = user.roles ? user.roles.map(r => r.name).join(', ') : '';
+            const stripeId = user.stripeConnectedId || user.stripe_account_id || '';
+            const dateStr = user.createdAt ? new Date(user.createdAt).toISOString() : '';
+
+            return [
+                clean(user.username),
+                clean(user.email),
+                clean(rolesStr),
+                clean(user.status || 'active'),
+                clean(stripeId),
+                clean(dateStr)
+            ].join(',');
+        });
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=users_export_${Date.now()}.csv`);
+        res.status(200).send(csvContent);
+    } catch (error) {
+        console.error('❌ Error exporting users CSV:', error);
+        res.status(500).send(error.message);
+    }
+};
+
+// @desc    Export Events to CSV
+// @route   GET /admin/events/export
+exports.exportEventsCSV = async (req, res) => {
+    console.log('📋 Admin: Exporting filtered events to CSV...');
+    try {
+        const query = {};
+
+        // Search Title / Organizer name
+        if (req.query.search && req.query.search.trim() !== '') {
+            const searchRegex = new RegExp(req.query.search.trim(), 'i');
+            query.$or = [
+                { title: searchRegex },
+                { organizerName: searchRegex }
+            ];
+        }
+
+        // Category Filter
+        if (req.query.category && req.query.category.trim() !== '') {
+            query.category = req.query.category;
+        }
+
+        // Organizer Filter
+        if (req.query.organizer && req.query.organizer.trim() !== '') {
+            query.organizer = req.query.organizer;
+        }
+
+        // Status Filter
+        if (req.query.status && req.query.status.trim() !== '') {
+            query.status = req.query.status;
+        }
+
+        // Start Date Filter
+        const hasDateFrom = req.query.startDateFrom && req.query.startDateFrom.trim() !== '';
+        const hasDateTo = req.query.startDateTo && req.query.startDateTo.trim() !== '';
+        if (hasDateFrom || hasDateTo) {
+            query.startDate = {};
+            if (hasDateFrom) {
+                query.startDate.$gte = new Date(req.query.startDateFrom);
+            }
+            if (hasDateTo) {
+                const endOfDay = new Date(req.query.startDateTo);
+                endOfDay.setHours(23, 59, 59, 999);
+                query.startDate.$lte = endOfDay;
+            }
+        }
+
+        const events = await Event.find(query)
+            .populate('category')
+            .populate('organizer', 'username')
+            .sort({ createdAt: -1 });
+
+        const headers = [
+            'Event Title',
+            'Organizer',
+            'Category',
+            'Start Date',
+            'End Date',
+            'Price Label',
+            'Status',
+            'Created Date'
+        ];
+
+        const clean = (val) => {
+            if (val === undefined || val === null) return '""';
+            let str = String(val).replace(/"/g, '""');
+            return `"${str}"`;
+        };
+
+        const rows = events.map(event => {
+            const organizerStr = event.organizer ? event.organizer.username : (event.organizerName || 'Deleted');
+            const categoryStr = event.category ? event.category.name : 'Uncategorized';
+            const startDateStr = event.startDate ? new Date(event.startDate).toISOString() : '';
+            const endDateStr = event.endDate ? new Date(event.endDate).toISOString() : '';
+            const createdStr = event.createdAt ? new Date(event.createdAt).toISOString() : '';
+
+            return [
+                clean(event.title),
+                clean(organizerStr),
+                clean(categoryStr),
+                clean(startDateStr),
+                clean(endDateStr),
+                clean(event.priceLabel || (event.price === 0 ? 'Free' : String(event.price))),
+                clean(event.status),
+                clean(createdStr)
+            ].join(',');
+        });
+
+        const csvContent = [headers.join(','), ...rows].join('\n');
+
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename=events_export_${Date.now()}.csv`);
+        res.status(200).send(csvContent);
+    } catch (error) {
+        console.error('❌ Error exporting events CSV:', error);
         res.status(500).send(error.message);
     }
 };
@@ -917,13 +1371,24 @@ exports.handleDelete = async (req, res) => {
 // @route   GET /admin/stripe/organizers
 exports.getStripeOrganizers = async (req, res) => {
     try {
-        // Find users who have connected Stripe (supporting both legacy and new field names)
-        const rawOrganizers = await User.find({
+        // Find organizer role ID
+        const organizerRole = await Role.findOne({ slug: 'organizer' });
+
+        // Find users who have the organizer role or have connected Stripe
+        const query = {
             $or: [
                 { stripe_account_id: { $exists: true, $ne: null, $ne: '' } },
                 { stripeConnectedId: { $exists: true, $ne: null, $ne: '' } }
             ]
-        }).select('username email stripe_account_id stripeConnectedId createdAt').sort({ createdAt: -1 });
+        };
+
+        if (organizerRole) {
+            query.$or.push({ roles: organizerRole._id });
+        }
+
+        const rawOrganizers = await User.find(query)
+            .select('username email stripe_account_id stripeConnectedId createdAt')
+            .sort({ createdAt: -1 });
 
         console.log(`🔍 Found ${rawOrganizers.length} raw organizers in DB`);
 
@@ -932,14 +1397,16 @@ exports.getStripeOrganizers = async (req, res) => {
             const orgObj = org.toObject();
             const accountId = org.stripeConnectedId || org.stripe_account_id;
 
-            // 1. Fetch Stripe Balance
+            // 1. Fetch Stripe Balance (safely check if account ID exists)
             let availableBalance = 0;
-            try {
-                const balance = await stripeService.getAccountBalance(accountId);
-                // Balance is an array of currencies
-                availableBalance = balance.available.reduce((sum, b) => sum + (b.amount / 100), 0);
-            } catch (err) {
-                console.error(`Could not fetch balance for ${accountId}:`, err.message);
+            if (accountId && accountId.trim() !== '') {
+                try {
+                    const balance = await stripeService.getAccountBalance(accountId);
+                    // Balance is an array of currencies
+                    availableBalance = balance.available.reduce((sum, b) => sum + (b.amount / 100), 0);
+                } catch (err) {
+                    console.error(`Could not fetch balance for ${accountId}:`, err.message);
+                }
             }
 
             // 2. Aggregate Total Earned (from Transactions)
@@ -956,8 +1423,8 @@ exports.getStripeOrganizers = async (req, res) => {
 
             return {
                 ...orgObj,
-                accountId: accountId,
-                stripeConnectedId: accountId, // Duplicate for template safety
+                accountId: accountId || null,
+                stripeConnectedId: accountId || null, // Duplicate for template safety
                 availableBalance: availableBalance || 0,
                 totalEarned: earnings[0]?.total || 0,
                 totalPayouts: payouts[0]?.total || 0

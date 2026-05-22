@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import MyTickets from "../Components/MyTickets";
 import SavedEvents from "../Components/SavedEvents";
 import SettingsTab from "../Components/SettingsTab";
@@ -53,31 +53,25 @@ const tabs = [
 
 export default function AccountTabs() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("profile");
 
   useEffect(() => {
     const paramTab = searchParams.get("tab");
     if (paramTab) {
       setActiveTab(paramTab);
-      localStorage.setItem("last_account_tab", paramTab);
     } else {
-      const storedTab = localStorage.getItem("last_account_tab");
-      if (storedTab) {
-        setActiveTab(storedTab);
-        const url = new URL(window.location.href);
-        url.searchParams.set("tab", storedTab);
-        window.history.replaceState(null, "", url.toString());
-      }
+      setActiveTab("profile");
     }
   }, [searchParams]);
 
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
-    localStorage.setItem("last_account_tab", tabId);
 
-    const url = new URL(window.location.href);
-    url.searchParams.set("tab", tabId);
-    window.history.replaceState(null, "", url.toString());
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tabId);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   return (
