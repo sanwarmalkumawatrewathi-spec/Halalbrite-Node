@@ -198,7 +198,7 @@ function SuccessContent() {
     };
 
     return (
-        <div className="bg-[#fff9fa]  font-sans">
+        <div className="bg-[#fff9fa]  font-sans success-page">
             <Header />
 
             <main className="max-w-xl mx-auto px-6 py-12">
@@ -206,7 +206,7 @@ function SuccessContent() {
                     {/* TOP CONFIRMATION BANNER */}
                     <div className="bg-red-600 p-10 text-white text-center relative overflow-hidden">
                         <div className="flex justify-center mb-6">
-                            <img src="/images/logo.png" alt="Halalbrite Logo" className="h-24 w-auto object-contain" />
+                            <img src="/images/logo.png" alt="Halalbrite Logo" className="h-48 w-auto object-contain" />
                         </div>
                         <h1 className="text-3xl font-bold mb-3 tracking-tight">Booking Confirmed!</h1>
                         <p className="text-red-100 text-sm font-medium">Your tickets have been sent to {booking.customer_email}</p>

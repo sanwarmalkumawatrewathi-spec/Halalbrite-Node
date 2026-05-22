@@ -17,9 +17,12 @@ textarea {
 }
 
 .logoside {
-    width: 140px;
+    width: 70px;
     height: auto;
+}
 
+.success-page .logoside {
+    width: 140px;
 }
 
 .logoside img {
