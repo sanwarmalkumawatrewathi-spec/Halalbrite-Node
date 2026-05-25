@@ -100,18 +100,13 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
   const [selectedEvent, setSelectedEvent] = useState<MapEvent | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
-  const getInitialCenter = () => {
-    if (center && center.length === 2) {
-      return { lat: center[1], lng: center[0] };
-    }
-    return defaultCenter;
-  };
-
-  const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>(getInitialCenter);
-  const [zoom, setZoom] = useState<number>(center ? 13 : 2);
-
-  const prevSelectedEventId = useRef<string | null | undefined>(selectedEventId);
-  const prevEvents = useRef<MapEvent[]>(events || []);
+  // Keep the initial center and zoom stable so GoogleMap never snaps back due to prop changes
+  const [initCenter] = useState(() => 
+    center && center.length === 2 
+      ? { lat: center[1], lng: center[0] } 
+      : defaultCenter
+  );
+  const [initZoom] = useState(() => center ? 13 : 2);
 
   // Sync selectedEvent with selectedEventId prop from parent
   useEffect(() => {
@@ -125,34 +120,26 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
     }
   }, [selectedEventId, events]);
 
+  // Handle programmatically panning/zooming the map when props change
   useEffect(() => {
-    // 1. Center prop takes highest priority
+    if (!map) return;
+
     if (center && center.length === 2) {
-      setMapCenter({ lat: center[1], lng: center[0] });
-      setZoom(13);
-    }
-    // 2. If selectedEventId changed to a truthy ID, center on that event
-    else if (selectedEventId && selectedEventId !== prevSelectedEventId.current) {
+      map.setCenter({ lat: center[1], lng: center[0] });
+      map.setZoom(13);
+    } else if (selectedEventId) {
       const selected = events?.find(e => e._id === selectedEventId);
       const coords = selected?.location?.geometry?.coordinates;
       if (coords && coords.length === 2) {
-        setMapCenter({ lat: coords[1], lng: coords[0] });
-        setZoom(13);
+        map.panTo({ lat: coords[1], lng: coords[0] });
+        map.setZoom(13);
       }
+    } else {
+      // Zoom out to show the whole world with all pins on it by default when no single event is selected
+      map.setCenter(defaultCenter);
+      map.setZoom(2);
     }
-    // 3. If selectedEventId did NOT just change from truthy to null,
-    // and events changed, do not auto-center/zoom into any event
-    else if (
-      (!selectedEventId) &&
-      (prevSelectedEventId.current === null) &&
-      (JSON.stringify(events?.map(e => e._id)) !== JSON.stringify(prevEvents.current?.map(e => e._id)))
-    ) {
-      // Keep showing the whole world map by default
-    }
-
-    prevSelectedEventId.current = selectedEventId;
-    prevEvents.current = events || [];
-  }, [selectedEventId, center, events]);
+  }, [selectedEventId, center, events, map]);
 
   const onLoad = useCallback(function callback(map: google.maps.Map) {
     setMap(map);
@@ -161,19 +148,6 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
   const onUnmount = useCallback(function callback(map: google.maps.Map) {
     setMap(null);
   }, []);
-
-  const handleIdle = () => {
-    if (map) {
-      const currentCenter = map.getCenter();
-      const currentZoom = map.getZoom();
-      if (currentCenter) {
-        setMapCenter({ lat: currentCenter.lat(), lng: currentCenter.lng() });
-      }
-      if (currentZoom !== undefined) {
-        setZoom(currentZoom);
-      }
-    }
-  };
 
   if (loadError) {
     return (
@@ -202,11 +176,10 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
     <div className={containerClassName}>
       <GoogleMap
         mapContainerStyle={{ width: "100%", height }}
-        center={mapCenter}
-        zoom={zoom}
+        center={initCenter}
+        zoom={initZoom}
         onLoad={onLoad}
         onUnmount={onUnmount}
-        onIdle={handleIdle}
         options={{
           disableDefaultUI: false,
           zoomControl: true,
@@ -221,7 +194,7 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
         {/* Display single center marker if provided AND no events are provided */}
         {center && (!events || events.length === 0) && (
           <Marker
-            position={mapCenter}
+            position={center && center.length === 2 ? { lat: center[1], lng: center[0] } : defaultCenter}
             icon={{
               path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
               fillColor: "#dc2626",
