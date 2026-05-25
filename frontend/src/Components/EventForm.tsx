@@ -299,6 +299,27 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                 if (!prev.endDate || prev.endDate < value) {
                     updated.endDate = value;
                 }
+                if (updated.endDate === value && updated.startTime && updated.endTime && updated.endTime < updated.startTime) {
+                    updated.endTime = updated.startTime;
+                }
+            }
+            if (name === "startTime") {
+                if (updated.startDate === updated.endDate && updated.endTime && updated.endTime < value) {
+                    updated.endTime = value;
+                }
+            }
+            if (name === "endDate") {
+                if (updated.startDate && value < updated.startDate) {
+                    updated.endDate = updated.startDate;
+                }
+                if (updated.startDate === updated.endDate && updated.startTime && updated.endTime && updated.endTime < updated.startTime) {
+                    updated.endTime = updated.startTime;
+                }
+            }
+            if (name === "endTime") {
+                if (updated.startDate === updated.endDate && updated.startTime && value < updated.startTime) {
+                    updated.endTime = updated.startTime;
+                }
             }
             return updated;
         });
@@ -350,6 +371,16 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             setStatus({ type: "error", message: `Please complete the following fields: ${missing.map(m => m.label).join(', ')}` });
             window.scrollTo({ top: 0, behavior: 'smooth' });
             return false;
+        }
+
+        if (form.startDate && form.startTime && form.endDate && form.endTime) {
+            const startDateTime = new Date(`${form.startDate}T${form.startTime}`);
+            const endDateTime = new Date(`${form.endDate}T${form.endTime}`);
+            if (endDateTime <= startDateTime) {
+                setStatus({ type: "error", message: "Event End Date & Time must be after Start Date & Time." });
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                return false;
+            }
         }
 
         if (form.eventType === 'in-person') {
@@ -841,6 +872,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                             <input
                                 type="time"
                                 name="endTime"
+                                min={form.startDate === form.endDate ? form.startTime : undefined}
                                 value={form.endTime}
                                 onChange={handleChange}
                                 className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"

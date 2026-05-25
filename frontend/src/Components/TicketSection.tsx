@@ -38,8 +38,29 @@ export default function TicketSection({
         updated[i][field] = value;
         if (field === "saleStartDate") {
             const currentEndDate = updated[i].saleEndDate;
-            if (currentEndDate && currentEndDate < value) {
+            if (!currentEndDate || currentEndDate < value) {
                 updated[i].saleEndDate = value;
+            }
+            if (updated[i].saleEndDate === value && updated[i].saleStartTime && updated[i].saleEndTime && updated[i].saleEndTime < updated[i].saleStartTime) {
+                updated[i].saleEndTime = updated[i].saleStartTime;
+            }
+        }
+        if (field === "saleStartTime") {
+            if (updated[i].saleStartDate === updated[i].saleEndDate && updated[i].saleEndTime && updated[i].saleEndTime < value) {
+                updated[i].saleEndTime = value;
+            }
+        }
+        if (field === "saleEndDate") {
+            if (updated[i].saleStartDate && value < updated[i].saleStartDate) {
+                updated[i].saleEndDate = updated[i].saleStartDate;
+            }
+            if (updated[i].saleStartDate === updated[i].saleEndDate && updated[i].saleStartTime && updated[i].saleEndTime && updated[i].saleEndTime < updated[i].saleStartTime) {
+                updated[i].saleEndTime = updated[i].saleStartTime;
+            }
+        }
+        if (field === "saleEndTime") {
+            if (updated[i].saleStartDate === updated[i].saleEndDate && updated[i].saleStartTime && value < updated[i].saleStartTime) {
+                updated[i].saleEndTime = updated[i].saleStartTime;
             }
         }
         setTickets(updated);
@@ -249,6 +270,7 @@ export default function TicketSection({
                                                 <input
                                                     type="time"
                                                     value={t.saleEndTime}
+                                                    min={t.saleStartDate === t.saleEndDate ? t.saleStartTime : undefined}
                                                     onChange={(e) => handleChange(i, "saleEndTime", e.target.value)}
                                                     className="w-full border borborder border-gray-100 rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-red-100 outline-none bg-white"
                                                 />
