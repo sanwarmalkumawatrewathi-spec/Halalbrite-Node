@@ -18,7 +18,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
     const { user, isOrganizer, becomeOrganizer, isStripeConnected } = useAuth();
     const { currentCurrency } = useCurrency();
     const router = useRouter();
-    const isEditMode = !!editId;
+    const isEditMode = !!editId && editId !== 'null' && editId !== 'undefined';
     const todayStr = (() => {
         const d = new Date();
         const year = d.getFullYear();
@@ -82,7 +82,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         address: "",
         city: "",
         postcode: "",
-        country: "UK",
+        country: "United Kingdom",
         meetingLink: "",
         bannerPreview: "",
         thumbnailPreview: "",
@@ -157,9 +157,52 @@ export default function EventForm({ editId }: { editId?: string | null }) {
         }
     }, [user]);
 
-    // Fetch existing event data when in edit mode
+    // Handle form reset when editId is not present, or fetch existing event data when in edit mode
     useEffect(() => {
-        if (!editId) return;
+        if (!editId || editId === 'null' || editId === 'undefined') {
+            // Reset to initial create state
+            setForm({
+                title: "",
+                category: "",
+                description: "",
+                organizer: user?._id || "",
+                organizerProfile: "",
+                organizerName: user?.username || "",
+                startDate: "",
+                endDate: "",
+                startTime: "",
+                endTime: "",
+                eventType: "in-person",
+                thumbnailType: "same",
+                thumbnail: null,
+                banner: null,
+                venue: "",
+                address: "",
+                city: "",
+                postcode: "",
+                country: "United Kingdom",
+                meetingLink: "",
+                bannerPreview: "",
+                thumbnailPreview: "",
+                lat: undefined,
+                lng: undefined,
+            });
+            setTickets([
+                {
+                    name: "General Admission",
+                    description: "Standard entry ticket",
+                    price: 0,
+                    quantity: 100,
+                    saleStartDate: "",
+                    saleStartTime: "",
+                    saleEndDate: "",
+                    saleEndTime: "",
+                    chargeCustomer: true,
+                },
+            ]);
+            return;
+        }
+
         const fetchEvent = async () => {
             try {
                 const baseUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/$/, "");
@@ -204,7 +247,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                         address: ev.location?.address || '',
                         city: ev.location?.city || '',
                         postcode: ev.location?.postcode || '',
-                        country: ev.location?.country || 'UK',
+                        country: ev.location?.country === 'UK' ? 'United Kingdom' : (ev.location?.country || 'United Kingdom'),
                         meetingLink: ev.meetingLink || '',
                         bannerPreview: ev.banner || '',
                         thumbnailPreview: ev.thumbnail || '',
@@ -236,7 +279,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
             }
         };
         fetchEvent();
-    }, [editId]);
+    }, [editId, user]);
 
     const fetchCategories = async () => {
         try {

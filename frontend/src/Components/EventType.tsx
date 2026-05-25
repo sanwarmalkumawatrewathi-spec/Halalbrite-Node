@@ -5,6 +5,38 @@ import { FiInstagram, FiYoutube, FiLink } from "react-icons/fi";
 
 const LIBRARIES: Libraries = ["places"];
 
+const COUNTRIES = [
+  "United Kingdom",
+  "Ireland",
+  "United States",
+  "Canada",
+  "Australia",
+  "New Zealand",
+  "Saudi Arabia",
+  "United Arab Emirates",
+  "Pakistan",
+  "Turkey",
+  "Malaysia",
+  "Indonesia",
+  "Singapore",
+  "Bangladesh",
+  "India",
+  "Egypt",
+  "Morocco",
+  "Germany",
+  "France",
+  "Spain",
+  "Italy",
+  "Netherlands",
+  "Belgium",
+  "Switzerland",
+  "Qatar",
+  "Kuwait",
+  "Oman",
+  "Bahrain",
+  "South Africa"
+];
+
 // Internal component that uses the Google Maps loader
 function EventTypeContent({
   apiKey,
@@ -20,6 +52,12 @@ function EventTypeContent({
   onlyLocation?: boolean
 }) {
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+
+  const countryOptions = [...COUNTRIES];
+  const displayCountry = form.country === 'UK' ? 'United Kingdom' : (form.country || '');
+  if (displayCountry && !countryOptions.includes(displayCountry)) {
+    countryOptions.push(displayCountry);
+  }
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
@@ -51,6 +89,7 @@ function EventTypeContent({
             place.address_components.find(c => c.types.includes("administrative_area_level_2"))?.long_name || "";
           postcode = place.address_components.find(c => c.types.includes("postal_code"))?.long_name || "";
           country = place.address_components.find(c => c.types.includes("country"))?.long_name || "";
+          if (country === "UK") country = "United Kingdom";
 
           const lat = place.geometry?.location?.lat();
           const lng = place.geometry?.location?.lng();
@@ -168,14 +207,22 @@ function EventTypeContent({
         </div>
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-gray-700">Country</label>
-          <input
-            type="text"
-            name="country"
-            value={form.country}
-            onChange={handleChange}
-            placeholder="United Kingdom"
-            className="w-full border borborder border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
-          />
+          <div className="relative">
+            <select
+              name="country"
+              value={displayCountry}
+              onChange={handleChange}
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none appearance-none transition-all bg-white"
+            >
+              <option value="">Select Country</option>
+              {countryOptions.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -29,7 +29,7 @@ export default function Footer() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                     <div className="sm:col-span-2 md:col-span-1">
                         <div className="flex items-center gap-2 mb-4 cursor-pointer hover:opacity-80 transition-opacity">
-                            <Link href="/" className="  logoside">
+                            <Link href="/" className="logoside" style={{ width: "84px" }}>
                                 <img src="/images/footer.png" alt="Logo" className="w-full img-fluid" />
                             </Link>
                         </div>

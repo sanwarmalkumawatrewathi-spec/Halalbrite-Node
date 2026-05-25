@@ -122,7 +122,11 @@ export default function Herosections({
           <div className='mt-8 relative z-[100] flex justify-center items-center'>
             <div className="relative w-full" ref={dropdownRef}>
               <button
-                onClick={() => setIsOpen(!isOpen)}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(!isOpen);
+                }}
                 className={`min-h-[32px] border border-gray-300 rounded-md bg-white cursor-pointer flex flex-wrap gap-1 items-center px-3 py-1.5 mt-2 opacity-90 w-full max-w-96 ${isOpen ? 'border-red-500 ring-4 ring-red-500/10' : 'border-transparent hover:bg-white'} group`}
               >
                 <LocationIcon size={22} className={`${selectedCities.length > 0 ? 'text-red-500' : 'text-gray-400'} group-hover:scale-110 transition-all`} />
@@ -162,7 +166,11 @@ export default function Herosections({
                         <div key={idx} className="border-b border-gray-50 last:border-0">
                           {/* Country Header */}
                           <button
-                            onClick={() => toggleCountry(countryData.country)}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleCountry(countryData.country);
+                            }}
                             className={`w-full px-5 py-4 flex items-center justify-between transition-all ${expandedCountry === countryData.country ? 'bg-red-50/30' : 'hover:bg-gray-50'}`}
                           >
                             <div className="flex items-center gap-3">
@@ -181,14 +189,17 @@ export default function Herosections({
                           </button>
 
                           {/* Cities Content */}
-                          <div className={`overflow-hidden transition-all duration-500 ${expandedCountry === countryData.country ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                            <div className="pb-2">
+                          {expandedCountry === countryData.country && (
+                            <div className="pb-2 bg-gray-50/20 border-t border-gray-100/50 animate-in fade-in duration-200">
                               {countryData.cities.map((city: any, cIdx: number) => {
                                 const isSelected = selectedCities.includes(city.name);
                                 return (
                                   <div
                                     key={cIdx}
-                                    onClick={() => handleToggleCity(city.name)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleCity(city.name);
+                                    }}
                                     className={`w-full px-12 py-3.5 text-left text-sm cursor-pointer flex items-center justify-between transition-all group ${isSelected ? 'bg-red-50/60' : 'hover:bg-gray-50/50'}`}
                                   >
                                     <div className="flex items-center gap-4">
@@ -212,7 +223,7 @@ export default function Herosections({
                                 );
                               })}
                             </div>
-                          </div>
+                          )}
                         </div>
                       ))
                     ) : (

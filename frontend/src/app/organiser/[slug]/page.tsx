@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useRef } from "react";
 import Header from "@/Components/Header";
 import Footer from "@/Components/Footer";
 import { FiGlobe, FiFacebook, FiInstagram, FiTwitter, FiYoutube, FiLinkedin, FiUsers, FiCalendar, FiMail, FiMapPin } from "react-icons/fi";
@@ -52,6 +52,15 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showFollowPrompt, setShowFollowPrompt] = useState(false);
   const [popupMessage, setPopupMessage] = useState<{ title?: string, content: string } | null>(null);
+  const [showSavedLink, setShowSavedLink] = useState(false);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const followTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (followTimerRef.current) clearTimeout(followTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     fetchOrganiser();
@@ -81,6 +90,7 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
   };
 
   const fetchEvents = async (type: "upcoming" | "past") => {
+    setEventsLoading(true);
     try {
       const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
       const res = await fetch(`${API_URL}/api/organizers/${slug}/events?type=${type}`);
@@ -88,6 +98,8 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
       setEvents(data.data || data);
     } catch (error) {
       console.error("Error fetching events:", error);
+    } finally {
+      setEventsLoading(false);
     }
   };
 
@@ -107,6 +119,11 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
       if (res.success) {
         setIsFollowing(!!res.isFollowing);
         setOrganiser(prev => prev ? { ...prev, stats: { ...prev.stats!, followersCount: res.followersCount !== undefined ? res.followersCount : prev.stats!.followersCount } } : null);
+        setShowSavedLink(true);
+        if (followTimerRef.current) clearTimeout(followTimerRef.current);
+        followTimerRef.current = setTimeout(() => {
+          setShowSavedLink(false);
+        }, 10000);
       } else {
         setPopupMessage({ title: "Action Failed", content: res.message || "Failed to follow organizer" });
       }
@@ -141,8 +158,27 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
     }
   };
 
-  if (loading) return <div className=" flex items-center justify-center">Loading...</div>;
-  if (!organiser) return <div className=" flex items-center justify-center">Organiser not found</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-gray-50 flex flex-col" suppressHydrationWarning>
+      <Header />
+      <div className="flex-grow flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-12 h-12 border-4 border-red-100 border-t-red-600 rounded-full animate-spin"></div>
+        <p className="mt-4 text-red-600 font-semibold tracking-wide animate-pulse">Loading Organizer Profile...</p>
+      </div>
+      <Footer />
+    </div>
+  );
+
+  if (!organiser) return (
+    <div className="min-h-screen bg-gray-50 flex flex-col" suppressHydrationWarning>
+      <Header />
+      <div className="flex-grow flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <p className="text-gray-600 text-xl font-medium">Organiser not found</p>
+        <Link href="/" className="text-red-600 hover:underline">← Back to Home</Link>
+      </div>
+      <Footer />
+    </div>
+  );
 
   const displayName = organiser.firstName ? `${organiser.firstName} ${organiser.lastName}` : organiser.username;
   const initials = organiser.username.substring(0, 2).toUpperCase();
@@ -225,7 +261,7 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
                     >
                       <FiUsers className="text-lg" /> {isFollowing ? 'Following' : 'Follow'}
                     </button>
-                    {isFollowing && (
+                    {showSavedLink && (
                       <Link
                         href="/myaccount?tab=saved"
                         className="text-xs text-red-600 hover:text-red-700 hover:underline font-semibold mt-2 animate-in fade-in slide-in-from-top-1 duration-200"
@@ -267,7 +303,12 @@ export default function OrganiserProfile({ params }: { params: Promise<{ slug: s
 
           {/* Event Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-            {events.length > 0 ? (
+            {eventsLoading ? (
+              <div className="col-span-full py-24 text-center bg-white rounded-[3rem] border border-gray-100 shadow-sm flex flex-col items-center justify-center">
+                <div className="w-12 h-12 border-4 border-red-100 border-t-red-600 rounded-full animate-spin"></div>
+                <p className="mt-4 text-red-600 font-semibold tracking-wide animate-pulse">Loading {activeTab} events...</p>
+              </div>
+            ) : events.length > 0 ? (
               events.map((event) => (
                 <EventCard
                   key={event._id}

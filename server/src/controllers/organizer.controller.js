@@ -131,9 +131,9 @@ exports.getOrganizerEvents = async (req, res) => {
         }
 
         if (type === 'upcoming') {
-            query.startDate = { $gte: now };
+            query.endDate = { $gte: now };
         } else if (type === 'past') {
-            query.startDate = { $lt: now };
+            query.endDate = { $lt: now };
         }
 
         const events = await Event.find(query)

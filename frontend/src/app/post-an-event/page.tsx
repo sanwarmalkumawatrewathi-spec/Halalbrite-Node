@@ -11,7 +11,8 @@ function PostEventFormContent() {
   const { user, loading, isOrganizer, isStripeConnected } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const editId = searchParams.get('edit');
+  const editParam = searchParams.get('edit');
+  const editId = editParam && editParam !== 'null' && editParam !== 'undefined' ? editParam : null;
 
   useEffect(() => {
     if (!loading && !user) {

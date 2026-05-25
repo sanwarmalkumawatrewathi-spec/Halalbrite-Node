@@ -29,8 +29,13 @@ export default function PublishSuccess({ eventId, slug, eventName }: PublishSucc
 
           {/* Red Header (Mabrook Banner) */}
           <div className="bg-red-600 p-6 text-center text-white relative">
-            <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3 p-2 shadow-sm">
-              <img src="/images/logo.png" alt="Halalbrite Logo" className="w-full h-full object-contain" />
+            <div className="w-32 h-32 flex items-center justify-center mx-auto mb-3">
+              <img 
+                src="/images/logo.png" 
+                alt="Halalbrite Logo" 
+                className="w-full h-full object-contain" 
+                style={{ filter: 'brightness(0) invert(1)' }}
+              />
             </div>
             <h2 className="text-2xl font-black mb-1 tracking-tight">Mabrook!</h2>
             <p className="text-red-100 text-sm font-medium">Your event is now live on Halalbrite</p>

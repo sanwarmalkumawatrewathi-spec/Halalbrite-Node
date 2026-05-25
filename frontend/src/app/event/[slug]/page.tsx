@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import React, { useEffect, useState, use } from "react";
+import React, { useEffect, useState, use, useRef } from "react";
 import { useAuth } from "@/context/authContext";
 import Footer from "@/Components/Footer";
 import Header from "@/Components/Header";
@@ -24,6 +24,14 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [showFollowPrompt, setShowFollowPrompt] = useState(false);
+  const [showSavedLink, setShowSavedLink] = useState(false);
+  const followTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (followTimerRef.current) clearTimeout(followTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const isPreview = searchParams.get("preview") === "true";
@@ -75,20 +83,21 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
   };
 
   if (loading) return (
-    <div className=" bg-[#fef3f6]">
+    <div className="min-h-screen bg-gray-50 flex flex-col" suppressHydrationWarning>
       <Header />
-      <div className="flex justify-center items-center h-[60vh]">
-        <div className="text-red-900 font-semibold animate-pulse text-lg">Loading Event Details...</div>
+      <div className="flex-grow flex flex-col items-center justify-center min-h-[60vh]">
+        <div className="w-12 h-12 border-4 border-red-100 border-t-red-600 rounded-full animate-spin"></div>
+        <p className="mt-4 text-red-600 font-semibold tracking-wide animate-pulse">Loading Event Details...</p>
       </div>
       <Footer />
     </div>
   );
 
   if (!event) return (
-    <div className=" bg-[#fef3f6]">
+    <div className="min-h-screen bg-gray-50 flex flex-col" suppressHydrationWarning>
       <Header />
-      <div className="flex flex-col justify-center items-center h-[60vh] space-y-4">
-        <p className="text-gray-600 text-xl">Event not found</p>
+      <div className="flex-grow flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <p className="text-gray-600 text-xl font-medium">Event not found</p>
         <Link href="/" className="text-red-600 hover:underline">← Back to Events</Link>
       </div>
       <Footer />
@@ -268,6 +277,11 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                             };
                           }
                         });
+                        setShowSavedLink(true);
+                        if (followTimerRef.current) clearTimeout(followTimerRef.current);
+                        followTimerRef.current = setTimeout(() => {
+                          setShowSavedLink(false);
+                        }, 10000);
                       }
                     }}
                     className={`inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl font-medium transition-all px-6 py-2 border-2 text-sm sm:text-base h-10 sm:h-12 w-full sm:w-auto ${(activeOrgId && user?.followedOrganizers?.includes(activeOrgId))
@@ -277,7 +291,7 @@ export default function EventDetails({ params }: { params: Promise<{ slug: strin
                   >
                     {(activeOrgId && user?.followedOrganizers?.includes(activeOrgId)) ? "Following" : "Follow"}
                   </button>
-                  {activeOrgId && user?.followedOrganizers?.includes(activeOrgId) && (
+                  {showSavedLink && (
                     <Link
                       href="/myaccount?tab=saved"
                       className="text-xs text-red-600 hover:text-red-700 hover:underline font-semibold mt-1 self-center sm:self-end animate-in fade-in slide-in-from-top-1 duration-200"
