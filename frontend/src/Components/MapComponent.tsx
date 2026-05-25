@@ -35,8 +35,8 @@ type MapComponentProps = {
 };
 
 const defaultCenter = {
-  lat: 54.5,
-  lng: -2,
+  lat: 20,
+  lng: 0,
 };
 
 export default function MapComponent(props: MapComponentProps) {
@@ -103,18 +103,12 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
   const getInitialCenter = () => {
     if (center && center.length === 2) {
       return { lat: center[1], lng: center[0] };
-    } else if (events && events.length > 0) {
-      const firstWithCoords = events.find((e) => e.location?.geometry?.coordinates);
-      if (firstWithCoords) {
-        const coords = firstWithCoords.location!.geometry!.coordinates;
-        return { lat: coords[1], lng: coords[0] };
-      }
     }
     return defaultCenter;
   };
 
   const [mapCenter, setMapCenter] = useState<google.maps.LatLngLiteral>(getInitialCenter);
-  const [zoom, setZoom] = useState<number>(center ? 13 : 6);
+  const [zoom, setZoom] = useState<number>(center ? 13 : 2);
 
   const prevSelectedEventId = useRef<string | null | undefined>(selectedEventId);
   const prevEvents = useRef<MapEvent[]>(events || []);
@@ -147,18 +141,13 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
       }
     }
     // 3. If selectedEventId did NOT just change from truthy to null,
-    // and events changed, center on the first event of the new list
+    // and events changed, do not auto-center/zoom into any event
     else if (
       (!selectedEventId) &&
       (prevSelectedEventId.current === null) &&
       (JSON.stringify(events?.map(e => e._id)) !== JSON.stringify(prevEvents.current?.map(e => e._id)))
     ) {
-      const firstWithCoords = events?.find((e) => e.location?.geometry?.coordinates);
-      if (firstWithCoords) {
-        const coords = firstWithCoords.location!.geometry!.coordinates;
-        setMapCenter({ lat: coords[1], lng: coords[0] });
-        setZoom(6);
-      }
+      // Keep showing the whole world map by default
     }
 
     prevSelectedEventId.current = selectedEventId;
