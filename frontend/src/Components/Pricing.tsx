@@ -222,6 +222,67 @@ export default function Pricing() {
               </div>
             </div>
           </div>
+          <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 mb-8 overflow-hidden bg-white">
+            <div data-slot="card-content" className="p-8">
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-credit-card w-7 h-7 text-blue-600">
+                    <rect width="20" height="14" x="2" y="5" rx="2" />
+                    <line x1="2" x2="22" y1="10" y2="10" />
+                  </svg>
+                </div>
+                <h3 className="text-red-900 font-bold text-xl md:text-2xl">Payment Processing Fees</h3>
+              </div>
+
+              <div className="grid md:grid-cols-5 gap-6 text-sm text-gray-600 mb-8 leading-relaxed">
+                <div className="md:col-span-5 space-y-4">
+                  <p className="font-semibold text-gray-800">
+                    The pricing plans above show our platform fees only. To accept payments online, you'll also need a payment processor.
+                  </p>
+                  <p>
+                    Halalbrite does not directly handle or process customer payments. All transactions are facilitated through trusted, fully certified payment service providers. For example, Stripe is used to ensure fast, secure, and reliable transfers of funds from ticket purchasers directly to your nominated bank account.
+                  </p>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 pt-6">
+                <h4 className="text-gray-900 font-bold mb-4 text-base">Example Stripe Fees</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left text-gray-600 border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-100 bg-gray-50/50">
+                        <th className="py-3 px-4 font-bold text-gray-950">UK</th>
+                        <th className="py-3 px-4 font-bold text-gray-950">US</th>
+                        <th className="py-3 px-4 font-bold text-gray-950">Eurozone</th>
+                        <th className="py-3 px-4 font-bold text-gray-950">Canada</th>
+                        <th className="py-3 px-4 font-bold text-gray-950">Australia</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-gray-100 last:border-0 hover:bg-gray-50/30 transition-colors">
+                        <td className="py-4 px-4 font-extrabold text-gray-900">1.5% + £0.20</td>
+                        <td className="py-4 px-4 font-extrabold text-gray-900">2.9% + $0.30</td>
+                        <td className="py-4 px-4 font-extrabold text-gray-900">1.5% + €0.25</td>
+                        <td className="py-4 px-4 font-extrabold text-gray-900">2.9% + C$0.30</td>
+                        <td className="py-4 px-4 font-extrabold text-gray-900">1.75% + A$0.30</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-gray-400">
+                  <span>* Fees may vary based on card type and region.</span>
+                  <a 
+                    href="https://stripe.com/pricing" 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-blue-600 font-bold hover:underline inline-flex items-center gap-1"
+                  >
+                    Learn more about Stripe pricing →
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
           <div data-slot="card" className="text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-gradient-to-br from-red-50 to-white">
             <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-8">
               <h3 className="text-red-900 mb-6 text-center">How Payouts Work</h3>
