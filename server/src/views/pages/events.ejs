@@ -1,5 +1,5 @@
 <%
-  const filtersObj = typeof filters !== 'undefined' ? filters : { search: '', category: '', organizer: '', status: '', startDateFrom: '', startDateTo: '' };
+  const filtersObj = typeof filters !== 'undefined' ? filters : { search: '', category: '', organizer: '', organizerEmail: '', status: '', startDateFrom: '', startDateTo: '' };
   const categoriesArr = typeof categories !== 'undefined' ? categories : [];
   const organizersArr = typeof organizers !== 'undefined' ? organizers : [];
   const queryStr = typeof queryString !== 'undefined' ? queryString : '';
@@ -40,6 +40,17 @@
                 </select>
             </div>
 
+            <!-- Organizer Email Filter -->
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Organizer Email</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[var(--text-muted)]">
+                        <i class="fa-solid fa-envelope"></i>
+                    </span>
+                    <input type="text" name="organizerEmail" value="<%= filtersObj.organizerEmail %>" placeholder="Search by email..." class="w-full pl-9 pr-4 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)]" />
+                </div>
+            </div>
+
             <!-- Category Filter -->
             <div class="md:col-span-2">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Category</label>
@@ -52,7 +63,7 @@
             </div>
 
             <!-- Status Filter -->
-            <div class="md:col-span-2">
+            <div class="md:col-span-1">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Status</label>
                 <select name="status" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)] cursor-pointer">
                     <option value="" class="bg-[var(--card-bg)] text-[var(--text-main)]">All Statuses</option>
@@ -64,20 +75,20 @@
             </div>
 
             <!-- Start Date From Filter -->
-            <div class="md:col-span-1.5">
+            <div class="md:col-span-1">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Date From</label>
                 <input type="date" name="startDateFrom" value="<%= filtersObj.startDateFrom %>" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)]" />
             </div>
 
             <!-- Start Date To Filter -->
-            <div class="md:col-span-1.5">
+            <div class="md:col-span-1">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Date To</label>
                 <input type="date" name="startDateTo" value="<%= filtersObj.startDateTo %>" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)]" />
             </div>
         </div>
         
         <div class="flex flex-wrap gap-2 mt-4 justify-end">
-            <% if (filtersObj.search || filtersObj.category || filtersObj.organizer || filtersObj.status || filtersObj.startDateFrom || filtersObj.startDateTo) { %>
+            <% if (filtersObj.search || filtersObj.category || filtersObj.organizer || filtersObj.organizerEmail || filtersObj.status || filtersObj.startDateFrom || filtersObj.startDateTo) { %>
                 <a href="/admin/events" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[var(--text-main)] font-semibold text-sm transition-all flex items-center gap-2">
                     <i class="fa-solid fa-rotate-left"></i> Reset
                 </a>
@@ -94,6 +105,7 @@
                 <tr>
                     <th>Event Details</th>
                     <th>Organizer</th>
+                    <th>Account Email</th>
                     <th>Category</th>
                     <th>Date</th>
                     <th>Status</th>
@@ -103,7 +115,7 @@
             <tbody>
                 <% if (events.length===0) { %>
                     <tr>
-                        <td colspan="6" class="text-center text-muted" style="padding: 3rem;">No events found.</td>
+                        <td colspan="7" class="text-center text-muted" style="padding: 3rem;">No events found.</td>
                     </tr>
                     <% } else { %>
                         <% events.forEach(event=> { %>
@@ -125,6 +137,11 @@
                                 <td>
                                     <span class="customer-name">
                                         <%= event.organizer ? event.organizer.username : 'Deleted' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="customer-email">
+                                        <%= event.organizer ? event.organizer.email : '-' %>
                                     </span>
                                 </td>
                                 <td>

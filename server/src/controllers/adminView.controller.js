@@ -440,12 +440,22 @@ exports.getEvents = async (req, res) => {
 
         const query = {};
 
-        // Search Title / Organizer name
+        // Search Title / Organizer name / Organizer email
         if (req.query.search && req.query.search.trim() !== '') {
             const searchRegex = new RegExp(req.query.search.trim(), 'i');
+            // Find users matching username or email
+            const matchingUsers = await User.find({
+                $or: [
+                    { username: searchRegex },
+                    { email: searchRegex }
+                ]
+            }).select('_id');
+            const userIds = matchingUsers.map(u => u._id);
+
             query.$or = [
                 { title: searchRegex },
-                { organizerName: searchRegex }
+                { organizerName: searchRegex },
+                { organizer: { $in: userIds } }
             ];
         }
 
@@ -457,6 +467,24 @@ exports.getEvents = async (req, res) => {
         // Organizer Filter
         if (req.query.organizer && req.query.organizer.trim() !== '') {
             query.organizer = req.query.organizer;
+        }
+
+        // Organizer Email Filter
+        if (req.query.organizerEmail && req.query.organizerEmail.trim() !== '') {
+            const emailRegex = new RegExp(req.query.organizerEmail.trim(), 'i');
+            const matchingUsers = await User.find({ email: emailRegex }).select('_id');
+            const userIds = matchingUsers.map(u => u._id);
+            
+            if (query.organizer) {
+                const orgIdStr = query.organizer.toString();
+                if (userIds.some(id => id.toString() === orgIdStr)) {
+                    // organizer ID matches the email filter, keep query.organizer
+                } else {
+                    query.organizer = null; // mismatch, show nothing
+                }
+            } else {
+                query.organizer = { $in: userIds };
+            }
         }
 
         // Status Filter
@@ -488,7 +516,7 @@ exports.getEvents = async (req, res) => {
         const [events, total, categories, organizers] = await Promise.all([
             Event.find(query)
                 .populate('category')
-                .populate('organizer', 'username')
+                .populate('organizer', 'username email')
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
@@ -519,6 +547,7 @@ exports.getEvents = async (req, res) => {
                 search: req.query.search || '',
                 category: req.query.category || '',
                 organizer: req.query.organizer || '',
+                organizerEmail: req.query.organizerEmail || '',
                 status: req.query.status || '',
                 startDateFrom: req.query.startDateFrom || '',
                 startDateTo: req.query.startDateTo || ''
@@ -925,12 +954,21 @@ exports.exportEventsCSV = async (req, res) => {
     try {
         const query = {};
 
-        // Search Title / Organizer name
+        // Search Title / Organizer name / Organizer email
         if (req.query.search && req.query.search.trim() !== '') {
             const searchRegex = new RegExp(req.query.search.trim(), 'i');
+            const matchingUsers = await User.find({
+                $or: [
+                    { username: searchRegex },
+                    { email: searchRegex }
+                ]
+            }).select('_id');
+            const userIds = matchingUsers.map(u => u._id);
+
             query.$or = [
                 { title: searchRegex },
-                { organizerName: searchRegex }
+                { organizerName: searchRegex },
+                { organizer: { $in: userIds } }
             ];
         }
 
@@ -942,6 +980,24 @@ exports.exportEventsCSV = async (req, res) => {
         // Organizer Filter
         if (req.query.organizer && req.query.organizer.trim() !== '') {
             query.organizer = req.query.organizer;
+        }
+
+        // Organizer Email Filter
+        if (req.query.organizerEmail && req.query.organizerEmail.trim() !== '') {
+            const emailRegex = new RegExp(req.query.organizerEmail.trim(), 'i');
+            const matchingUsers = await User.find({ email: emailRegex }).select('_id');
+            const userIds = matchingUsers.map(u => u._id);
+            
+            if (query.organizer) {
+                const orgIdStr = query.organizer.toString();
+                if (userIds.some(id => id.toString() === orgIdStr)) {
+                    // organizer ID matches the email filter, keep query.organizer
+                } else {
+                    query.organizer = null; // mismatch, show nothing
+                }
+            } else {
+                query.organizer = { $in: userIds };
+            }
         }
 
         // Status Filter
@@ -966,12 +1022,13 @@ exports.exportEventsCSV = async (req, res) => {
 
         const events = await Event.find(query)
             .populate('category')
-            .populate('organizer', 'username')
+            .populate('organizer', 'username email')
             .sort({ createdAt: -1 });
 
         const headers = [
             'Event Title',
             'Organizer',
+            'Organizer Email',
             'Category',
             'Start Date',
             'End Date',
@@ -988,6 +1045,7 @@ exports.exportEventsCSV = async (req, res) => {
 
         const rows = events.map(event => {
             const organizerStr = event.organizer ? event.organizer.username : (event.organizerName || 'Deleted');
+            const organizerEmailStr = event.organizer ? event.organizer.email : '-';
             const categoryStr = event.category ? event.category.name : 'Uncategorized';
             const startDateStr = event.startDate ? new Date(event.startDate).toISOString() : '';
             const endDateStr = event.endDate ? new Date(event.endDate).toISOString() : '';
@@ -996,6 +1054,7 @@ exports.exportEventsCSV = async (req, res) => {
             return [
                 clean(event.title),
                 clean(organizerStr),
+                clean(organizerEmailStr),
                 clean(categoryStr),
                 clean(startDateStr),
                 clean(endDateStr),
@@ -1374,23 +1433,42 @@ exports.getStripeOrganizers = async (req, res) => {
         // Find organizer role ID
         const organizerRole = await Role.findOne({ slug: 'organizer' });
 
-        // Find users who have the organizer role or have connected Stripe
-        const query = {
-            $or: [
-                { stripe_account_id: { $exists: true, $ne: null, $ne: '' } },
-                { stripeConnectedId: { $exists: true, $ne: null, $ne: '' } }
-            ]
-        };
-
+        // Base filter: organizer role or connected Stripe
+        const conditions = [];
+        conditions.push({ stripe_account_id: { $exists: true, $ne: null, $ne: '' } });
+        conditions.push({ stripeConnectedId: { $exists: true, $ne: null, $ne: '' } });
         if (organizerRole) {
-            query.$or.push({ roles: organizerRole._id });
+            conditions.push({ roles: organizerRole._id });
+        }
+
+        const query = { $or: conditions };
+
+        // Search query (filters by username or email)
+        const searchVal = req.query.search || '';
+        if (searchVal.trim() !== '') {
+            const searchRegex = new RegExp(searchVal.trim(), 'i');
+            query.$and = query.$and || [];
+            query.$and.push({
+                $or: [
+                    { username: searchRegex },
+                    { email: searchRegex }
+                ]
+            });
+        }
+
+        // Email filter
+        const emailFilter = req.query.email || '';
+        if (emailFilter.trim() !== '') {
+            const emailRegex = new RegExp(emailFilter.trim(), 'i');
+            query.$and = query.$and || [];
+            query.$and.push({ email: emailRegex });
         }
 
         const rawOrganizers = await User.find(query)
             .select('username email stripe_account_id stripeConnectedId createdAt')
             .sort({ createdAt: -1 });
 
-        console.log(`🔍 Found ${rawOrganizers.length} raw organizers in DB`);
+        console.log(`🔍 Found ${rawOrganizers.length} raw organizers in DB matching query`);
 
         // Enrich organizers with real-time balance and aggregation data
         const organizers = await Promise.all(rawOrganizers.map(async (org) => {
@@ -1435,7 +1513,11 @@ exports.getStripeOrganizers = async (req, res) => {
             activePage: 'stripe',
             activeSubPage: 'organizers',
             admin: req.user,
-            organizers
+            organizers,
+            filters: {
+                search: searchVal,
+                email: emailFilter
+            }
         });
     } catch (error) {
         console.error('Error in getStripeOrganizers:', error);

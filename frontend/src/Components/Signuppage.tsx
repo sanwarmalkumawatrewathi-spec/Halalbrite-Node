@@ -117,7 +117,7 @@ export default function Signuppage() {
               <img
                 src="/images/logo.png"
                 alt="Logo"
-                className="h-20 w-auto object-contain"
+                className="h-40 w-auto object-contain"
                 style={{ filter: 'brightness(0) saturate(100%) invert(21%) sepia(84%) saturate(5947%) hue-rotate(354deg) brightness(93%) contrast(92%)' }}
               />
             </Link>
