@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const stripeService = require('../services/stripe.service');
 const AppSetting = require('../models/appSetting.model');
 const Booking = require('../models/booking.model');
@@ -255,18 +256,27 @@ async function handlePaymentIntentSucceeded(paymentIntent) {
     const bookingId = paymentIntent.metadata.bookingId;
     if (!bookingId) return;
 
-    const booking = await Booking.findById(bookingId).populate('event_id');
-    if (!booking) return;
+    // Atomically find the pending booking and mark it as paid
+    const booking = await Booking.findOneAndUpdate(
+        { _id: bookingId, payment_status: 'pending' },
+        { 
+            $set: { 
+                payment_status: 'paid',
+                stripe_payment_intent_id: paymentIntent.id,
+                stripe_charge_id: paymentIntent.latest_charge || paymentIntent.id
+            } 
+        },
+        { new: true }
+    ).populate('event_id');
 
-    // 1. Update Booking status
-    booking.payment_status = 'paid';
-    booking.stripe_payment_intent_id = paymentIntent.id;
-    booking.stripe_charge_id = paymentIntent.latest_charge || paymentIntent.id;
-    await booking.save();
+    if (!booking) {
+        console.log(`⚠️ Booking ${bookingId} was already processed or not found.`);
+        return;
+    }
 
     // Trigger Ticket Delivery (PDF + Email)
     try {
-        await handleTicketDelivery(booking);
+        await exports.handleTicketDelivery(booking);
     } catch (deliveryErr) {
         console.error(`❌ Delivery Failed for Booking ${booking.booking_reference}:`, deliveryErr);
     }
@@ -275,7 +285,7 @@ async function handlePaymentIntentSucceeded(paymentIntent) {
     let stripeTransferId = null;
     if (booking.organizer_amount > 0) {
         // Correctly access organizer from populated event
-        const organizerId = booking.event?.organizer || booking.organizer_id;
+        const organizerId = booking.event_id?.organizer || booking.organizer_id;
         const organizer = await User.findById(organizerId);
         const destinationAccountId = organizer?.stripeConnectedId || organizer?.stripe_account_id;
 
@@ -301,29 +311,12 @@ async function handlePaymentIntentSucceeded(paymentIntent) {
         }
     }
 
-    // 3. Update Event context (attendees, capacity and individual ticket stock)
-    const eventUpdate = {
-        $push: { attendees: booking.user_id },
-        $inc: { capacity: -booking.quantity }
-    };
-
-    // Deduct stock for each ticket type in the booking
-    if (booking.items && booking.items.length > 0) {
-        for (const item of booking.items) {
-            await Event.updateOne(
-                { _id: booking.event_id._id, "ticketTypes.name": item.ticket_name },
-                { $inc: { "ticketTypes.$.quantity": -item.quantity } }
-            );
-        }
-    }
-
-    await Event.findByIdAndUpdate(booking.event_id._id, eventUpdate);
-
     // 4. Create Transaction Record (Split Ledger)
+    const eventId = booking.event_id._id || booking.event_id;
     await Transaction.create({
         order_id: booking._id,
-        organizer_id: booking.event_id.organizer,
-        event_id: booking.event_id._id,
+        organizer_id: booking.event_id?.organizer || booking.organizer_id,
+        event_id: eventId,
         amount: booking.amount_total,
         platform_fee: booking.platform_fee,
         organizer_amount: booking.organizer_amount,
@@ -480,7 +473,7 @@ exports.createCheckoutSession = async (req, res) => {
 
             // Trigger Delivery for Free Tickets
             try {
-                await handleTicketDelivery(booking);
+                await exports.handleTicketDelivery(booking);
             } catch (err) { console.error('Free Delivery Error:', err); }
 
             return res.status(201).json({
@@ -538,16 +531,52 @@ exports.handleTicketDelivery = async function (booking) {
 
     try {
         // 1. Deduct Inventory (IMPORTANT: Do this first or ensure it happens)
-        const event = await Event.findById(booking.event_id);
+        const eventId = booking.event_id._id || booking.event_id;
+        const event = await Event.findById(eventId);
         if (event) {
-            for (const item of booking.items) {
-                // Find the specific ticket type and decrement quantity
-                await Event.updateOne(
-                    { _id: event._id, "ticketTypes._id": item.ticket_id },
-                    { $inc: { "ticketTypes.$.quantity": -item.quantity } }
-                );
-                console.log(`📉 Deducted ${item.quantity} from ticket: ${item.ticket_name}`);
+            const itemsToDeduct = (booking.items && booking.items.length > 0)
+                ? booking.items
+                : [{ ticket_id: booking.ticket_id, ticket_name: booking.ticket_name, quantity: booking.quantity }];
+
+            for (const item of itemsToDeduct) {
+                let result = null;
+                const isValidObjectId = item.ticket_id && mongoose.Types.ObjectId.isValid(item.ticket_id);
+
+                if (isValidObjectId) {
+                    try {
+                        const ticketObjectId = new mongoose.Types.ObjectId(item.ticket_id);
+                        result = await Event.updateOne(
+                            { _id: event._id, "ticketTypes._id": ticketObjectId },
+                            { $inc: { "ticketTypes.$.quantity": -item.quantity } }
+                        );
+                    } catch (err) {
+                        console.error(`Error updating ticket by ID:`, err.message);
+                    }
+                }
+
+                // Fallback to name if ID match failed, was skipped, or modified count is 0
+                if (!result || result.modifiedCount === 0) {
+                    if (item.ticket_name) {
+                        result = await Event.updateOne(
+                            { _id: event._id, "ticketTypes.name": item.ticket_name },
+                            { $inc: { "ticketTypes.$.quantity": -item.quantity } }
+                        );
+                        console.log(`📉 Fallback: Deducted ${item.quantity} from ticket by Name: "${item.ticket_name}". Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
+                    }
+                } else {
+                    console.log(`📉 Deducted ${item.quantity} from ticket by ID: ${item.ticket_name || 'Ticket'}. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}`);
+                }
             }
+
+            // Deduct overall capacity and add attendee
+            const eventUpdate = {
+                $inc: { capacity: -booking.quantity }
+            };
+            if (booking.user_id) {
+                eventUpdate.$push = { attendees: booking.user_id };
+            }
+            await Event.findByIdAndUpdate(event._id, eventUpdate);
+            console.log(`📉 Deducted overall capacity by ${booking.quantity}`);
         }
 
         // 2. Generate PDF
@@ -656,15 +685,24 @@ exports.verifyBookingPayment = async (req, res) => {
 
             console.log(`💳 Stripe Session Status: ${session.payment_status}`);
             if (session.payment_status === 'paid') {
-                // Finalize Booking
-                booking.payment_status = 'paid';
-                booking.stripe_payment_intent_id = session.payment_intent;
-                await booking.save();
+                // Finalize Booking atomically
+                const updatedBooking = await Booking.findOneAndUpdate(
+                    { _id: booking._id, payment_status: 'pending' },
+                    {
+                        $set: {
+                            payment_status: 'paid',
+                            stripe_payment_intent_id: session.payment_intent,
+                            stripe_charge_id: session.payment_intent
+                        }
+                    },
+                    { new: true }
+                );
 
-                // Trigger Delivery (Deducts inventory and sends emails)
-                await exports.handleTicketDelivery(booking);
-
-                console.log("✅ Booking finalized via fallback verification");
+                if (updatedBooking) {
+                    // Trigger Delivery (Deducts inventory and sends emails)
+                    await exports.handleTicketDelivery(updatedBooking);
+                    console.log("✅ Booking finalized via fallback verification");
+                }
                 return res.json({ success: true, status: 'paid' });
             }
         }
@@ -688,11 +726,21 @@ exports.verifyPendingBookings = async function (bookings) {
         try {
             const session = await stripeInstance.checkout.sessions.retrieve(booking.stripe_session_id);
             if (session.payment_status === 'paid') {
-                booking.payment_status = 'paid';
-                booking.stripe_payment_intent_id = session.payment_intent;
-                await booking.save();
-                await exports.handleTicketDelivery(booking);
-                console.log(`✅ Auto-finalized booking: ${booking.booking_reference}`);
+                const updatedBooking = await Booking.findOneAndUpdate(
+                    { _id: booking._id, payment_status: 'pending' },
+                    {
+                        $set: {
+                            payment_status: 'paid',
+                            stripe_payment_intent_id: session.payment_intent,
+                            stripe_charge_id: session.payment_intent
+                        }
+                    },
+                    { new: true }
+                );
+                if (updatedBooking) {
+                    await exports.handleTicketDelivery(updatedBooking);
+                    console.log(`✅ Auto-finalized booking: ${booking.booking_reference}`);
+                }
             }
         } catch (err) {
             console.error(`Failed to auto-verify booking ${booking._id}:`, err.message);

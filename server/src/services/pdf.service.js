@@ -54,7 +54,7 @@ class PdfService {
             <div class="ticket-page" style="${i < qty ? 'page-break-after: always;' : ''}">
                 <div class="ticket-container">
                     <div class="header">
-                        <div class="logo">HalalBrite</div>
+                        <div class="logo">Halalbrite</div>
                         <div class="booking-ref">Reference: ${booking.booking_reference} | Ticket ${i} of ${qty}</div>
                     </div>
                     
