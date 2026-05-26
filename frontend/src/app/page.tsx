@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import CategoryTabs from '@/Components/CategoryTabs'
 import FeaturedEvents from '@/Components/FeaturedEvents'
@@ -23,6 +23,7 @@ export default function Page() {
   const [events, setEvents] = useState([]);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState("All");
+  const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -42,6 +43,10 @@ export default function Page() {
 
   const router = useRouter();
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+
+  const handleMarkerClick = (id: string | null) => {
+    setSelectedEventId(id);
+  };
 
   // Filter events for map based on active category
   const mapEvents = events.filter((event: any) => {
@@ -66,7 +71,7 @@ export default function Page() {
               Showing selected event from map
             </div>
             <button
-              onClick={() => setSelectedEventId(null)}
+              onClick={() => handleMarkerClick(null)}
               className="text-red-600 font-bold hover:underline text-sm"
             >
               Show All Events
@@ -81,10 +86,10 @@ export default function Page() {
         />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-2">
+      <div className="max-w-7xl mx-auto px-6 py-2" ref={mapRef}>
         <MapComponent 
           events={mapEvents} 
-          onMarkerClick={(id) => setSelectedEventId(id)}
+          onMarkerClick={handleMarkerClick}
           selectedEventId={selectedEventId}
         />
       </div>

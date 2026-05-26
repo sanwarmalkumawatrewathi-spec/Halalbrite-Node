@@ -99,6 +99,7 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
 
   const [selectedEvent, setSelectedEvent] = useState<MapEvent | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const prevViewRef = useRef<{ center: google.maps.LatLng | null; zoom: number | null }>({ center: null, zoom: null });
 
   // Keep the initial center and zoom stable so GoogleMap never snaps back due to prop changes
   const [initCenter] = useState(() => 
@@ -128,6 +129,13 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
       map.setCenter({ lat: center[1], lng: center[0] });
       map.setZoom(13);
     } else if (selectedEventId) {
+      if (!prevViewRef.current.center) {
+        prevViewRef.current = {
+          center: map.getCenter() || null,
+          zoom: map.getZoom() || null
+        };
+      }
+      
       const selected = events?.find(e => e._id === selectedEventId);
       const coords = selected?.location?.geometry?.coordinates;
       if (coords && coords.length === 2) {
@@ -135,9 +143,11 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
         map.setZoom(13);
       }
     } else {
-      // Zoom out to show the whole world with all pins on it by default when no single event is selected
-      map.setCenter(defaultCenter);
-      map.setZoom(2);
+      if (prevViewRef.current.center && prevViewRef.current.zoom) {
+        map.panTo(prevViewRef.current.center);
+        map.setZoom(prevViewRef.current.zoom);
+        prevViewRef.current = { center: null, zoom: null };
+      }
     }
   }, [selectedEventId, center, events, map]);
 
