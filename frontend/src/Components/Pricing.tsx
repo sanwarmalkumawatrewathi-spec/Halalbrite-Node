@@ -225,8 +225,8 @@ export default function Pricing() {
           <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 mb-8 overflow-hidden bg-white">
             <div data-slot="card-content" className="p-8">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-credit-card w-7 h-7 text-blue-600">
+                <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-credit-card w-7 h-7 text-red-600">
                     <rect width="20" height="14" x="2" y="5" rx="2" />
                     <line x1="2" x2="22" y1="10" y2="10" />
                   </svg>
@@ -271,10 +271,10 @@ export default function Pricing() {
                 </div>
                 <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-gray-400">
                   <span>* Fees may vary based on card type and region.</span>
-                  <a 
-                    href="https://stripe.com/pricing" 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href="https://stripe.com/pricing"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-blue-600 font-bold hover:underline inline-flex items-center gap-1"
                   >
                     Learn more about Stripe pricing →
@@ -291,29 +291,29 @@ export default function Pricing() {
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                     <span className="text-red-600 font-bold">1</span>
                   </div>
-                  <h4 className="text-gray-900 mb-2">Ticket Sold</h4>
+                  <h4 className="text-gray-900 mb-2 font-bold text-lg">Ticket Sold</h4>
                   <p className="text-gray-600 text-sm">Customer purchases a ticket through Stripe's secure checkout</p>
                 </div>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                     <span className="text-red-600 font-bold">2</span>
                   </div>
-                  <h4 className="text-gray-900 mb-2">Platform Fee Deducted</h4>
-                  <p className="text-gray-600 text-sm">Halalbrite's platform fee is automatically calculated</p>
+                  <h4 className="text-gray-900 mb-2 font-bold text-lg">Platform Fee Deducted</h4>
+                  <p className="text-gray-600 text-sm">Halalbrite's platform and payment processing fees is automatically calculated.</p>
                 </div>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                     <span className="text-red-600 font-bold">3</span>
                   </div>
-                  <h4 className="text-gray-900 mb-2">Funds Held by Stripe</h4>
-                  <p className="text-gray-600 text-sm">Your earnings are held securely by Stripe until payout schedule</p>
+                  <h4 className="text-gray-900 mb-2 font-bold text-lg">Instant payouts to Stripe</h4>
+                  <p className="text-gray-600 text-sm">Your earnings are instantly transferred to your Stripe dashboard - transfer to your bank.</p>
                 </div>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                     <span className="text-red-600 font-bold">4</span>
                   </div>
-                  <h4 className="text-gray-900 mb-2">Automatic Transfer</h4>
-                  <p className="text-gray-600 text-sm">Funds are deposited to your connected bank account automatically</p>
+                  <h4 className="text-gray-900 mb-2 font-bold text-lg">Automatic Transfer</h4>
+                  <p className="text-gray-600 text-sm">Funds are deposited to your connected bank account manually/automatically</p>
                 </div>
               </div>
             </div>
