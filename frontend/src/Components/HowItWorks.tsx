@@ -35,7 +35,7 @@ export default function HowItWorks() {
                 <circle cx="9" cy="7" r="4" />
                 <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg><span className="text-red-900 text-[32px]">For Attendees</span></div>
+              </svg><span className="text-red-900 text-sm sm:text-base font-medium">For Attendees</span></div>
             <h2 className="text-red-900 mb-3 sm:mb-4 text-xl sm:text-2xl md:text-3xl">Your Journey to Amazing
               Events</h2>
             <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">Discover, book, and attend halal
@@ -43,7 +43,7 @@ export default function HowItWorks() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-sm sm:text-base">
                 1</div>
@@ -66,7 +66,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-sm sm:text-base">
                 2</div>
@@ -92,7 +92,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-sm sm:text-base">
                 3</div>
@@ -115,7 +115,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-sm sm:text-base">
                 4</div>
@@ -143,7 +143,12 @@ export default function HowItWorks() {
           <div data-slot="card"
             className="text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 bg-gradient-to-br from-red-50 to-white">
             <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-8">
-              <h3 className="text-red-900 mb-6 text-center">Additional Features</h3>
+              <div className="flex justify-center mb-6 sm:mb-8">
+                <div className="inline-flex items-center gap-2 bg-red-100 rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-sparkles w-4 h-4 sm:w-5 sm:h-5 text-red-600"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+                  <span className="text-red-900 text-sm sm:text-base font-medium">Additional Features</span>
+                </div>
+              </div>
               <div className="grid md:grid-cols-3 gap-6">
                 <div className="flex items-start gap-4">
                   <div
@@ -216,22 +221,22 @@ export default function HowItWorks() {
         </div>
         <div className="mb-20">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-red-100 rounded-full px-4 py-2 mb-4"><svg
+            <div className="inline-flex items-center gap-2 bg-red-100 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-3 sm:mb-4"><svg
               xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              className="lucide lucide-chart-column w-5 h-5 text-red-600">
+              className="lucide lucide-chart-column w-4 h-4 sm:w-5 sm:h-5 text-red-600">
               <path d="M3 3v16a2 2 0 0 0 2 2h16" />
               <path d="M18 17V9" />
               <path d="M13 17V5" />
               <path d="M8 17v-3" />
-            </svg><span className="text-red-900">For Organizers</span></div>
+            </svg><span className="text-red-900 text-sm sm:text-base font-medium">For Organizers</span></div>
             <h2 className="text-red-900 mb-4">Host Successful Events with Ease</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">Create, manage, and grow your events with our
               powerful organizer tools</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-4 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                 1</div>
@@ -251,7 +256,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-4 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                 2</div>
@@ -269,7 +274,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-4 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                 3</div>
@@ -290,7 +295,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-4 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                 4</div>
@@ -312,7 +317,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-4 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                 5</div>
@@ -324,16 +329,20 @@ export default function HowItWorks() {
                   <line x1="12" x2="12" y1="2" y2="22" />
                   <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg></div>
-                <h3 className="text-red-900 mb-3">Get Paid</h3>
-                <p className="text-gray-600 leading-relaxed">Receive automatic payouts to your Stripe
-                  account as tickets are sold.</p>
+                <h3 className="text-red-900 mb-3">Get Paid Instantly</h3>
+                <p className="text-gray-600 leading-relaxed">Instantly receive payments to your stripe account per sale.</p>
               </div>
             </div>
           </div>
           <div data-slot="card"
             className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0">
             <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-8">
-              <h3 className="text-red-900 mb-6 text-center">Powerful Dashboard Features</h3>
+              <div className="flex justify-center mb-6 sm:mb-8">
+                <div className="inline-flex items-center gap-2 bg-red-100 rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-layout-dashboard w-4 h-4 sm:w-5 sm:h-5 text-red-600"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+                  <span className="text-red-900 text-sm sm:text-base font-medium">Powerful Dashboard Features</span>
+                </div>
+              </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="text-center">
                   <div
@@ -402,17 +411,17 @@ export default function HowItWorks() {
         </div>
         <div className="mb-20">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-red-100 rounded-full px-4 py-2 mb-4"><svg
+            <div className="inline-flex items-center gap-2 bg-red-100 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 mb-3 sm:mb-4"><svg
               xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              className="lucide lucide-ticket w-5 h-5 text-red-600">
+              className="lucide lucide-ticket w-4 h-4 sm:w-5 sm:h-5 text-red-600">
               <path
                 d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
               <path d="M13 5v2" />
               <path d="M13 17v2" />
               <path d="M13 11v2" />
-            </svg><span className="text-red-900">Smart Tickets</span></div>
-            <h2 className="text-red-900 mb-4">QR Code Tickets for Easy Check-In</h2>
+            </svg><span className="text-red-900 text-sm sm:text-base font-medium">Smart Tickets</span></div>
+            <h2 className="text-red-900 mb-4">Digital Tickets for Easy Check-In</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">Modern, contactless, and secure ticket validation</p>
           </div>
           <div className="grid lg:grid-cols-3 gap-8">

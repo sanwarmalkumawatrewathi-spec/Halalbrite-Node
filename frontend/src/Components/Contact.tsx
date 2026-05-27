@@ -98,11 +98,11 @@ export default function Contact() {
                   <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                     <div>
                       <label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="name">Full Name *</label>
-                      <input type="text" id="name" name="name" required placeholder="Your name" value={formData.name} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white" />
+                      <input type="text" id="name" name="name" required placeholder="Your name" value={formData.name} onChange={handleChange} className="w-full border borborder border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white" />
                     </div>
                     <div>
                       <label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="email">Email Address *</label>
-                      <input type="email" id="email" name="email" required placeholder="your@email.com" value={formData.email} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white" />
+                      <input type="email" id="email" name="email" required placeholder="your@email.com" value={formData.email} onChange={handleChange} className="w-full border borborder border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white" />
                     </div>
                   </div>
 
@@ -114,7 +114,7 @@ export default function Contact() {
                           id="subject"
                           name="subject"
                           required
-                          className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all appearance-none cursor-pointer bg-white"
+                          className="w-full border borborder border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all appearance-none cursor-pointer bg-white"
                           value={formData.subject}
                           onChange={handleChange}
                         >
@@ -145,7 +145,7 @@ export default function Contact() {
                           name="customSubject"
                           required
                           placeholder="What is your inquiry about?"
-                          className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
+                          className="w-full border borborder border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all bg-white"
                           value={formData.customSubject}
                           onChange={handleChange}
                         />
@@ -154,7 +154,7 @@ export default function Contact() {
                   </div>
                   <div>
                     <label data-slot="label" className="items-center gap-2 font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50 text-gray-700 mb-1.5 sm:mb-2 block text-sm sm:text-base" htmlFor="message">Message *</label>
-                    <textarea id="message" name="message" required rows={6} placeholder="Tell us more about your inquiry..." value={formData.message} onChange={handleChange} className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all resize-none bg-white"></textarea>
+                    <textarea id="message" name="message" required rows={6} placeholder="Tell us more about your inquiry..." value={formData.message} onChange={handleChange} className="w-full border borborder border-gray-300 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all resize-none bg-white"></textarea>
                   </div>
                   <button data-slot="button" disabled={status.loading} className="inline-flex text-[#fff] items-center justify-center gap-2 whitespace-nowrap font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&amp;_svg]:pointer-events-none [&amp;_svg:not([class*='size-'])]:size-4 shrink-0 [&amp;_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive text-primary-foreground hover:bg-primary/90 h-10 px-6 has-[>svg]:px-4 w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-lg sm:rounded-xl text-sm sm:text-base" type="submit">
                     {status.loading ? (
