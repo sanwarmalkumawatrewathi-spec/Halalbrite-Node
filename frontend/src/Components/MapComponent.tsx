@@ -102,9 +102,9 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
   const prevViewRef = useRef<{ center: google.maps.LatLng | null; zoom: number | null }>({ center: null, zoom: null });
 
   // Keep the initial center and zoom stable so GoogleMap never snaps back due to prop changes
-  const [initCenter] = useState(() => 
-    center && center.length === 2 
-      ? { lat: center[1], lng: center[0] } 
+  const [initCenter] = useState(() =>
+    center && center.length === 2
+      ? { lat: center[1], lng: center[0] }
       : defaultCenter
   );
   const [initZoom] = useState(() => center ? 13 : 2);
@@ -135,7 +135,7 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
           zoom: map.getZoom() || null
         };
       }
-      
+
       const selected = events?.find(e => e._id === selectedEventId);
       const coords = selected?.location?.geometry?.coordinates;
       if (coords && coords.length === 2) {

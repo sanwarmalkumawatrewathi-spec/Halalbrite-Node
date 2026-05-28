@@ -35,7 +35,7 @@ export default function HowItWorks() {
                 <circle cx="9" cy="7" r="4" />
                 <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
                 <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg><span className="text-red-900 text-[32px]">For Attendees</span></div>
+              </svg><span className="text-red-900">For Attendees</span></div>
             <h2 className="text-red-900 mb-3 sm:mb-4 text-xl sm:text-2xl md:text-3xl">Your Journey to Amazing
               Events</h2>
             <p className="text-gray-600 max-w-2xl mx-auto text-sm sm:text-base">Discover, book, and attend halal
@@ -43,7 +43,7 @@ export default function HowItWorks() {
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-10 md:mb-12">
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-sm sm:text-base">
                 1</div>
@@ -66,7 +66,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-sm sm:text-base">
                 2</div>
@@ -92,7 +92,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-sm sm:text-base">
                 3</div>
@@ -115,7 +115,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-3 right-3 sm:top-4 sm:right-4 w-10 h-10 sm:w-12 sm:h-12 bg-red-500 rounded-full flex items-center justify-center text-white text-sm sm:text-base">
                 4</div>
@@ -231,7 +231,7 @@ export default function HowItWorks() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6 mb-12">
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-4 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                 1</div>
@@ -251,7 +251,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-4 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                 2</div>
@@ -269,7 +269,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-4 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                 3</div>
@@ -290,7 +290,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-4 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                 4</div>
@@ -312,7 +312,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 relative overflow-hidden h-full">
               <div
                 className="absolute top-4 right-4 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center text-white">
                 5</div>
@@ -324,9 +324,8 @@ export default function HowItWorks() {
                   <line x1="12" x2="12" y1="2" y2="22" />
                   <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg></div>
-                <h3 className="text-red-900 mb-3">Get Paid</h3>
-                <p className="text-gray-600 leading-relaxed">Receive automatic payouts to your Stripe
-                  account as tickets are sold.</p>
+                <h3 className="text-red-900 mb-3">Get Paid Instantly</h3>
+                <p className="text-gray-600 leading-relaxed">Instantly receive payments to your stripe account per sale.</p>
               </div>
             </div>
           </div>
@@ -411,13 +410,13 @@ export default function HowItWorks() {
               <path d="M13 5v2" />
               <path d="M13 17v2" />
               <path d="M13 11v2" />
-            </svg><span className="text-red-900">Smart Tickets</span></div>
+            </svg><span className="text-red-900">Digital Tickets</span></div>
             <h2 className="text-red-900 mb-4">QR Code Tickets for Easy Check-In</h2>
             <p className="text-gray-600 max-w-2xl mx-auto">Modern, contactless, and secure ticket validation</p>
           </div>
           <div className="grid lg:grid-cols-3 gap-8">
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 h-full">
               <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-8 text-center">
                 <div
                   className="w-20 h-20 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -436,7 +435,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 h-full">
               <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-8 text-center">
                 <div
                   className="w-20 h-20 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
@@ -452,7 +451,7 @@ export default function HowItWorks() {
               </div>
             </div>
             <div data-slot="card"
-              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0">
+              className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 h-full">
               <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-8 text-center">
                 <div
                   className="w-20 h-20 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-6">

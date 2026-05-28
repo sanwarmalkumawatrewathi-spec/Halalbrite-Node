@@ -871,7 +871,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                 min={todayStr}
                                 value={form.startDate}
                                 onChange={handleChange}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+                                className="borborder w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                                 required
                             />
                         </div>
@@ -887,7 +887,7 @@ export default function EventForm({ editId }: { editId?: string | null }) {
                                 min={form.startDate || todayStr}
                                 value={form.endDate}
                                 onChange={handleChange}
-                                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
+                                className="borborder w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all"
                                 required
                             />
                         </div>

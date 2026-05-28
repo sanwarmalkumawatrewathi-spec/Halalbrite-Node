@@ -52,19 +52,10 @@ export default function CookiePolicy() {
             <div className="space-y-4 text-gray-600 leading-relaxed text-sm sm:text-base">
               <div className="grid gap-4">
                 {[
-                  { name: "localStorage — sb-{project-ref}-auth-token", desc: "Stores your Supabase session payload so social login callbacks and session refresh can complete.", retention: "Until sign-out, session expiry, or manual browser-storage clearing." },
-                  { name: "localStorage — halalbrite-access-token", desc: "Stores your Halalbrite API token so you remain signed in without needing cookies.", retention: "Cleared when you sign out or manually clear browser storage." },
-                  { name: "localStorage — halalbrite-refresh-token", desc: "Renews your sign-in session when access tokens expire, so you stay signed in without interruptions.", retention: "Cleared when you sign out or manually clear browser storage." },
-                  { name: "localStorage — halalbrite:last-organizer-id", desc: "Remembers the organiser workspace you last selected so dashboards open to the right team.", retention: "Until you switch organisers or clear browser storage." },
-                  { name: "localStorage — halalbrite:exchange-rates", desc: "Caches exchange rates for up to 30 minutes to avoid unnecessary API calls.", retention: "Automatically refreshed every 30 minutes or when you clear browser storage." },
-                  { name: "localStorage — auth:last_used", desc: "Remembers the last sign-in method (password or Google) to streamline future sign-in flows.", retention: "Until replaced with a new value or cleared from browser storage." },
-                  { name: "localStorage — halalbrite:pending-invite", desc: "Temporarily stores invitation context so account creation/sign-in can continue into invitation acceptance.", retention: "Automatically removed after use or expiry (up to 7 days)." },
-                  { name: "localStorage — halalbrite:pending-organizer-avatar", desc: "Temporarily stores a draft organizer avatar during registration until upload completes.", retention: "Removed after upload attempt or manual browser-storage clearing." },
-                  { name: "sessionStorage — halalbrite:pending-draft", desc: "Temporarily holds a drafted event while you move between creation screens in the same tab.", retention: "Removed when you close the tab or finish the draft." },
-                  { name: "sessionStorage — halalbrite:event-edit-recovery:{eventId}", desc: "Temporarily stores unsaved event edits in the current browser tab so organisers can recover work after refreshes, route reloads, or tab visibility changes.", retention: "Removed when you close the tab, discard the recovered edits, or save/publish the event." },
+                  { name: "localStorage — token", desc: "Stores your Halalbrite API authentication token so you remain signed in securely across page reloads.", retention: "Cleared when you sign out or manually clear browser storage." },
+                  { name: "localStorage — Halalbrite_user", desc: "Stores your logged-in user profile data to personalize your experience and avoid repeated server requests.", retention: "Cleared when you sign out or manually clear browser storage." },
                   { name: "sessionStorage — checkout_draft_{eventId}", desc: "Temporarily stores in-progress public checkout form details per event to support tab refresh recovery.", retention: "Expires after 30 minutes in-tab or when checkout completes." },
-                  { name: "sessionStorage — ht_embed_consent", desc: "Stores consent preference for embedded checkout/event experiences in the current tab session.", retention: "Removed when the embed tab is closed." },
-                  { name: "localStorage — ht_purchase_tracked:{orderId}", desc: "Stops duplicate Meta Pixel “Purchase” events by remembering which orders already fired.", retention: "One flag per order that stays until you clear browser storage." },
+                  { name: "localStorage — ht_purchase_tracked:{orderId}", desc: "Stops duplicate tracking events by remembering which orders already fired.", retention: "One flag per order that stays until you clear browser storage." },
                 ].map((item, i) => (
                   <div key={i} className="rounded-lg border border-gray-100 p-4 hover:border-red-100 transition-colors">
                     <p className="font-semibold text-gray-900 mb-1">{item.name}</p>

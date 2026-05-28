@@ -23,7 +23,7 @@ export default function Page() {
   const [events, setEvents] = useState([]);
   const [selectedCities, setSelectedCities] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState("All");
-  const mapRef = useRef<HTMLDivElement>(null);
+  const eventsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -57,14 +57,14 @@ export default function Page() {
   return (
     <div className="bg-[#fef3f6]">
       <Header />
-      <Herosections 
+      <Herosections
         selectedCities={selectedCities}
-        onLocationSelect={(cities) => setSelectedCities(cities)} 
+        onLocationSelect={(cities) => setSelectedCities(cities)}
       />
 
-      <div className="max-w-7xl mx-auto pt-3">
+      <div className="max-w-7xl mx-auto pt-3 min-h-[100vh] sm:min-h-[800px]" ref={eventsRef}>
         <CategoryTabs active={activeCategory} setActive={setActiveCategory} />
-        
+
         {selectedEventId && (
           <div className="max-w-7xl mx-auto px-6 mb-6 mt-4 flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-red-50">
             <div className="text-gray-700 font-medium italic text-sm">
@@ -86,9 +86,9 @@ export default function Page() {
         />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-2" ref={mapRef}>
-        <MapComponent 
-          events={mapEvents} 
+      <div className="max-w-7xl mx-auto px-6 py-2">
+        <MapComponent
+          events={mapEvents}
           onMarkerClick={handleMarkerClick}
           selectedEventId={selectedEventId}
         />
