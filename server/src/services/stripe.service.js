@@ -382,15 +382,30 @@ class StripeService {
             customer_email: params.customerEmail,
             metadata: {
                 bookingId: params.bookingId,
-                eventId: params.eventId
+                bookingReference: params.bookingReference,
+                eventId: params.eventId,
+                eventName: params.eventName,
+                ticketName: params.ticketName
             },
             payment_intent_data: {
                 metadata: {
                     bookingId: params.bookingId,
+                    bookingReference: params.bookingReference,
                     eventId: params.eventId,
+                    eventName: params.eventName,
+                    ticketName: params.ticketName
                 }
             }
         };
+
+        if (params.organizerStripeId) {
+            sessionData.payment_intent_data.transfer_data = {
+                destination: params.organizerStripeId
+            };
+            if (params.applicationFeeAmount !== undefined && params.applicationFeeAmount >= 0) {
+                sessionData.payment_intent_data.application_fee_amount = Math.round(params.applicationFeeAmount * 100);
+            }
+        }
 
         return await stripeInstance.checkout.sessions.create(sessionData);
     }
@@ -422,13 +437,18 @@ class StripeService {
             customer_email: params.customerEmail,
             metadata: {
                 bookingId: params.bookingId,
+                bookingReference: params.bookingReference,
                 eventId: params.eventId,
-                ticketType: params.ticketName,
+                eventName: params.eventName,
+                ticketName: params.ticketName
             },
             payment_intent_data: {
                 metadata: {
                     bookingId: params.bookingId,
+                    bookingReference: params.bookingReference,
                     eventId: params.eventId,
+                    eventName: params.eventName,
+                    ticketName: params.ticketName
                 }
             }
         };

@@ -281,35 +281,8 @@ async function handlePaymentIntentSucceeded(paymentIntent) {
         console.error(`❌ Delivery Failed for Booking ${booking.booking_reference}:`, deliveryErr);
     }
 
-    // 2. Handle Separate Transfer to Organizer (Replica of legacy logic)
-    let stripeTransferId = null;
-    if (booking.organizer_amount > 0) {
-        // Correctly access organizer from populated event
-        const organizerId = booking.event_id?.organizer || booking.organizer_id;
-        const organizer = await User.findById(organizerId);
-        const destinationAccountId = organizer?.stripeConnectedId || organizer?.stripe_account_id;
-
-        if (organizer && destinationAccountId) {
-            try {
-                const stripeInstance = await stripeService.getStripeInstance();
-                const transfer = await stripeInstance.transfers.create({
-                    amount: Math.round(booking.organizer_amount * 100),
-                    currency: paymentIntent.currency,
-                    destination: destinationAccountId,
-                    source_transaction: booking.stripe_charge_id,
-                    description: `Transfer for Booking ${booking.booking_reference}`,
-                    metadata: {
-                        bookingId: booking._id.toString(),
-                        bookingReference: booking.booking_reference,
-                        eventId: booking.event_id._id.toString()
-                    }
-                });
-                stripeTransferId = transfer.id;
-            } catch (transferErr) {
-                console.error(`❌ Stripe Transfer Failed: ${transferErr.message}`);
-            }
-        }
-    }
+    // 2. Retrieve Transfer ID for Destination Charges
+    let stripeTransferId = typeof paymentIntent.transfer === 'object' ? paymentIntent.transfer?.id : paymentIntent.transfer || null;
 
     // 4. Create Transaction Record (Split Ledger)
     const eventId = booking.event_id._id || booking.event_id;
@@ -503,10 +476,14 @@ exports.createCheckoutSession = async (req, res) => {
 
         const session = await stripeService.createCheckoutSessionMulti({
             bookingId: booking._id.toString(),
+            bookingReference: booking.booking_reference,
             eventId: eventId.toString(),
             eventName: event.title,
+            ticketName: booking.ticket_name,
             lineItems: lineItems,
-            customerEmail: attendeeEmail || (req.user ? req.user.email : '')
+            customerEmail: attendeeEmail || (req.user ? req.user.email : ''),
+            organizerStripeId: event.organizer?.stripeConnectedId || event.organizer?.stripe_account_id,
+            applicationFeeAmount: finalTotal - organizerEarnings
         }, req.get('origin'));
 
         booking.stripe_session_id = session.id;

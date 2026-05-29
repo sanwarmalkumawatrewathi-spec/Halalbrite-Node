@@ -4,6 +4,29 @@ import { FiEdit, FiTrash2, FiGlobe, FiFacebook, FiInstagram, FiTwitter, FiYoutub
 import { IoBusinessOutline } from "react-icons/io5";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import SearchableSelect from "./SearchableSelect";
+
+const countryOptions = [
+  { value: 'IE', label: 'Ireland', group: 'Europe' },
+  { value: 'GB', label: 'United Kingdom', group: 'Europe' },
+  { value: 'DE', label: 'Germany', group: 'Europe' },
+  { value: 'FR', label: 'France', group: 'Europe' },
+  { value: 'ES', label: 'Spain', group: 'Europe' },
+  { value: 'IT', label: 'Italy', group: 'Europe' },
+  { value: 'NL', label: 'Netherlands', group: 'Europe' },
+  { value: 'AT', label: 'Austria', group: 'Europe' },
+  { value: 'BE', label: 'Belgium', group: 'Europe' },
+  { value: 'DK', label: 'Denmark', group: 'Europe' },
+  { value: 'FI', label: 'Finland', group: 'Europe' },
+  { value: 'NO', label: 'Norway', group: 'Europe' },
+  { value: 'PT', label: 'Portugal', group: 'Europe' },
+  { value: 'SE', label: 'Sweden', group: 'Europe' },
+  { value: 'CH', label: 'Switzerland', group: 'Europe' },
+  { value: 'US', label: 'United States', group: 'North America' },
+  { value: 'CA', label: 'Canada', group: 'North America' },
+  { value: 'AU', label: 'Australia', group: 'Oceania' },
+  { value: 'NZ', label: 'New Zealand', group: 'Oceania' },
+];
 
 // Fallback categories if backend fails
 const initialCategories = [
@@ -457,40 +480,14 @@ export default function OrganiserTab() {
 
                 <div>
                   <label className="block text-sm font-bold text-gray-800 mb-1">Country *</label>
-                  <select
-                    name="country"
-                    required
+                  <SearchableSelect
+                    id="country"
+                    options={countryOptions}
                     value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    className="w-full border bg-white border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none"
-                  >
-                    <option value="">Select a country</option>
-                    <optgroup label="Europe">
-                      <option value="IE">Ireland</option>
-                      <option value="GB">United Kingdom</option>
-                      <option value="DE">Germany</option>
-                      <option value="FR">France</option>
-                      <option value="ES">Spain</option>
-                      <option value="IT">Italy</option>
-                      <option value="NL">Netherlands</option>
-                      <option value="AT">Austria</option>
-                      <option value="BE">Belgium</option>
-                      <option value="DK">Denmark</option>
-                      <option value="FI">Finland</option>
-                      <option value="NO">Norway</option>
-                      <option value="PT">Portugal</option>
-                      <option value="SE">Sweden</option>
-                      <option value="CH">Switzerland</option>
-                    </optgroup>
-                    <optgroup label="North America">
-                      <option value="US">United States</option>
-                      <option value="CA">Canada</option>
-                    </optgroup>
-                    <optgroup label="Oceania">
-                      <option value="AU">Australia</option>
-                      <option value="NZ">New Zealand</option>
-                    </optgroup>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, country: val })}
+                    placeholder="Select a country"
+                    className="!p-3"
+                  />
                 </div>
 
                 <div>

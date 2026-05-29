@@ -11,6 +11,7 @@ const Transaction = require('../models/transaction.model');
 const Payout = require('../models/payout.model');
 const EmailLog = require('../models/emailLog.model');
 const Job = require('../models/job.model');
+const Organizer = require('../models/organizer.model');
 const jwt = require('jsonwebtoken');
 const stripeService = require('../services/stripe.service');
 const { handleTicketDelivery, verifyPendingBookings } = require('./payment.controller');
@@ -355,7 +356,8 @@ exports.getUserForm = async (req, res) => {
             activePage: 'users',
             admin: req.user,
             user,
-            roles
+            roles,
+            requestedRole: req.query.role || null
         });
     } catch (error) {
         res.status(500).send(error.message);
@@ -426,6 +428,111 @@ exports.saveUser = async (req, res) => {
         res.redirect('/admin/users?success=User saved successfully');
     } catch (error) {
         console.error('❌ Error saving user:', error);
+        res.status(500).send(error.message);
+    }
+};
+
+// @desc    View Organizer Profiles
+// @route   GET /admin/organizer-profiles
+exports.getOrganizerProfiles = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = 20;
+        const skip = (page - 1) * limit;
+
+        const profiles = await Organizer.find()
+            .populate('user', 'email username')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await Organizer.countDocuments();
+        const totalPages = Math.ceil(total / limit);
+
+        // Fetch events count for each profile
+        const profilesWithCounts = await Promise.all(profiles.map(async (profile) => {
+            const count = await Event.countDocuments({
+                $or: [
+                    { organizer_profile: profile._id },
+                    { organizer: profile.user?._id } // Fallback to user if not fully migrated to profile
+                ]
+            });
+            return {
+                ...profile.toObject(),
+                eventsCount: count
+            };
+        }));
+
+        res.render('pages/admin/organizer_profiles', {
+            activePage: 'organizer-profiles',
+            admin: req.user,
+            profiles: profilesWithCounts,
+            currentPage: page,
+            totalPages,
+            totalRecords: total
+        });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
+// @desc    Organizer Profile Form
+// @route   GET /admin/organizer-profiles/add OR /admin/organizer-profiles/edit/:id
+exports.getOrganizerProfileForm = async (req, res) => {
+    try {
+        let profile = null;
+        if (req.params.id) {
+            profile = await Organizer.findById(req.params.id).populate('user');
+        }
+
+        const organizerRole = await Role.findOne({ slug: 'organizer' });
+        const adminRole = await Role.findOne({ slug: 'administrator' });
+        
+        // Users who can be organizers
+        const users = await User.find({
+            roles: { $in: [organizerRole?._id, adminRole?._id].filter(id => id) }
+        }).select('username email');
+
+        res.render('pages/admin/organizer_profile_form', {
+            activePage: 'organizer-profiles',
+            admin: req.user,
+            profile,
+            users
+        });
+    } catch (error) {
+        res.status(500).send(error.message);
+    }
+};
+
+// @desc    Save Organizer Profile
+// @route   POST /admin/organizer-profiles/save
+exports.saveOrganizerProfile = async (req, res) => {
+    try {
+        const { id, user, name, website, bio, country, status, facebook, instagram, twitter, linkedin, youtube } = req.body;
+
+        const socialLinks = {
+            facebook, instagram, twitter, linkedin, youtube
+        };
+
+        const data = {
+            user,
+            name,
+            website,
+            bio,
+            country,
+            status: status || 'active',
+            socialLinks
+        };
+
+        if (id) {
+            await Organizer.findByIdAndUpdate(id, data);
+        } else {
+            await Organizer.create(data);
+        }
+
+        res.redirect('/admin/organizer-profiles?success=Organizer Profile saved successfully');
+    } catch (error) {
+        console.error('❌ Error saving Organizer Profile:', error);
         res.status(500).send(error.message);
     }
 };
@@ -1397,7 +1504,7 @@ exports.handleDelete = async (req, res) => {
     try {
         const { resource, id } = req.params;
         let model;
-        let redirectUrl = `/admin/${resource}`;
+        let redirectUrl = req.query.redirect || `/admin/${resource}`;
 
         switch (resource) {
             case 'users': model = User; break;
@@ -1406,6 +1513,7 @@ exports.handleDelete = async (req, res) => {
             case 'cms': model = StaticPage; break;
             case 'faqs': model = FAQ; break;
             case 'inquiries': model = Inquiry; break;
+            case 'organizer-profiles': model = Organizer; break;
             default: return res.status(400).send('Invalid resource');
         }
 
@@ -1415,7 +1523,8 @@ exports.handleDelete = async (req, res) => {
             'categories': 'Category',
             'cms': 'Page',
             'faqs': 'FAQ',
-            'inquiries': 'Inquiry'
+            'inquiries': 'Inquiry',
+            'organizer-profiles': 'Organizer Profile'
         };
         const resourceName = resourceNames[resource] || 'Item';
 
@@ -1461,11 +1570,16 @@ exports.getStripeOrganizers = async (req, res) => {
         if (emailFilter.trim() !== '') {
             const emailRegex = new RegExp(emailFilter.trim(), 'i');
             query.$and = query.$and || [];
-            query.$and.push({ email: emailRegex });
+            query.$and.push({
+                $or: [
+                    { email: emailRegex },
+                    { stripe_account_email: emailRegex }
+                ]
+            });
         }
 
         const rawOrganizers = await User.find(query)
-            .select('username email stripe_account_id stripeConnectedId createdAt')
+            .select('username email stripe_account_id stripeConnectedId stripe_account_email createdAt')
             .sort({ createdAt: -1 });
 
         console.log(`🔍 Found ${rawOrganizers.length} raw organizers in DB matching query`);
@@ -1559,6 +1673,7 @@ exports.getStripeTransactions = async (req, res) => {
                 $group: {
                     _id: null,
                     totalPlatformFee: { $sum: '$platform_fee' },
+                    totalRetained: { $sum: { $subtract: ['$amount', '$organizer_amount'] } },
                     totalAmount: { $sum: '$amount' }
                 }
             }
@@ -1569,7 +1684,7 @@ exports.getStripeTransactions = async (req, res) => {
             activeSubPage: 'transactions',
             admin: req.user,
             transactions,
-            stats: stats[0] || { totalPlatformFee: 0, totalVat: 0, totalStripeFee: 0, totalAmount: 0 }
+            stats: stats[0] || { totalPlatformFee: 0, totalRetained: 0, totalAmount: 0 }
         });
     } catch (error) {
         res.status(500).send(error.message);

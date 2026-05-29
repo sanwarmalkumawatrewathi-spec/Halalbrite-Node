@@ -256,7 +256,7 @@ function GoogleMapLoader({ apiKey, center, events, onMarkerClick, selectedEventI
               if (onMarkerClick) onMarkerClick(null);
             }}
           >
-            <div className="w-64 p-0 bg-white rounded-lg overflow-hidden shadow-2xl border border-gray-100">
+            <div className="w-[100%] md:w-[240px]  p-0 bg-white rounded-lg overflow-hidden border border-gray-100">
               <div className="relative h-32 w-full">
                 <img
                   src={selectedEvent.banner ? (selectedEvent.banner.startsWith('http') ? selectedEvent.banner : `${baseUrl}${selectedEvent.banner}`) : "/images/noimage.jpg"}

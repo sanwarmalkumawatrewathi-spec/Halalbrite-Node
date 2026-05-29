@@ -48,7 +48,10 @@ const {
     getAddJob,
     getEditJob,
     saveJob,
-    deleteJobView
+    deleteJobView,
+    getOrganizerProfiles,
+    getOrganizerProfileForm,
+    saveOrganizerProfile
 } = require('../../controllers/adminView.controller');
 const { uploadSingle, handleUpload } = require('../../controllers/upload.controller');
 const { protectAdminView, redirectIfLoggedIn } = require('../../middlewares/admin.middleware');
@@ -110,6 +113,12 @@ router.get('/users', protectAdminView, getUsers);
 router.get('/users/add', protectAdminView, getUserForm);
 router.get('/users/edit/:id', protectAdminView, getUserForm);
 router.post('/users/save', protectAdminView, saveUser);
+
+// Organizer Profile Management
+router.get('/organizer-profiles', protectAdminView, getOrganizerProfiles);
+router.get('/organizer-profiles/add', protectAdminView, getOrganizerProfileForm);
+router.get('/organizer-profiles/edit/:id', protectAdminView, getOrganizerProfileForm);
+router.post('/organizer-profiles/save', protectAdminView, saveOrganizerProfile);
 
 // Event Management
 router.get('/events/add', protectAdminView, getEventForm);

@@ -45,11 +45,6 @@ export default function FeaturedEvents({ activeCategory, selectedCities = [], se
 
   // ✅ FILTER LOGIC
   const filteredEvents = events.filter((event) => {
-    // If an event is selected from the map, only show that one
-    if (selectedEventId) {
-      return event._id === selectedEventId;
-    }
-
     const categoryMatch = activeCategory === "All" ||
       event.category?.name?.toLowerCase() === activeCategory?.toLowerCase();
 

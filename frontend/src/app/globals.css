@@ -55,22 +55,27 @@ textarea {
 }
 
 /* Custom Prose Styling for Rich Text Editor and Preview */
-.prose, .prose-red {
+.prose,
+.prose-red {
     font-size: 1rem;
     line-height: 1.625;
-    color: #374151; /* text-gray-700 */
+    color: #374151;
+    /* text-gray-700 */
 }
 
-.prose h1, .prose-red h1 {
+.prose h1,
+.prose-red h1 {
     font-size: 2rem;
     font-weight: 800;
     line-height: 1.25;
     margin-top: 1.5rem;
     margin-bottom: 1rem;
-    color: #111827; /* text-gray-900 */
+    color: #111827;
+    /* text-gray-900 */
 }
 
-.prose h2, .prose-red h2 {
+.prose h2,
+.prose-red h2 {
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1.375;
@@ -79,7 +84,8 @@ textarea {
     color: #111827;
 }
 
-.prose h3, .prose-red h3 {
+.prose h3,
+.prose-red h3 {
     font-size: 1.25rem;
     font-weight: 600;
     line-height: 1.5;
@@ -88,80 +94,108 @@ textarea {
     color: #111827;
 }
 
-.prose p, .prose-red p {
+.prose p,
+.prose-red p {
     margin-top: 0.75rem;
     margin-bottom: 0.75rem;
 }
 
-.prose strong, .prose b, .prose-red strong, .prose-red b {
+.prose strong,
+.prose b,
+.prose-red strong,
+.prose-red b {
     font-weight: 700;
     color: #111827;
 }
 
-.prose em, .prose i, .prose-red em, .prose-red i {
+.prose em,
+.prose i,
+.prose-red em,
+.prose-red i {
     font-style: italic;
 }
 
-.prose u, .prose-red u {
+.prose u,
+.prose-red u {
     text-decoration: underline;
 }
 
-.prose ul, .prose-red ul {
+.prose ul,
+.prose-red ul {
     list-style-type: disc !important;
     padding-left: 1.625rem !important;
     margin-top: 0.75rem !important;
     margin-bottom: 0.75rem !important;
 }
 
-.prose ol, .prose-red ol {
+.prose ol,
+.prose-red ol {
     list-style-type: decimal !important;
     padding-left: 1.625rem !important;
     margin-top: 0.75rem !important;
     margin-bottom: 0.75rem !important;
 }
 
-.prose li, .prose-red li {
+.prose li,
+.prose-red li {
     margin-top: 0.25rem !important;
     margin-bottom: 0.25rem !important;
     display: list-item !important;
 }
 
-.prose a, .prose-red a {
-    color: #dc2626; /* red-600 */
+.prose a,
+.prose-red a {
+    color: #dc2626;
+    /* red-600 */
     text-decoration: underline;
     font-weight: 500;
 }
 
-.prose a:hover, .prose-red a:hover {
-    color: #991b1b; /* red-800 */
+.prose a:hover,
+.prose-red a:hover {
+    color: #991b1b;
+    /* red-800 */
 }
 
 /* Google Maps InfoWindow Close Button Fix */
 .gm-style-iw button.gm-ui-hover-effect {
-  opacity: 1 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: white !important;
-  border-radius: 50% !important;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
-  width: 28px !important;
-  height: 28px !important;
-  padding: 0 !important;
-  top: 8px !important;
-  right: 8px !important;
-  z-index: 99999 !important;
+    opacity: 1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: white !important;
+    border-radius: 50% !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+    width: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    top: 8px !important;
+    right: 8px !important;
+    z-index: 99999 !important;
 }
 
 .gm-style-iw button.gm-ui-hover-effect img,
 .gm-style-iw button.gm-ui-hover-effect svg,
 .gm-style-iw button.gm-ui-hover-effect span {
-  max-width: none !important;
-  width: 12px !important;
-  height: 12px !important;
-  margin: 0 !important;
-  display: block !important;
+    max-width: none !important;
+    width: 12px !important;
+    height: 12px !important;
+    margin: 0 !important;
+    display: block !important;
 }
-.bg-card{
+
+.bg-card {
     background-color: #fff;
+}
+
+@media (max-width:700px) {
+    .gm-style-iw.gm-style-iw-c {
+        width: 100% !important;
+        padding: 0px;
+        margin: 0px;
+    }
+
+    .gm-style-iw-d {
+        overflow: auto !important;
+    }
 }

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useJsApiLoader, Libraries } from "@react-google-maps/api";
 import { FiInstagram, FiYoutube, FiLink } from "react-icons/fi";
+import SearchableSelect from "./SearchableSelect";
 
 const LIBRARIES: Libraries = ["places"];
 
@@ -207,22 +208,13 @@ function EventTypeContent({
         </div>
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-gray-700">Country</label>
-          <div className="relative">
-            <select
-              name="country"
-              value={displayCountry}
-              onChange={handleChange}
-              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none appearance-none transition-all bg-white"
-            >
-              <option value="">Select Country</option>
-              {countryOptions.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
-            </div>
-          </div>
+          <SearchableSelect
+            options={countryOptions.map(c => ({ value: c, label: c }))}
+            value={displayCountry}
+            onChange={(val) => handleChange({ target: { name: 'country', value: val } })}
+            placeholder="Select Country"
+            className="!py-2.5"
+          />
         </div>
       </div>
     </div>

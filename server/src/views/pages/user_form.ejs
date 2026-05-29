@@ -55,8 +55,7 @@
                         <select name="role" class="form-select" required>
                             <option value="">Select a Role</option>
                             <% roles.forEach(role=> { %>
-                                <option value="<%= role._id %>" <%=user && user.roles && user.roles.some(r=>
-                                    r._id.toString() === role._id.toString()) ? 'selected' : '' %>><%= role.name %>
+                                <option value="<%= role._id %>" <%= (user && user.roles && user.roles.some(r=> r._id.toString() === role._id.toString())) ? 'selected' : (!user && typeof requestedRole !== 'undefined' && requestedRole === role.slug ? 'selected' : '') %>><%= role.name %>
                                 </option>
                                 <% }) %>
                         </select>

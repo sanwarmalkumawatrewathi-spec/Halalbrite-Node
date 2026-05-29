@@ -5,6 +5,29 @@ import CustomModal from "./CustomModal";
 import { getImageUrl } from "@/utils/imageUtils";
 import Cropper from 'react-easy-crop';
 import { getCroppedImg } from "@/utils/cropUtils";
+import SearchableSelect from "./SearchableSelect";
+
+const countryOptions = [
+  { value: 'IE', label: 'Ireland', group: 'Europe' },
+  { value: 'GB', label: 'United Kingdom', group: 'Europe' },
+  { value: 'DE', label: 'Germany', group: 'Europe' },
+  { value: 'FR', label: 'France', group: 'Europe' },
+  { value: 'ES', label: 'Spain', group: 'Europe' },
+  { value: 'IT', label: 'Italy', group: 'Europe' },
+  { value: 'NL', label: 'Netherlands', group: 'Europe' },
+  { value: 'AT', label: 'Austria', group: 'Europe' },
+  { value: 'BE', label: 'Belgium', group: 'Europe' },
+  { value: 'DK', label: 'Denmark', group: 'Europe' },
+  { value: 'FI', label: 'Finland', group: 'Europe' },
+  { value: 'NO', label: 'Norway', group: 'Europe' },
+  { value: 'PT', label: 'Portugal', group: 'Europe' },
+  { value: 'SE', label: 'Sweden', group: 'Europe' },
+  { value: 'CH', label: 'Switzerland', group: 'Europe' },
+  { value: 'US', label: 'United States', group: 'North America' },
+  { value: 'CA', label: 'Canada', group: 'North America' },
+  { value: 'AU', label: 'Australia', group: 'Oceania' },
+  { value: 'NZ', label: 'New Zealand', group: 'Oceania' },
+];
 
 export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
   const router = useRouter();
@@ -298,6 +321,28 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
             <form className="space-y-3 sm:space-y-4" onSubmit={handleSaveProfile}>
               <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                 <div className="space-y-1.5 sm:space-y-2">
+                  <label data-slot="label" className="flex items-center gap-2 font-medium text-sm text-gray-700" htmlFor="firstName">First Name</label>
+                  <input
+                    data-slot="input"
+                    className="w-full border borborder border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all text-gray-900 bg-white"
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label data-slot="label" className="flex items-center gap-2 font-medium text-sm text-gray-700" htmlFor="lastName">Last Name</label>
+                  <input
+                    data-slot="input"
+                    className="w-full border borborder border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all text-gray-900 bg-white"
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
+                <div className="space-y-1.5 sm:space-y-2">
                   <label data-slot="label" className="flex items-center gap-2 font-medium text-sm text-gray-700" htmlFor="username">Username</label>
                   <input
                     data-slot="input"
@@ -343,39 +388,13 @@ export default function ProfileTab({ setActiveTab }: { setActiveTab: (tab: strin
               </div>
               <div className="space-y-1.5 sm:space-y-2">
                 <label data-slot="label" className="flex items-center gap-2 font-medium text-sm text-gray-700" htmlFor="country">Country (for Stripe Connect)</label>
-                <select
-                  data-slot="select"
-                  className="w-full border borborder border-gray-200 rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-red-100 focus:border-red-400 outline-none transition-all text-gray-900 bg-white"
+                <SearchableSelect
                   id="country"
+                  options={countryOptions}
                   value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                >
-                  <optgroup label="Europe">
-                    <option value="IE">Ireland</option>
-                    <option value="GB">United Kingdom</option>
-                    <option value="DE">Germany</option>
-                    <option value="FR">France</option>
-                    <option value="ES">Spain</option>
-                    <option value="IT">Italy</option>
-                    <option value="NL">Netherlands</option>
-                    <option value="AT">Austria</option>
-                    <option value="BE">Belgium</option>
-                    <option value="DK">Denmark</option>
-                    <option value="FI">Finland</option>
-                    <option value="NO">Norway</option>
-                    <option value="PT">Portugal</option>
-                    <option value="SE">Sweden</option>
-                    <option value="CH">Switzerland</option>
-                  </optgroup>
-                  <optgroup label="North America">
-                    <option value="US">United States</option>
-                    <option value="CA">Canada</option>
-                  </optgroup>
-                  <optgroup label="Oceania">
-                    <option value="AU">Australia</option>
-                    <option value="NZ">New Zealand</option>
-                  </optgroup>
-                </select>
+                  onChange={(val) => setFormData({ ...formData, country: val })}
+                  placeholder="Select a country"
+                />
                 <p className="text-xs text-gray-500">Only Stripe-supported payout countries are listed. This selection determines your financial onboarding region.</p>
               </div>
               <button

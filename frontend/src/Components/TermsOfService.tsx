@@ -225,8 +225,7 @@ export default function TermsOfService() {
               <div className="flex-1 min-w-0">
                 <h2 className="text-red-900 mb-2 sm:mb-3 text-lg sm:text-xl md:text-2xl">Questions About These Terms?</h2>
                 <p className="text-gray-700 leading-relaxed mb-3 sm:mb-4 text-sm sm:text-base">If you have any questions about these Terms of Service, please contact us at:</p>
-                <p className="text-gray-700 text-sm sm:text-base break-words"><strong>Email:</strong> <a href="mailto:legal@Halalbrite.com" className="text-red-600 hover:text-red-700 break-all">legal@Halalbrite.com</a></p>
-                <p className="text-gray-700 mt-1.5 sm:mt-2 text-sm sm:text-base"><strong>Address:</strong> 123 Event Street, London, UK, SW1A 1AA</p>
+                <p className="text-gray-700 text-sm sm:text-base break-words"><strong>Email:</strong> <a href="mailto:legal@Halalbrite.com" className="text-red-600 hover:text-red-700 break-all">contact@halalbrite.com</a></p>
               </div>
             </div>
           </div>

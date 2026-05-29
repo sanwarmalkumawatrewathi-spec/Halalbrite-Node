@@ -11,6 +11,9 @@
                     <p class="text-muted" style="margin: 4px 0 0 0; font-size: 0.875rem;">Manage Stripe Connect integration for platform organizers</p>
                 </div>
                 <div style="display: flex; gap: 8px;">
+                    <a href="/admin/users/add?role=organizer" class="btn btn-primary btn-sm">
+                        <i class="fa-solid fa-plus"></i> Add New Organiser
+                    </a>
                     <a href="/admin/stripe/dashboard" class="btn btn-outline btn-sm">
                         <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
                     </a>
@@ -81,7 +84,12 @@
                                                 <%= org.username %>
                                             </strong></td>
                                         <td class="text-slate-600" style="padding: 16px 24px;">
-                                            <%= org.email %>
+                                            <div style="font-weight: 500;"><%= org.email %></div>
+                                            <% if (org.stripe_account_email && org.stripe_account_email !== org.email) { %>
+                                                <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px; display: flex; align-items: center; gap: 4px;">
+                                                    <i class="fa-brands fa-stripe" style="color: #6366f1; font-size: 1.1rem;"></i> <%= org.stripe_account_email %>
+                                                </div>
+                                            <% } %>
                                         </td>
                                         <td style="padding: 16px 24px;">
                                             <% if (org.accountId || org.stripeConnectedId || org.stripe_account_id) { %>
@@ -116,6 +124,11 @@
                                                 <a href="/admin/users/edit/<%= org._id %>" class="text-slate-600"
                                                     style="font-weight: 700; font-size: 0.85rem;"
                                                     title="Profile">Profile</a>
+                                                <form id="delete-form-<%= org._id %>" action="/admin/users/delete/<%= org._id %>?redirect=/admin/stripe/organizers" method="POST" style="margin: 0;">
+                                                    <button type="button" onclick="confirmDelete('<%= org._id %>')" class="text-red-600"
+                                                        style="font-weight: 700; font-size: 0.85rem; border: none; background: none; cursor: pointer;"
+                                                        title="Delete">Delete</button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>
@@ -135,3 +148,51 @@
                 </div>
             </div>
         </div>
+
+<!-- Custom Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 z-[9999] hidden">
+    <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
+    <div class="flex min-h-full items-center justify-center p-4">
+        <div class="relative w-full max-w-md transform overflow-hidden rounded-[2.5rem] bg-white p-8 text-left shadow-2xl transition-all animate-in zoom-in-95 duration-300">
+            <button onclick="closeDeleteModal()" class="absolute right-8 top-8 text-slate-400 hover:text-slate-600 transition-colors">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+            <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-red-50 mb-6">
+                <i class="fa-solid fa-triangle-exclamation text-3xl text-red-500"></i>
+            </div>
+            <div class="text-center mb-8 px-4">
+                <h3 class="text-2xl font-bold text-slate-900 mb-2">Delete Organizer?</h3>
+                <p class="text-slate-500">Are you sure you want to delete this organizer profile? This action cannot be undone and all associated data will be removed.</p>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 px-6 py-4 rounded-2xl bg-slate-100 text-slate-700 font-bold hover:bg-slate-200 transition-all active:scale-[0.98]">
+                    Cancel
+                </button>
+                <button id="confirmDeleteBtn" class="flex-1 px-6 py-4 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all active:scale-[0.98]">
+                    Yes, Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let formToSubmit = null;
+    function confirmDelete(userId) {
+        formToSubmit = document.getElementById(`delete-form-${userId}`);
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+        formToSubmit = null;
+    }
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (formToSubmit) {
+            formToSubmit.submit();
+        }
+    });
+</script>

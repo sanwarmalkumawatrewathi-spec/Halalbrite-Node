@@ -76,9 +76,7 @@ function EventContent() {
     }
   }, [filters, urlEventId]);
 
-  const displayedEvents = selectedEventId
-    ? events.filter((e: any) => e._id === selectedEventId)
-    : events;
+  const displayedEvents = events;
 
   return (
     <div className="bg-[#fef3f6] ">
@@ -111,19 +109,7 @@ function EventContent() {
 
       <FilterBar filters={filters} setFilters={setFilters} />
 
-      {selectedEventId && (
-        <div className="max-w-7xl mx-auto px-6 mb-6 flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-red-50">
-          <div className="text-gray-700 font-medium italic">
-            Showing selected event from map
-          </div>
-          <button
-            onClick={() => setSelectedEventId(null)}
-            className="text-red-600 font-bold hover:underline"
-          >
-            Show All Events
-          </button>
-        </div>
-      )}
+
 
       <EventCardGrid events={displayedEvents} loading={loading} />
 

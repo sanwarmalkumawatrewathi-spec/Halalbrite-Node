@@ -339,10 +339,10 @@ exports.updateProfile = async (req, res) => {
         if (user) {
             const updateFields = {
                 username: req.body.username || user.username,
-                firstName: req.body.firstName || user.firstName,
-                lastName: req.body.lastName || user.lastName,
+                firstName: req.body.firstName !== undefined ? req.body.firstName : user.firstName,
+                lastName: req.body.lastName !== undefined ? req.body.lastName : user.lastName,
                 phone: req.body.phone || user.phone,
-                bio: req.body.bio || user.bio,
+                bio: req.body.bio !== undefined ? req.body.bio : user.bio,
                 country: req.body.country || user.country,
                 avatar: req.body.avatar || user.avatar
             };

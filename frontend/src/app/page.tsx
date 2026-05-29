@@ -65,19 +65,7 @@ export default function Page() {
       <div className="max-w-7xl mx-auto pt-3 min-h-[100vh] sm:min-h-[800px]" ref={eventsRef}>
         <CategoryTabs active={activeCategory} setActive={setActiveCategory} />
 
-        {selectedEventId && (
-          <div className="max-w-7xl mx-auto px-6 mb-6 mt-4 flex items-center justify-between bg-white p-4 rounded-xl shadow-sm border border-red-50">
-            <div className="text-gray-700 font-medium italic text-sm">
-              Showing selected event from map
-            </div>
-            <button
-              onClick={() => handleMarkerClick(null)}
-              className="text-red-600 font-bold hover:underline text-sm"
-            >
-              Show All Events
-            </button>
-          </div>
-        )}
+
 
         <FeaturedEvents
           activeCategory={activeCategory}
