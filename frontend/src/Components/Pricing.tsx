@@ -101,7 +101,7 @@ export default function Pricing() {
             <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0">
               <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-8">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center">
+                  <div className="w-[47px] h-[47px] bg-red-100 rounded-2xl flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-ticket w-7 h-7 text-red-600">
                       <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
                       <path d="M13 5v2" />
@@ -159,7 +159,7 @@ export default function Pricing() {
             <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0">
               <div data-slot="card-content" className="[&amp;:last-child]:pb-6 p-8">
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center">
+                  <div className="w-[47px] h-[47px] bg-red-100 rounded-2xl flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-shield w-7 h-7 text-red-600">
                       <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" />
                     </svg>
@@ -225,13 +225,13 @@ export default function Pricing() {
           <div data-slot="card" className="bg-card text-card-foreground flex flex-col gap-6 rounded-2xl shadow-lg border-0 mb-8 overflow-hidden bg-white">
             <div data-slot="card-content" className="p-8">
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center">
+                <div className="w-[47px] h-[47px] bg-red-100 rounded-2xl flex items-center justify-center">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-credit-card w-7 h-7 text-red-600">
                     <rect width="20" height="14" x="2" y="5" rx="2" />
                     <line x1="2" x2="22" y1="10" y2="10" />
                   </svg>
                 </div>
-                <h3 className="text-red-900 font-bold text-xl md:text-2xl">Payment Processing Fees</h3>
+                <h3 className="text-red-900  text-xl md:text-1xl">Payment Processing Fees</h3>
               </div>
 
               <div className="grid md:grid-cols-5 gap-6 text-sm text-gray-600 mb-8 leading-relaxed">
@@ -246,25 +246,25 @@ export default function Pricing() {
               </div>
 
               <div className="border-t border-gray-100 pt-6">
-                <h4 className="text-gray-900 font-bold mb-4 text-base">Example Stripe Fees</h4>
+                <h4 className="text-gray-900  mb-4 text-base">Example Stripe Fees</h4>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left text-gray-600 border-collapse">
                     <thead>
                       <tr className="border-b border-gray-100 bg-gray-50/50">
-                        <th className="py-3 px-4 font-bold text-gray-950">UK</th>
-                        <th className="py-3 px-4 font-bold text-gray-950">US</th>
-                        <th className="py-3 px-4 font-bold text-gray-950">Eurozone</th>
-                        <th className="py-3 px-4 font-bold text-gray-950">Canada</th>
-                        <th className="py-3 px-4 font-bold text-gray-950">Australia</th>
+                        <th className="py-3 px-4 font-normal text-gray-950">UK</th>
+                        <th className="py-3 px-4 font-normal text-gray-950">US</th>
+                        <th className="py-3 px-4 font-normal text-gray-950">Eurozone</th>
+                        <th className="py-3 px-4 font-normal text-gray-950">Canada</th>
+                        <th className="py-3 px-4 font-normal text-gray-950">Australia</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr className="border-b border-gray-100 last:border-0 hover:bg-gray-50/30 transition-colors">
-                        <td className="py-4 px-4 font-extrabold text-gray-900">1.5% + £0.20</td>
-                        <td className="py-4 px-4 font-extrabold text-gray-900">2.9% + $0.30</td>
-                        <td className="py-4 px-4 font-extrabold text-gray-900">1.5% + €0.25</td>
-                        <td className="py-4 px-4 font-extrabold text-gray-900">2.9% + C$0.30</td>
-                        <td className="py-4 px-4 font-extrabold text-gray-900">1.75% + A$0.30</td>
+                        <td className="py-4 px-4 font-normal text-gray-900">1.5% + £0.20</td>
+                        <td className="py-4 px-4 font-normal text-gray-900">2.9% + $0.30</td>
+                        <td className="py-4 px-4 font-normal text-gray-900">1.5% + €0.25</td>
+                        <td className="py-4 px-4 font-normal text-gray-900">2.9% + C$0.30</td>
+                        <td className="py-4 px-4 font-normal text-gray-900">1.75% + A$0.30</td>
                       </tr>
                     </tbody>
                   </table>

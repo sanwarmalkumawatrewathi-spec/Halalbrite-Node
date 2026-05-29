@@ -32,7 +32,7 @@ export default function CookiePolicy() {
         </div>
 
         {/* Section 2 */}
-        <div className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
+      {/*   <div className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
           <div className="[&_:last-child]:pb-6 p-5 sm:p-6 md:p-8">
             <h2 className="text-red-900 mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl">2. Our first-party cookie</h2>
             <div className="space-y-3 sm:space-y-4 text-gray-600 leading-relaxed text-sm sm:text-base">
@@ -43,12 +43,12 @@ export default function CookiePolicy() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Section 3 */}
         <div className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
           <div className="[&_:last-child]:pb-6 p-5 sm:p-6 md:p-8">
-            <h2 className="text-red-900 mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl">3. Essential browser storage (non-cookie)</h2>
+            <h2 className="text-red-900 mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl">2. Essential browser storage (non-cookie)</h2>
             <div className="space-y-4 text-gray-600 leading-relaxed text-sm sm:text-base">
               <div className="grid gap-4">
                 {[
@@ -69,7 +69,7 @@ export default function CookiePolicy() {
         </div>
 
         {/* Section 4 */}
-        <div className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
+       {/*  <div className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
           <div className="[&_:last-child]:pb-6 p-5 sm:p-6 md:p-8">
             <h2 className="text-red-900 mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl">4. Optional marketing technology</h2>
             <div className="space-y-4 text-gray-600 leading-relaxed text-sm sm:text-base">
@@ -84,12 +84,12 @@ export default function CookiePolicy() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Section 5 */}
         <div className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
           <div className="[&_:last-child]:pb-6 p-5 sm:p-6 md:p-8">
-            <h2 className="text-red-900 mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl">5. Your choices</h2>
+            <h2 className="text-red-900 mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl">3. Your choices</h2>
             <div className="space-y-3 sm:space-y-4 text-gray-600 leading-relaxed text-sm sm:text-base">
               <p>You can change marketing storage at any time using the “Manage cookies” control in our site footer. In embedded event/checkout views, the same controls are available in the cookie banner.</p>
               <p>Choosing “Reject optional” (or turning marketing storage off in settings) keeps Halalbrite running but stops Meta Pixel tracking. Clearing cookies or browser storage in your browser settings will also sign you out and reset cached data described above.</p>
@@ -100,7 +100,7 @@ export default function CookiePolicy() {
         {/* Section 6 */}
         <div className="bg-white text-gray-900 flex flex-col gap-6 rounded-xl sm:rounded-2xl shadow-lg border border-gray-100 mb-6 sm:mb-8">
           <div className="[&_:last-child]:pb-6 p-5 sm:p-6 md:p-8">
-            <h2 className="text-red-900 mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl">6. Legal basis</h2>
+            <h2 className="text-red-900 mb-3 sm:mb-4 text-lg sm:text-xl md:text-2xl">4. Legal basis</h2>
             <div className="space-y-3 sm:space-y-4 text-gray-600 leading-relaxed text-sm sm:text-base">
               <p>For EEA users, optional cookies and similar technologies are managed under the ePrivacy rules and GDPR consent standards. Essential storage is always on because it is necessary to provide requested services and secure key account flows.</p>
               <p>If you are in regions such as California where ad-related identifiers can be treated as data-sharing for advertising, you can keep optional marketing storage disabled at any time through our cookie controls.</p>
