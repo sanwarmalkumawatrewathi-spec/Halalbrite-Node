@@ -14,209 +14,210 @@ const _allOrganizersList = (typeof allOrganizers !== 'undefined') ? allOrganizer
     <!-- Styles moved to body for reliability -->
 
 <%- contentFor('body') %>
-  
 
-    <div class="main-container" id="event-form-app" 
-        data-sym="<%= _currencySym %>"
-        data-pct-p="<%= _platformFeePercent %>" data-fix-p="<%= _platformFixedFee %>"
-        data-pct-v="<%= _vatRate %>" data-pct-s="<%= _stripePercent %>" data-fix-s="<%= _stripeFixed %>">
+<div class="form-container" id="event-form-app" 
+    data-sym="<%= _currencySym %>"
+    data-pct-p="<%= _platformFeePercent %>" data-fix-p="<%= _platformFixedFee %>"
+    data-pct-v="<%= _vatRate %>" data-pct-s="<%= _stripePercent %>" data-fix-s="<%= _stripeFixed %>">
 
-        <div class="form-header-premium">
-            <h1 class="page-title"><%= event ? 'Edit Event' : 'Create New Event' %></h1>
-            <p class="page-subtitle">Publish your event to the HalalBrite community</p>
+    <div class="form-header flex justify-between items-center">
+        <div>
+            <h3 class="form-title"><%= event ? 'Edit Event' : 'Create New Event' %></h3>
+            <p class="form-subtitle">Publish your event to the HalalBrite community</p>
         </div>
+        <a href="/admin/events" class="form-btn-cancel text-sm">Back to List</a>
+    </div>
 
-        <form action="/admin/events/save" method="POST" id="event-form">
-            <% if (event) { %><input type="hidden" name="id" value="<%= event._id %>"><% } %>
+    <form action="/admin/events/save" method="POST" id="event-form" class="space-y-8">
+        <% if (event) { %><input type="hidden" name="id" value="<%= event._id %>"><% } %>
 
-            <!-- Section: Basic Info -->
-            <div class="form-section-card">
-                <div class="section-head" style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-                    <div style="width: 44px; height: 44px; background: #fff5f5; color: #E31E24; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                        <i class="fa-solid fa-circle-info"></i>
-                    </div>
-                    <div>
-                        <h2 class="section-title">Basic Information</h2>
-                        <p class="section-desc">The core details of your event</p>
-                    </div>
-                </div>
+        <div class="form-section">
+            <span class="section-label">Basic Information</span>
 
-                <div class="form-group">
-                    <label class="field-label">Event Title</label>
-                    <input type="text" name="title" value="<%= event?.title || '' %>" class="form-input" placeholder="Enter a catchy title" required>
-                </div>
+            <div class="form-group">
+                <label class="form-label">Event Title</label>
+                <input type="text" name="title" value="<%= event?.title || '' %>" class="form-input" placeholder="Enter a catchy title" required>
+            </div>
 
-                <div class="form-group">
-                    <label class="field-label">Event Banner</label>
-                    <div class="upload-area" onclick="document.getElementById('banner-file').click()">
-                        <i class="fa-solid fa-cloud-arrow-up"></i>
-                        <p id="banner-status">Click to upload banner</p>
-                        <span>16:9 ratio recommended</span>
-                        <img id="banner-preview" class="preview-img <%= event?.banner ? 'shown' : '' %>" src="<%= event?.banner || '' %>">
-                        <input type="hidden" name="banner" id="banner-input" value="<%= event?.banner || '' %>">
-                        <input type="file" id="banner-file" style="display:none" accept="image/*" onchange="ajaxUpload(this, 'banner-input', 'banner-preview', 'banner-status')">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="field-label">Category</label>
-                    <select name="category" class="form-input" required>
-                        <option value="">Select Category</option>
-                        <% categories.forEach(cat => { %>
-                            <option value="<%= cat._id %>" <%= event && event.category?.toString()===cat._id.toString() ? 'selected' : '' %>><%= cat.name %></option>
-                        <% }) %>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="field-label">Description</label>
-                    <textarea name="description" id="desc-input" class="form-input" style="height: 180px; resize: vertical;"><%= event?.description || '' %></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="field-label">Organizer</label>
-                    <select name="organizer" class="form-input" id="org-select">
-                        <% _allOrganizersList.forEach(org => { %>
-                            <option value="<%= org._id %>" <%= event && event.organizer?.toString()===org._id.toString() ? 'selected' : '' %>><%= org.username %></option>
-                        <% }) %>
-                    </select>
-                    <input type="hidden" name="organizerName" id="org-name-input" value="<%= event ? event.organizerName : admin.username %>">
-                </div>
-
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label class="field-label">Start Date</label>
-                        <input type="date" name="startDate" value="<%= event?.startDate ? new Date(event.startDate).toISOString().split('T')[0] : '' %>" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="field-label">End Date</label>
-                        <input type="date" name="endDate" value="<%= event?.endDate ? new Date(event.endDate).toISOString().split('T')[0] : '' %>" class="form-input" required>
-                    </div>
-                </div>
-
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label class="field-label">Start Time</label>
-                        <input type="time" name="startTime" value="<%= event?.startTime || '' %>" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="field-label">End Time</label>
-                        <input type="time" name="endTime" value="<%= event?.endTime || '' %>" class="form-input" required>
-                    </div>
-                </div>
-
-                <div class="toggle-container">
-                    <span class="field-label" style="margin-bottom: 0;">Event Type</span>
-                    <div class="switch-labels">
-                        <span>In-Person</span>
-                        <label class="switch">
-                            <input type="checkbox" id="type-switch" <%= event && event.eventType==='Online' ? 'checked' : '' %>>
-                            <span class="slider"></span>
-                        </label>
-                        <span>Online</span>
-                        <input type="hidden" name="eventType" id="type-input" value="<%= event?.eventType || 'In Person' %>">
-                    </div>
+            <div class="form-group">
+                <label class="form-label">Event Banner</label>
+                <div class="upload-area" onclick="document.getElementById('banner-file').click()">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p id="banner-status">Click to upload banner</p>
+                    <span>16:9 ratio recommended</span>
+                    <img id="banner-preview" class="preview-img <%= event?.banner ? 'shown' : '' %>" src="<%= event?.banner || '' %>">
+                    <input type="hidden" name="banner" id="banner-input" value="<%= event?.banner || '' %>">
+                    <input type="file" id="banner-file" style="display:none" accept="image/*" onchange="ajaxUpload(this, 'banner-input', 'banner-preview', 'banner-status')">
                 </div>
             </div>
 
-            <!-- Section: Location -->
-            <div class="form-section-card <%= event && event.eventType === 'Online' ? 'hidden' : '' %>" id="location-card">
-                <div class="section-head" style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-                    <div style="width: 44px; height: 44px; background: #fff5f5; color: #E31E24; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                        <i class="fa-solid fa-location-dot"></i>
-                    </div>
-                    <div>
-                        <h2 class="section-title">Location</h2>
-                        <p class="section-desc">Where attendees should go</p>
-                    </div>
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select name="category" class="form-select" required>
+                    <option value="">Select Category</option>
+                    <% categories.forEach(cat => { %>
+                        <option value="<%= cat._id %>" <%= event && event.category?.toString()===cat._id.toString() ? 'selected' : '' %>><%= cat.name %></option>
+                    <% }) %>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea name="description" id="desc-input" class="form-textarea" rows="6"><%= event?.description || '' %></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Organizer</label>
+                <select name="organizer" class="form-select" id="org-select">
+                    <% _allOrganizersList.forEach(org => { %>
+                        <option value="<%= org._id %>" <%= event && event.organizer?.toString()===org._id.toString() ? 'selected' : '' %>><%= org.username %></option>
+                    <% }) %>
+                </select>
+                <input type="hidden" name="organizerName" id="org-name-input" value="<%= event ? event.organizerName : admin.username %>">
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="startDate" value="<%= event?.startDate ? new Date(event.startDate).toISOString().split('T')[0] : '' %>" class="form-input" required>
                 </div>
                 <div class="form-group">
-                    <label class="field-label">Venue Name</label>
-                    <input type="text" name="venueName" value="<%= event?.location?.venueName || '' %>" class="form-input">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="endDate" value="<%= event?.endDate ? new Date(event.endDate).toISOString().split('T')[0] : '' %>" class="form-input" required>
+                </div>
+            </div>
+
+            <div class="form-grid-2">
+                <div class="form-group">
+                    <label class="form-label">Start Time</label>
+                    <input type="time" name="startTime" value="<%= event?.startTime || '' %>" class="form-input" required>
                 </div>
                 <div class="form-group">
-                    <label class="field-label">Address</label>
-                    <input type="text" name="address" value="<%= event?.location?.address || '' %>" class="form-input">
+                    <label class="form-label">End Time</label>
+                    <input type="time" name="endTime" value="<%= event?.endTime || '' %>" class="form-input" required>
                 </div>
-                <div class="grid-3">
+            </div>
+
+            <div class="toggle-container">
+                <span class="form-label" style="margin-bottom: 0;">Event Type</span>
+                <div class="switch-labels">
+                    <span>In-Person</span>
+                    <label class="switch">
+                        <input type="checkbox" id="type-switch" <%= event && event.eventType==='Online' ? 'checked' : '' %>>
+                        <span class="slider"></span>
+                    </label>
+                    <span>Online</span>
+                    <input type="hidden" name="eventType" id="type-input" value="<%= event?.eventType || 'In Person' %>">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section <%= event && event.eventType === 'Online' ? 'hidden' : '' %>" id="location-card">
+            <span class="section-label">Location</span>
+            <div class="form-group">
+                <label class="form-label">Venue Name</label>
+                <input type="text" name="venueName" value="<%= event?.location?.venueName || '' %>" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address</label>
+                <input type="text" name="address" value="<%= event?.location?.address || '' %>" class="form-input">
+            </div>
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label class="form-label">City</label>
                     <input type="text" name="city" value="<%= event?.location?.city || 'London' %>" class="form-input" placeholder="City">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Postcode</label>
                     <input type="text" name="postcode" value="<%= event?.location?.postcode || '' %>" class="form-input" placeholder="Postcode">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Country</label>
                     <input type="text" name="country" value="<%= event?.location?.country || 'United Kingdom' %>" class="form-input" placeholder="Country">
                 </div>
             </div>
+        </div>
 
-            <!-- Section: Tickets -->
-            <div class="form-section-card" id="tickets-section">
-                <div class="section-head" style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
-                    <div style="width: 44px; height: 44px; background: #fff5f5; color: #E31E24; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
-                        <i class="fa-solid fa-ticket"></i>
-                    </div>
-                    <div>
-                        <h2 class="section-title">Tickets</h2>
-                        <p class="section-desc">Manage ticket types and pricing</p>
-                    </div>
-                </div>
+        <div class="form-section" id="tickets-section">
+            <span class="section-label">Tickets</span>
 
-                <div id="ticket-list">
-                    <% if (event?.ticketTypes?.length > 0) { %>
-                        <% event.ticketTypes.forEach((ticket, idx) => { %>
-                            <div class="ticket-card">
-                                <div class="ticket-label">Ticket Type #<%= idx + 1 %></div>
-                                <div class="ticket-remove" onclick="removeTicket(this)"><i class="fa-solid fa-trash"></i></div>
+            <div id="ticket-list">
+                <% if (event?.ticketTypes?.length > 0) { %>
+                    <% event.ticketTypes.forEach((ticket, idx) => { %>
+                        <div class="ticket-card">
+                            <div class="ticket-label">Ticket Type #<%= idx + 1 %></div>
+                            <div class="ticket-remove" onclick="removeTicket(this)"><i class="fa-solid fa-trash"></i></div>
+                            <div class="form-group">
+                                <label class="form-label">Ticket Name</label>
+                                <input type="text" name="ticketName" value="<%= ticket?.name %>" class="form-input" required>
+                            </div>
+                            <div class="form-grid-2">
                                 <div class="form-group">
-                                    <label class="field-label">Ticket Name</label>
-                                    <input type="text" name="ticketName" value="<%= ticket?.name %>" class="form-input" required>
-                                </div>
-                                <div class="grid-2">
+                                    <label class="form-label">Price</label>
                                     <input type="number" name="ticketPrice" value="<%= ticket?.price %>" class="form-input tk-price" step="0.01" placeholder="Price">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Quantity</label>
                                     <input type="number" name="ticketQuantity" value="<%= ticket?.quantity %>" class="form-input" placeholder="Quantity">
                                 </div>
-                                <input type="hidden" name="feePayment" value="true">
-                            </div>
-                        <% }) %>
-                    <% } else { %>
-                        <div class="ticket-card">
-                            <div class="ticket-label">Ticket Type #1</div>
-                            <div class="form-group">
-                                <label class="field-label">Ticket Name</label>
-                                <input type="text" name="ticketName" class="form-input" placeholder="General Admission" required>
-                            </div>
-                            <div class="grid-2">
-                                <input type="number" name="ticketPrice" class="form-input tk-price" step="0.01" value="0" placeholder="Price">
-                                <input type="number" name="ticketQuantity" class="form-input" value="100" placeholder="Quantity">
                             </div>
                             <input type="hidden" name="feePayment" value="true">
                         </div>
-                    <% } %>
-                </div>
-
-                
-
-                <div class="footer-actions">
-                    <button type="button" class="btn-add-more btmnform" onclick="addTicket()">
-                    <i class="fa-solid fa-plus-circle"></i> Add Another Ticket Type
-                </button>
-                    <button type="button" class="btn-preview btmnform">Preview Event</button>
-                    <button type="submit" class="btn-publish btmnform">Review & Publish</button>
-                </div>
+                    <% }) %>
+                <% } else { %>
+                    <div class="ticket-card">
+                        <div class="ticket-label">Ticket Type #1</div>
+                        <div class="form-group">
+                            <label class="form-label">Ticket Name</label>
+                            <input type="text" name="ticketName" class="form-input" placeholder="General Admission" required>
+                        </div>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label class="form-label">Price</label>
+                                <input type="number" name="ticketPrice" class="form-input tk-price" step="0.01" value="0" placeholder="Price">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" name="ticketQuantity" class="form-input" value="100" placeholder="Quantity">
+                            </div>
+                        </div>
+                        <input type="hidden" name="feePayment" value="true">
+                    </div>
+                <% } %>
             </div>
-        </form>
-    </div>
 
-    <template id="ticket-tpl">
-        <div class="ticket-card">
-            <div class="ticket-label">Ticket Type #IDX</div>
-            <div class="ticket-remove" onclick="removeTicket(this)"><i class="fa-solid fa-trash"></i></div>
+            <button type="button" class="btn-add-more btmnform" onclick="addTicket()">
+                <i class="fa-solid fa-plus-circle"></i> Add Another Ticket Type
+            </button>
+
+            <div class="form-footer">
+                <button type="button" class="form-btn-cancel">Preview Event</button>
+                <button type="submit" class="form-btn-submit">Review & Publish</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<template id="ticket-tpl">
+    <div class="ticket-card">
+        <div class="ticket-label">Ticket Type #IDX</div>
+        <div class="ticket-remove" onclick="removeTicket(this)"><i class="fa-solid fa-trash"></i></div>
+        <div class="form-group">
+            <label class="form-label">Ticket Name</label>
+            <input type="text" name="ticketName" class="form-input" placeholder="General Admission" required>
+        </div>
+        <div class="form-grid-2">
             <div class="form-group">
-                <label class="field-label">Ticket Name</label>
-                <input type="text" name="ticketName" class="form-input" placeholder="General Admission" required>
-            </div>
-            <div class="grid-2">
+                <label class="form-label">Price</label>
                 <input type="number" name="ticketPrice" class="form-input tk-price" step="0.01" value="0" placeholder="Price">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Quantity</label>
                 <input type="number" name="ticketQuantity" class="form-input" value="100" placeholder="Quantity">
             </div>
-            <input type="hidden" name="feePayment" value="true">
         </div>
-    </template>
+        <input type="hidden" name="feePayment" value="true">
+    </div>
+</template>
 
-    <script src="/js/event-form.js"></script>
+<script src="/js/event-form.js"></script>

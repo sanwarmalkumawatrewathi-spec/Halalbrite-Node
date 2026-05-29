@@ -4,47 +4,49 @@
 
     <%- contentFor('body') %>
 
-        <div class="form-header-premium pb-0">
-            <div class="header-left">
-                <h1 class="page-title">Connected Organisers</h1>
-                <p class="page-subtitle">Manage Stripe Connect integration for platform organizers</p>
-            </div>
-            <div class="header-actions">
-                <a href="/admin/stripe/dashboard" class="form-btn-cancel" style="width: auto; padding: 10px 20px;">
-                    <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
-                </a>
+        <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div>
+                    <h3 style="margin: 0;">Connected Organisers</h3>
+                    <p class="text-muted" style="margin: 4px 0 0 0; font-size: 0.875rem;">Manage Stripe Connect integration for platform organizers</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <a href="/admin/stripe/dashboard" class="btn btn-outline btn-sm">
+                        <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- Search & Filter Card -->
-        <div class="form-container" style="margin-top: 24px; margin-bottom: 24px; padding: 24px;">
+        <div class="form-container" style="margin-top: 24px; margin-bottom: 24px;">
             <form method="GET" action="/admin/stripe/organizers">
-                <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 250px;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">Search Organizer</label>
+                <div class="admin-filter-bar">
+                    <div class="filter-field filter-field--wide">
+                        <label class="form-label" style="font-size: 0.75rem; text-transform: uppercase;">Search Organizer</label>
                         <div style="position: relative;">
                             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                             </span>
-                            <input type="text" name="search" value="<%= typeof filters !== 'undefined' ? filters.search : '' %>" placeholder="Search by name or email..." style="width: 100%; padding: 10px 14px 10px 36px; border-radius: 8px; border: 1px solid var(--form-border); font-size: 0.875rem; background: var(--input-bg, #fff); color: var(--text-main);" />
+                            <input type="text" name="search" value="<%= typeof filters !== 'undefined' ? filters.search : '' %>" placeholder="Search by name or email..." class="form-input" style="padding-left: 36px;" />
                         </div>
                     </div>
-                    <div style="flex: 1; min-width: 250px;">
-                        <label style="display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">Organizer Email</label>
+                    <div class="filter-field filter-field--wide">
+                        <label class="form-label" style="font-size: 0.75rem; text-transform: uppercase;">Organizer Email</label>
                         <div style="position: relative;">
                             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">
                                 <i class="fa-solid fa-envelope"></i>
                             </span>
-                            <input type="text" name="email" value="<%= typeof filters !== 'undefined' ? filters.email : '' %>" placeholder="Filter by email address..." style="width: 100%; padding: 10px 14px 10px 36px; border-radius: 8px; border: 1px solid var(--form-border); font-size: 0.875rem; background: var(--input-bg, #fff); color: var(--text-main);" />
+                            <input type="text" name="email" value="<%= typeof filters !== 'undefined' ? filters.email : '' %>" placeholder="Filter by email address..." class="form-input" style="padding-left: 36px;" />
                         </div>
                     </div>
-                    <div style="display: flex; gap: 8px;">
+                    <div class="filter-actions">
                         <% if (typeof filters !== 'undefined' && (filters.search || filters.email)) { %>
-                            <a href="/admin/stripe/organizers" class="form-btn-cancel" style="width: auto; padding: 10px 20px; display: flex; align-items: center; gap: 6px; text-decoration: none; border-radius: 99px;">
+                            <a href="/admin/stripe/organizers" class="form-btn-cancel" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
                                 <i class="fa-solid fa-rotate-left"></i> Reset
                             </a>
                         <% } %>
-                        <button type="submit" class="form-btn-submit" style="width: auto; padding: 10px 24px; display: flex; align-items: center; gap: 6px; border-radius: 99px; border: none; cursor: pointer;">
+                        <button type="submit" class="form-btn-submit" style="display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer;">
                             <i class="fa-solid fa-filter"></i> Filter
                         </button>
                     </div>

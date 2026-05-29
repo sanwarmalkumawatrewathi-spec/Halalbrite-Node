@@ -12,103 +12,123 @@
     <form action="/admin/users/save" method="POST" class="space-y-8">
         <% if (user) { %>
             <input type="hidden" name="id" value="<%= user._id %>">
-        <% } %>
+            <% } %>
 
-        <div class="form-section">
-            <span class="section-label">Account Information</span>
-            <div class="form-grid-2">
-                <div class="form-group">
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" value="<%= user ? user.username : '' %>"
-                        class="form-input" placeholder="Choose a unique username" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Email Address</label>
-                    <input type="email" name="email" value="<%= user ? user.email : '' %>" class="form-input"
-                        placeholder="user@example.com" required>
-                </div>
-            </div>
+                <div class="form-section">
+                    <span class="section-label">Account Information</span>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" value="<%= user ? user.username : '' %>"
+                                class="form-input" placeholder="Choose a unique username" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" name="email" value="<%= user ? user.email : '' %>" class="form-input"
+                                placeholder="user@example.com" required>
+                        </div>
+                    </div>
 
-            <div class="form-grid-2">
-                <div class="form-group">
-                    <label class="form-label">Password <%= user ? '(Leave blank to keep current)' : '' %></label>
-                    <input type="password" name="password" class="form-input"
-                        placeholder="<%= user ? '••••••••' : 'Enter strong password' %>" <%=user ? '' : 'required' %>>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Account Status</label>
-                    <select name="status" class="form-select">
-                        <option value="active" <%=user && user.status === 'active' ? 'selected' : '' %>>Active</option>
-                        <option value="inactive" <%=user && user.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
-                        <option value="suspended" <%=user && user.status === 'suspended' ? 'selected' : '' %>>Suspended</option>
-                    </select>
-                </div>
-            </div>
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Password <%= user ? '(Leave blank to keep current)' : '' %>
+                                    </label>
+                            <input type="password" name="password" class="form-input"
+                                placeholder="<%= user ? '••••••••' : 'Enter strong password' %>" <%=user ? ''
+                                : 'required' %>>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Account Status</label>
+                            <select name="status" class="form-select">
+                                <option value="active" <%=user && user.status==='active' ? 'selected' : '' %>>Active
+                                </option>
+                                <option value="inactive" <%=user && user.status==='inactive' ? 'selected' : '' %>
+                                    >Inactive</option>
+                                <option value="suspended" <%=user && user.status==='suspended' ? 'selected' : '' %>
+                                    >Suspended</option>
+                            </select>
+                        </div>
+                    </div>
 
-            <div class="form-group">
-                <label class="form-label">User Role</label>
-                <select name="role" class="form-select" required>
-                    <option value="">Select a Role</option>
-                    <% roles.forEach(role => { %>
-                        <option value="<%= role._id %>" <%= user && user.roles && user.roles.some(r => r._id.toString() === role._id.toString()) ? 'selected' : '' %>><%= role.name %></option>
-                    <% }) %>
-                </select>
-                <p class="form-hint">Administrator has full access, Organizer can manage events, Attendee can book events.</p>
-            </div>
-        </div>
-
-        <div class="form-section">
-            <span class="section-label">Communication Preferences</span>
-            <div class="bg-slate-50 p-6 rounded-xl border border-slate-100 flex flex-wrap gap-8">
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" name="pref_eventUpdates" class="w-5 h-5 accent-primary" <%= !user || user.preferences?.eventUpdates ? 'checked' : '' %>>
-                    <span class="text-sm font-semibold text-slate-700 group-hover:text-primary transition-colors">Event Updates</span>
-                </label>
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" name="pref_promotions" class="w-5 h-5 accent-primary" <%= user && user.preferences?.promotions ? 'checked' : '' %>>
-                    <span class="text-sm font-semibold text-slate-700 group-hover:text-primary transition-colors">Promotions</span>
-                </label>
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <input type="checkbox" name="pref_newsletter" class="w-5 h-5 accent-primary" <%= !user || user.preferences?.newsletter ? 'checked' : '' %>>
-                    <span class="text-sm font-semibold text-slate-700 group-hover:text-primary transition-colors">Newsletter</span>
-                </label>
-            </div>
-        </div>
-
-        <div class="form-section">
-            <span class="section-label">Organiser Profile (Optional)</span>
-            <div class="form-group">
-                <label class="form-label">Organiser Bio / Description</label>
-                <textarea name="bio" class="form-textarea" rows="4" placeholder="Tell users about this organiser..."><%= user ? user.bio : '' %></textarea>
-            </div>
-
-            <div class="form-grid-2">
-                <div class="form-group">
-                    <label class="form-label">Website URL</label>
-                    <input type="url" name="website" value="<%= user?.socialLinks?.website || '' %>" class="form-input" placeholder="https://example.com">
+                    <div class="form-group">
+                        <label class="form-label">User Role</label>
+                        <select name="role" class="form-select" required>
+                            <option value="">Select a Role</option>
+                            <% roles.forEach(role=> { %>
+                                <option value="<%= role._id %>" <%=user && user.roles && user.roles.some(r=>
+                                    r._id.toString() === role._id.toString()) ? 'selected' : '' %>><%= role.name %>
+                                </option>
+                                <% }) %>
+                        </select>
+                        <p class="form-hint">Administrator has full access, Organizer can manage events, Attendee can
+                            book events.</p>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Facebook URL</label>
-                    <input type="url" name="facebook" value="<%= user?.socialLinks?.facebook || '' %>" class="form-input" placeholder="https://facebook.com/page">
-                </div>
-            </div>
 
-            <div class="form-grid-2">
-                <div class="form-group">
-                    <label class="form-label">Instagram URL</label>
-                    <input type="url" name="instagram" value="<%= user?.socialLinks?.instagram || '' %>" class="form-input" placeholder="https://instagram.com/profile">
+                <div class="form-section">
+                    <span class="section-label">Communication Preferences</span>
+                    <div class="bg-slate-50 p-6 rounded-xl border border-slate-100 flex flex-wrap gap-8 form-preference-box">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" name="pref_eventUpdates" class="w-5 h-5 accent-primary" <%=!user ||
+                                user.preferences?.eventUpdates ? 'checked' : '' %>>
+                            <span
+                                class="text-sm font-semibold text-slate-700 group-hover:text-primary transition-colors">Event
+                                Updates</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" name="pref_promotions" class="w-5 h-5 accent-primary" <%=user &&
+                                user.preferences?.promotions ? 'checked' : '' %>>
+                            <span
+                                class="text-sm font-semibold text-slate-700 group-hover:text-primary transition-colors">Promotions</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" name="pref_newsletter" class="w-5 h-5 accent-primary" <%=!user ||
+                                user.preferences?.newsletter ? 'checked' : '' %>>
+                            <span
+                                class="text-sm font-semibold text-slate-700 group-hover:text-primary transition-colors">Newsletter</span>
+                        </label>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Twitter / X URL</label>
-                    <input type="url" name="twitter" value="<%= user?.socialLinks?.twitter || '' %>" class="form-input" placeholder="https://twitter.com/profile">
-                </div>
-            </div>
-        </div>
 
-        <div class="flex justify-end pt-8 border-t border-slate-100">
-            <button type="submit" class="form-btn-submit">
-                <%= user ? 'Update User Account' : 'Create User Account' %>
-            </button>
-        </div>
+                <div class="form-section">
+                    <span class="section-label">Organiser Profile (Optional)</span>
+                    <div class="form-group">
+                        <label class="form-label">Organiser Bio / Description</label>
+                        <textarea name="bio" class="form-textarea" rows="4"
+                            placeholder="Tell users about this organiser..."><%= user ? user.bio : '' %></textarea>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Website URL</label>
+                            <input type="url" name="website" value="<%= user?.socialLinks?.website || '' %>"
+                                class="form-input" placeholder="https://example.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Facebook URL</label>
+                            <input type="url" name="facebook" value="<%= user?.socialLinks?.facebook || '' %>"
+                                class="form-input" placeholder="https://facebook.com/page">
+                        </div>
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Instagram URL</label>
+                            <input type="url" name="instagram" value="<%= user?.socialLinks?.instagram || '' %>"
+                                class="form-input" placeholder="https://instagram.com/profile">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Twitter / X URL</label>
+                            <input type="url" name="twitter" value="<%= user?.socialLinks?.twitter || '' %>"
+                                class="form-input" placeholder="https://twitter.com/profile">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-8 border-t border-slate-100 form-footer">
+                    <button type="submit" class="form-btn-submit">
+                        <%= user ? 'Update User Account' : 'Create User Account' %>
+                    </button>
+                </div>
     </form>
 </div>

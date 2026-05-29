@@ -50,15 +50,15 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Status</label>
-                    <label class="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer hover:border-primary transition-colors mt-2">
+                    <label class="form-checkbox-card">
                         <input type="checkbox" name="isActive" <%= (faq && !faq.isActive) ? '' : 'checked' %> class="w-5 h-5 accent-primary">
-                        <span class="text-sm font-bold text-slate-700">Active / Visible on site</span>
+                        <span>Active / Visible on site</span>
                     </label>
                 </div>
             </div>
         </div>
 
-        <div class="flex justify-end pt-8 border-t border-slate-100">
+        <div class="flex justify-end pt-8 border-t border-slate-100 form-footer">
             <button type="submit" class="form-btn-submit">
                 <%= faq ? 'Update FAQ' : 'Create FAQ' %>
             </button>

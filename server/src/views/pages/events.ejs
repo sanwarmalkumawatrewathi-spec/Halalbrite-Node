@@ -4,9 +4,11 @@
   const organizersArr = typeof organizers !== 'undefined' ? organizers : [];
   const queryStr = typeof queryString !== 'undefined' ? queryString : '';
 %>
-<div class="card">
+<div class="card" style="margin-bottom: 24px;">
     <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <h3>Global Event Management</h3>
+        <div>
+            <h3 style="margin: 0;">Global Event Management</h3>
+        </div>
         <div style="display: flex; gap: 8px;">
             <a href="/admin/events/export<%= queryStr ? '?' + queryStr : '' %>" class="btn btn-outline btn-sm">
                 <i class="fa-solid fa-file-csv"></i> Export to CSV
@@ -14,12 +16,14 @@
             <a href="/admin/events/add" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Add New Event</a>
         </div>
     </div>
-    
+</div>
+
+<div class="form-container">
     <!-- Premium Search & Filter Bar -->
-    <form method="GET" action="/admin/events" class="bg-[var(--card-bg)] border-b border-[var(--border-color)] p-4 sm:p-6">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+    <form method="GET" action="/admin/events" class="bg-[var(--card-bg)] border-b border-[var(--border-color)] p-4 sm:p-6 mb-6 rounded-2xl border border-[var(--border-color)]">
+        <div class="admin-filter-bar">
             <!-- Search bar -->
-            <div class="md:col-span-3">
+            <div class="filter-field filter-field--wide">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Search Event Info</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[var(--text-muted)]">
@@ -30,7 +34,7 @@
             </div>
 
             <!-- Organizer Filter -->
-            <div class="md:col-span-2">
+            <div class="filter-field">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Organizer</label>
                 <select name="organizer" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)] cursor-pointer">
                     <option value="" class="bg-[var(--card-bg)] text-[var(--text-main)]">All Organizers</option>
@@ -41,7 +45,7 @@
             </div>
 
             <!-- Organizer Email Filter -->
-            <div class="md:col-span-2">
+            <div class="filter-field">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Organizer Email</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-[var(--text-muted)]">
@@ -52,7 +56,7 @@
             </div>
 
             <!-- Category Filter -->
-            <div class="md:col-span-2">
+            <div class="filter-field">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Category</label>
                 <select name="category" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)] cursor-pointer">
                     <option value="" class="bg-[var(--card-bg)] text-[var(--text-main)]">All Categories</option>
@@ -63,7 +67,7 @@
             </div>
 
             <!-- Status Filter -->
-            <div class="md:col-span-1">
+            <div class="filter-field">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Status</label>
                 <select name="status" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)] cursor-pointer">
                     <option value="" class="bg-[var(--card-bg)] text-[var(--text-main)]">All Statuses</option>
@@ -75,30 +79,31 @@
             </div>
 
             <!-- Start Date From Filter -->
-            <div class="md:col-span-1">
+            <div class="filter-field">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Date From</label>
                 <input type="date" name="startDateFrom" value="<%= filtersObj.startDateFrom %>" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)]" />
             </div>
 
             <!-- Start Date To Filter -->
-            <div class="md:col-span-1">
+            <div class="filter-field">
                 <label class="block text-xs font-bold uppercase tracking-wider text-[var(--text-muted)] mb-2">Date To</label>
                 <input type="date" name="startDateTo" value="<%= filtersObj.startDateTo %>" class="w-full px-3 py-2 rounded-lg border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-[var(--primary)] text-sm bg-[var(--card-bg)] transition-all text-[var(--text-main)]" />
             </div>
-        </div>
-        
-        <div class="flex flex-wrap gap-2 mt-4 justify-end">
-            <% if (filtersObj.search || filtersObj.category || filtersObj.organizer || filtersObj.organizerEmail || filtersObj.status || filtersObj.startDateFrom || filtersObj.startDateTo) { %>
-                <a href="/admin/events" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[var(--text-main)] font-semibold text-sm transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-rotate-left"></i> Reset
-                </a>
-            <% } %>
-            <button type="submit" class="px-5 py-2 rounded-lg bg-primary hover:bg-primary/95 text-white font-semibold text-sm transition-all shadow-md shadow-primary/10 flex items-center gap-2">
-                <i class="fa-solid fa-filter"></i> Apply Filters
-            </button>
+
+            <div class="filter-actions">
+                <% if (filtersObj.search || filtersObj.category || filtersObj.organizer || filtersObj.organizerEmail || filtersObj.status || filtersObj.startDateFrom || filtersObj.startDateTo) { %>
+                    <a href="/admin/events" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[var(--text-main)] font-semibold text-sm transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-left"></i> Reset
+                    </a>
+                <% } %>
+                <button type="submit" class="px-5 py-2 rounded-lg bg-primary hover:bg-primary/95 text-white font-semibold text-sm transition-all shadow-md shadow-primary/10 flex items-center gap-2">
+                    <i class="fa-solid fa-filter"></i> Apply Filters
+                </button>
+            </div>
         </div>
     </form>
 
+    <div class="form-section-card">
     <div class="table-responsive">
         <table>
             <thead>
@@ -202,4 +207,5 @@
             </div>
         </div>
     <% } %>
+    </div>
 </div>

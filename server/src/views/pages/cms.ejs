@@ -1,33 +1,38 @@
-<div class="card">
+<div class="card" style="margin-bottom: 24px;">
     <div class="card-header">
-        <h3>Static Pages (SEO Management)</h3>
+        <h3 style="margin: 0;">Static Pages (SEO Management)</h3>
     </div>
-    <div class="table-responsive">
-        <table>
-            <thead>
-                <tr>
-                    <th>Page Title</th>
-                    <th>Slug</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% if (pages.length === 0) { %>
-                    <tr><td colspan="3" class="text-center text-muted" style="padding: 3rem;">No static pages found.</td></tr>
-                <% } else { %>
-                    <% pages.forEach(page => { %>
-                        <tr>
-                            <td><span class="customer-name"><%= page.title %></span></td>
-                            <td class="text-muted"><code>/<%= page.slug %></code></td>
-                            <td>
-                                <div style="display: flex; gap: 8px;">
-                                    <a href="/admin/cms/edit/<%= page._id %>" class="btn btn-sm btn-ghost" title="Edit SEO"><i class="fa-solid fa-pen-to-square"></i></a>
-                                </div>
-                            </td>
-                        </tr>
-                    <% }) %>
-                <% } %>
-            </tbody>
-        </table>
+</div>
+
+<div class="form-container">
+    <div class="form-section-card">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Page Title</th>
+                        <th>Slug</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (pages.length === 0) { %>
+                        <tr><td colspan="3" class="text-center text-muted" style="padding: 3rem;">No static pages found.</td></tr>
+                    <% } else { %>
+                        <% pages.forEach(page => { %>
+                            <tr>
+                                <td><span class="customer-name"><%= page.title %></span></td>
+                                <td class="text-muted"><code>/<%= page.slug %></code></td>
+                                <td>
+                                    <div style="display: flex; gap: 8px;">
+                                        <a href="/admin/cms/edit/<%= page._id %>" class="btn btn-sm btn-ghost" title="Edit SEO"><i class="fa-solid fa-pen-to-square"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
