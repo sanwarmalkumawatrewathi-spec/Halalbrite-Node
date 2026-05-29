@@ -115,7 +115,7 @@ export default function EventCard({
 
       {/* Content */}
       <div className="p-4 flex-1 flex flex-col gap-1">
-        <h3 className="text-red-900 mb-0.5 line-clamp-2 text-sm sm:text-base font-bold">
+        <h3 className="text-red-900 mb-2 text-[20px] capitalize">
           {title}
         </h3>
 

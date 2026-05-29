@@ -42,7 +42,7 @@ export default function FilterBar({ filters, setFilters }: { filters: any, setFi
   const hasActiveFilters = filters.search || filters.category || filters.city || filters.startDate || filters.endDate || filters.minPrice || filters.maxPrice;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 mb-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-4 mb-0">
       <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
 
         {/* Main Search Bar */}
@@ -52,7 +52,7 @@ export default function FilterBar({ filters, setFilters }: { filters: any, setFi
             <input
               type="text"
               placeholder="Search events by name, organiser or venue..."
-              className="w-full pl-12  pr-4 py-4 bg-gray-50 border-[1px solid red !important] border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:bg-white focus:border-red-500 transition-all text-sm font-medium"
+              className="w-full pl-12  pr-4 py-3 bg-gray-50 border-[1px solid red !important] border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-red-500/20 focus:bg-white focus:border-red-500 transition-all text-sm font-medium"
               value={filters.search}
               onChange={handleSearchChange}
             />
@@ -61,7 +61,7 @@ export default function FilterBar({ filters, setFilters }: { filters: any, setFi
           <div className="flex items-center gap-3 w-auto">
             <button
               onClick={() => setOpen(!open)}
-              className={`flex btnhight items-center justify-center gap-2 px-6 py-4 rounded-xl font-bold text-sm transition-all whitespace-nowrap w-full md:w-auto ${open
+              className={`flex btnhight items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all whitespace-nowrap w-full md:w-auto ${open
                 ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
                 : 'bg-white border-2 border-red-500 text-red-500 hover:bg-red-50'
                 }`}

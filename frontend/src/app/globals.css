@@ -162,3 +162,6 @@ textarea {
   margin: 0 !important;
   display: block !important;
 }
+.bg-card{
+    background-color: #fff;
+}

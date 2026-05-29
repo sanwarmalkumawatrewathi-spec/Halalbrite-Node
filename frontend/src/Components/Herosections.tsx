@@ -119,15 +119,15 @@ export default function Herosections({
           </div>
 
           {/* Location Dropdown */}
-          <div className='mt-8 relative z-[100] flex justify-center items-center'>
-            <div className="relative w-full" ref={dropdownRef}>
+          <div className='mt-8 relative z-[100] flex justify-center items-center w-full'>
+            <div className="relative w-full max-w-[150px]" ref={dropdownRef}>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   setIsOpen(!isOpen);
                 }}
-                className={`min-h-[32px] border border-gray-300 rounded-md bg-white cursor-pointer flex flex-wrap gap-1 items-center px-3 py-1.5 mt-2 opacity-90 w-full max-w-96 ${isOpen ? 'border-red-500 ring-4 ring-red-500/10' : 'border-transparent hover:bg-white'} group`}
+                className={`min-h-[32px] border border-gray-300 rounded-md bg-white cursor-pointer flex flex-wrap gap-1 items-center px-3 py-1.5 mt-2 opacity-90 w-full ${isOpen ? 'border-red-500 ring-4 ring-red-500/10' : 'border-transparent hover:bg-white'} group`}
               >
                 <LocationIcon size={22} className={`${selectedCities.length > 0 ? 'text-red-500' : 'text-gray-400'} group-hover:scale-110 transition-all`} />
                 <span className="flex-1 text-left truncate">
@@ -142,7 +142,7 @@ export default function Herosections({
 
               {/* Dropdown Menu */}
               {isOpen && (
-                <div className="absolute top-full w-[300px] left-0 right-0 mt-4 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-[calc(100vw-2rem)] max-w-[calc(100vw-2rem)] md:left-0 md:translate-x-0 md:w-[380px] md:max-w-[380px] mt-4 bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden z-50 animate-in fade-in slide-in-from-top-4 duration-300">
 
                   {/* Search Inside Dropdown */}
                   <div className="p-5 bg-gray-50/50 border-b border-gray-100">
@@ -160,7 +160,7 @@ export default function Herosections({
                   </div>
 
                   {/* Countries & Cities List */}
-                  <div className="max-h-[400px] overflow-y-auto custom-scrollbar bg-white">
+                  <div className="max-h-[min(400px,calc(100dvh-14rem))] md:max-h-[400px] overflow-y-auto custom-scrollbar bg-white">
                     {filteredLocations.length > 0 ? (
                       filteredLocations.map((countryData, idx) => (
                         <div key={idx} className="border-b border-gray-50 last:border-0">
@@ -177,7 +177,7 @@ export default function Herosections({
                               <div className={`p-1 rounded-lg transition-colors ${expandedCountry === countryData.country ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-400'}`}>
                                 <IoChevronForwardOutline className={`transition-transform duration-300 ${expandedCountry === countryData.country ? 'rotate-90' : ''}`} size={14} />
                               </div>
-                              <span className={`text-sm font-bold tracking-wide uppercase ${expandedCountry === countryData.country ? 'text-red-700' : 'text-gray-600'}`}>
+                              <span className={`text-sm font-bold tracking-wide uppercase text-left ${expandedCountry === countryData.country ? 'text-red-700' : 'text-gray-600'}`}>
                                 {countryData.country}
                               </span>
                             </div>
@@ -200,7 +200,7 @@ export default function Herosections({
                                       e.stopPropagation();
                                       handleToggleCity(city.name);
                                     }}
-                                    className={`w-full px-12 py-3.5 text-left text-sm cursor-pointer flex items-center justify-between transition-all group ${isSelected ? 'bg-red-50/60' : 'hover:bg-gray-50/50'}`}
+                                    className={`w-full px-6 py-3.5 text-left text-sm cursor-pointer flex items-center justify-between transition-all group ${isSelected ? 'bg-red-50/60' : 'hover:bg-gray-50/50'}`}
                                   >
                                     <div className="flex items-center gap-4">
                                       <div className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center ${isSelected ? 'bg-red-500 border-red-500 shadow-lg shadow-red-500/30' : 'border-gray-200 group-hover:border-red-300 bg-white'}`}>
